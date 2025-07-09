@@ -100,4 +100,7 @@ export interface Translations {
   signInToContinue: string;
   signInWithGoogle: string;
   unauthorizedDomainError: string;
+  // New translations
+  home: string;
+  back: string;
 }

@@ -58,5 +58,7 @@
   "signOut": "Cerrar Sesión",
   "signInToContinue": "Inicia sesión para continuar a tu libro de cuentas",
   "signInWithGoogle": "Iniciar sesión con Google",
-  "unauthorizedDomainError": "Este dominio no está autorizado. Ve a la sección Authentication > Settings > Dominios autorizados de tu proyecto de Firebase y añade el dominio que estás utilizando actualmente. Recuerda reiniciar el servidor si cambias las variables de entorno."
+  "unauthorizedDomainError": "Este dominio no está autorizado. Ve a la sección Authentication > Settings > Dominios autorizados de tu proyecto de Firebase y añade el dominio que estás utilizando actualmente. Recuerda reiniciar el servidor si cambias las variables de entorno.",
+  "home": "Inicio",
+  "back": "Volver"
 }

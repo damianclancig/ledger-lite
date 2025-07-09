@@ -58,5 +58,7 @@
   "signOut": "Sign Out",
   "signInToContinue": "Sign in to continue to your ledger",
   "signInWithGoogle": "Sign in with Google",
-  "unauthorizedDomainError": "This domain is not authorized. Go to your Firebase project's Authentication > Settings > Authorized domains and add the domain you are currently using. Remember to restart the server if you change environment variables."
+  "unauthorizedDomainError": "This domain is not authorized. Go to your Firebase project's Authentication > Settings > Authorized domains and add the domain you are currently using. Remember to restart the server if you change environment variables.",
+  "home": "Home",
+  "back": "Back"
 }

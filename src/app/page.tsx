@@ -1,8 +1,8 @@
 
 "use client";
 
-import type { SetStateAction } from "react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from 'next/navigation';
 import type { Transaction, TransactionType, Category } from "@/types";
 import { CATEGORIES } from "@/types";
 import { TransactionList } from "@/components/transactions/TransactionList";
@@ -15,7 +15,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,7 +34,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
-import { getTransactions, addTransaction, updateTransaction, deleteTransaction } from "@/app/actions";
+import { getTransactions, updateTransaction, deleteTransaction } from "@/app/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -45,6 +44,7 @@ export default function LedgerPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -73,7 +73,6 @@ export default function LedgerPage() {
       }
       setIsLoading(true);
       const initialTransactions = await getTransactions(user.uid);
-      // Dates from server actions are returned as Date objects.
       const parsed = initialTransactions.map((t) => ({
         ...t,
         date: new Date(t.date),
@@ -84,31 +83,18 @@ export default function LedgerPage() {
     loadTransactions();
   }, [user]);
 
-  const handleFormSubmit = async (values: TransactionFormValues) => {
-    if (!user) {
-      toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive" });
-      return;
-    }
+  const handleUpdateSubmit = async (values: TransactionFormValues) => {
+    if (!user || !editingTransaction) return;
 
-    let result;
-    if (editingTransaction) {
-        result = await updateTransaction(editingTransaction.id, values, user.uid);
-    } else {
-        result = await addTransaction(values, user.uid);
-    }
+    const result = await updateTransaction(editingTransaction.id, values, user.uid);
 
     if (result && 'error' in result) {
         toast({ title: "Error", description: result.error, variant: "destructive" });
     } else if(result) {
-        const updatedOrNewTransaction = { ...result, date: new Date(result.date) };
+        const updatedTransaction = { ...result, date: new Date(result.date) };
+        setTransactions(transactions.map((t) => (t.id === editingTransaction.id ? updatedTransaction : t)));
+        toast({ title: "Transaction updated", description: "Your transaction has been successfully updated." });
         
-        if (editingTransaction) {
-            setTransactions(transactions.map((t) => (t.id === editingTransaction.id ? updatedOrNewTransaction : t)));
-            toast({ title: "Transaction updated", description: "Your transaction has been successfully updated." });
-        } else {
-            setTransactions((prev) => [updatedOrNewTransaction, ...prev]);
-            toast({ title: "Transaction added", description: "New transaction successfully recorded." });
-        }
         setIsFormOpen(false);
         setEditingTransaction(null);
     }
@@ -174,32 +160,10 @@ export default function LedgerPage() {
             <Filter className="h-5 w-5 mr-2 text-primary" />
             Filters
           </CardTitle>
-           <Dialog open={isFormOpen} onOpenChange={(open) => {
-            setIsFormOpen(open);
-            if (!open) setEditingTransaction(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsFormOpen(true)} className="bg-primary hover:bg-primary/90">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                {translations.addTransaction}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg border-2 border-primary shadow-xl">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTransaction ? translations.editTransaction : translations.addTransaction}
-                </DialogTitle>
-              </DialogHeader>
-              <TransactionForm
-                onSubmit={handleFormSubmit}
-                initialData={editingTransaction || undefined}
-                onClose={() => {
-                  setIsFormOpen(false);
-                  setEditingTransaction(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+           <Button onClick={() => router.push('/add-transaction')} className="bg-primary hover:bg-primary/90">
+            <PlusCircle className="mr-2 h-5 w-5" />
+            {translations.addTransaction}
+          </Button>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
@@ -279,6 +243,24 @@ export default function LedgerPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+      
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-lg border-2 border-primary shadow-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {translations.editTransaction}
+            </DialogTitle>
+          </DialogHeader>
+          <TransactionForm
+            onSubmit={handleUpdateSubmit}
+            initialData={editingTransaction || undefined}
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingTransaction(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       <DeleteConfirmationDialog
         isOpen={!!deletingTransactionId}
