@@ -48,9 +48,9 @@ export function TransactionList({
 
   const formatDate = (date: Date) => {
     try {
-      return format(date, "PPP", { locale: locales[language] || enUS });
+      return format(date, "dd/MM/yyyy", { locale: locales[language] || enUS });
     } catch (e) {
-      return format(new Date(), "PPP"); // Fallback to default locale if specific one fails
+      return format(new Date(), "dd/MM/yyyy"); // Fallback to default locale if specific one fails
     }
   };
   

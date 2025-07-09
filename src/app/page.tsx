@@ -27,7 +27,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Filter, CalendarIcon, Search, Loader2 } from "lucide-react";
+import { Plus, Filter, CalendarIcon, Search, Loader2 } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { getTransactions, updateTransaction, deleteTransaction } from "@/app/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useScrollDirection } from "@/hooks/use-scroll-direction";
 
 
 export default function LedgerPage() {
@@ -45,6 +46,8 @@ export default function LedgerPage() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const router = useRouter();
+  const scrollDirection = useScrollDirection();
+  
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -151,19 +154,16 @@ export default function LedgerPage() {
   }
 
   return (
+    <>
     <div className="space-y-8">
       <TotalsDisplay transactions={filteredTransactions} />
 
       <Card className="shadow-xl border-2 border-primary">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="h-5 w-5 mr-2 text-primary" />
-            Filters
+            {translations.transactions}
           </CardTitle>
-           <Button onClick={() => router.push('/add-transaction')} className="bg-primary hover:bg-primary/90">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            {translations.addTransaction}
-          </Button>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
@@ -268,5 +268,20 @@ export default function LedgerPage() {
         onConfirm={confirmDelete}
       />
     </div>
+
+    <Button
+      onClick={() => router.push('/add-transaction')}
+      className={cn(
+        "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-all duration-300 ease-in-out hover:w-56 hover:bg-primary/90 gap-0 hover:gap-2",
+        scrollDirection === "down" ? "scale-0" : "scale-100"
+      )}
+      aria-label={translations.addTransaction}
+    >
+      <Plus className="h-8 w-8 text-primary-foreground transition-transform duration-300 group-hover:rotate-90" strokeWidth={3} />
+      <span className="w-0 overflow-hidden whitespace-nowrap text-lg font-semibold text-primary-foreground opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
+        {translations.addTransaction}
+      </span>
+    </Button>
+    </>
   );
 }
