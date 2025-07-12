@@ -60,5 +60,13 @@
   "signInWithGoogle": "Sign in with Google",
   "unauthorizedDomainError": "This domain is not authorized. Go to your Firebase project's Authentication > Settings > Authorized domains and add the domain you are currently using. Remember to restart the server if you change environment variables.",
   "home": "Home",
-  "back": "Back"
+  "back": "Back",
+  "descriptionRequired": "Description is required",
+  "descriptionMaxLength": "Description cannot exceed 100 characters",
+  "amountRequired": "Amount is required",
+  "amountPositive": "Amount must be a positive number",
+  "dateRequired": "A date is required",
+  "categoryRequired": "A category is required",
+  "typeRequired": "A type is required",
+  "paymentTypeRequired": "A payment type is required"
 }

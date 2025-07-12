@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es, pt, enUS } from "date-fns/locale";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,21 +34,12 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard } from "lucide-react";
-import type { Transaction, Category, PaymentType, TransactionType } from "@/types";
+import type { Transaction, Category, PaymentType, TransactionType, Translations } from "@/types";
 import { CATEGORIES, PAYMENT_TYPES } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
 
-const formSchema = z.object({
-  description: z.string().min(1, { message: "Description is required." }).max(100),
-  amount: z.coerce.number().positive({ message: "Amount must be positive." }),
-  date: z.date({ required_error: "Date is required." }),
-  category: z.enum(CATEGORIES, { required_error: "Category is required." }),
-  type: z.enum(["income", "expense"], { required_error: "Type is is required." }),
-  paymentType: z.enum(PAYMENT_TYPES, { required_error: "Payment type is required." }),
-});
-
-export type TransactionFormValues = z.infer<typeof formSchema>;
+export type TransactionFormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface TransactionFormProps {
   onSubmit: (values: TransactionFormValues) => void;
@@ -56,22 +47,29 @@ interface TransactionFormProps {
   onClose: () => void;
 }
 
+const getFormSchema = (translations: Translations) => z.object({
+  description: z.string().min(1, { message: translations.descriptionRequired }).max(100, { message: translations.descriptionMaxLength }),
+  amount: z.coerce
+    .number({ invalid_type_error: translations.amountRequired })
+    .positive({ message: translations.amountPositive }),
+  date: z.date({ required_error: translations.dateRequired }),
+  category: z.enum(CATEGORIES, { required_error: translations.categoryRequired }),
+  type: z.enum(["income", "expense"], { required_error: translations.typeRequired }),
+  paymentType: z.enum(PAYMENT_TYPES, { required_error: translations.paymentTypeRequired }),
+});
+
 export function TransactionForm({ onSubmit, initialData, onClose }: TransactionFormProps) {
   const { translations, translateCategory, translatePaymentType, language } = useTranslations();
   const [isCalendarOpen, setCalendarOpen] = React.useState(false);
+  const [displayAmount, setDisplayAmount] = useState<string>("");
 
-  const locales = {
-    en: enUS,
-    es: es,
-    pt: pt,
-  };
-  const currentLocale = locales[language] || enUS;
+  const formSchema = getFormSchema(translations);
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: initialData?.description || "",
-      amount: initialData?.amount || undefined,
+      amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       category: initialData?.category || CATEGORIES[0],
       type: initialData?.type || "expense",
@@ -79,10 +77,78 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
     },
   });
 
+  const formatNumberWithCommas = (numStr: string): string => {
+    if (!numStr) return '';
+    const [integerPart, decimalPart] = numStr.split('.');
+    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (decimalPart !== undefined) {
+      return `${formattedIntegerPart}.${decimalPart}`;
+    }
+    return formattedIntegerPart;
+  };
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        date: initialData.date ? new Date(initialData.date) : new Date(),
+      });
+      if (initialData.amount) {
+        setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
+      } else {
+        setDisplayAmount("");
+      }
+    } else {
+      form.reset({
+        description: "",
+        amount: undefined,
+        date: new Date(),
+        category: CATEGORIES[0],
+        type: "expense",
+        paymentType: PAYMENT_TYPES[0],
+      });
+      setDisplayAmount("");
+    }
+  }, [initialData, form.reset]);
+  
+  const locales = {
+    en: enUS,
+    es: es,
+    pt: pt,
+  };
+  const currentLocale = locales[language] || enUS;
+
   const handleSubmit = (values: TransactionFormValues) => {
     onSubmit(values);
-    form.reset();
   };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    // 1. Clean the input to get only the numeric value string
+    let numericValue = rawValue.replace(/[^0-9.]/g, '');
+    const parts = numericValue.split('.');
+    
+    // Ensure we only have one decimal point
+    if (parts.length > 2) {
+      numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
+    }
+
+    // Limit decimal part to 2 digits
+    if (parts[1] && parts[1].length > 2) {
+      parts[1] = parts[1].substring(0, 2);
+      numericValue = parts.join('.');
+    }
+    
+    // 2. Format for display
+    const formattedDisplay = formatNumberWithCommas(numericValue);
+    setDisplayAmount(formattedDisplay);
+    
+    // 3. Update form state with the actual number
+    const valueForForm = numericValue.replace(/,/g, '');
+    const parsedNumber = parseFloat(valueForForm);
+    form.setValue('amount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
+  };
+  
 
   return (
     <Form {...form}>
@@ -109,7 +175,14 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
               <FormItem>
                 <FormLabel><DollarSign className="inline-block mr-2 h-4 w-4" />{translations.amount}</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={displayAmount}
+                    onChange={handleAmountChange}
+                    onBlur={field.onBlur} // Keep onBlur for validation triggers
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

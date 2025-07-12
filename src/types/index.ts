@@ -103,4 +103,13 @@ export interface Translations {
   // New translations
   home: string;
   back: string;
+  // Validation messages
+  descriptionRequired: string;
+  descriptionMaxLength: string;
+  amountRequired: string;
+  amountPositive: string;
+  dateRequired: string;
+  categoryRequired: string;
+  typeRequired: string;
+  paymentTypeRequired: string;
 }

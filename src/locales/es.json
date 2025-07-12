@@ -60,5 +60,13 @@
   "signInWithGoogle": "Iniciar sesión con Google",
   "unauthorizedDomainError": "Este dominio no está autorizado. Ve a la sección Authentication > Settings > Dominios autorizados de tu proyecto de Firebase y añade el dominio que estás utilizando actualmente. Recuerda reiniciar el servidor si cambias las variables de entorno.",
   "home": "Inicio",
-  "back": "Volver"
+  "back": "Volver",
+  "descriptionRequired": "La descripción es obligatoria",
+  "descriptionMaxLength": "La descripción no puede superar los 100 caracteres",
+  "amountRequired": "El monto es obligatorio",
+  "amountPositive": "El monto debe ser un número positivo",
+  "dateRequired": "La fecha es obligatoria",
+  "categoryRequired": "La categoría es obligatoria",
+  "typeRequired": "El tipo es obligatorio",
+  "paymentTypeRequired": "El tipo de pago es obligatorio"
 }
