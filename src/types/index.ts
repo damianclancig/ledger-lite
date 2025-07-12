@@ -1,4 +1,3 @@
-
 export type TransactionType = "income" | "expense";
 
 export const CATEGORIES = [
@@ -35,7 +34,27 @@ export interface Transaction {
 }
 
 export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
+
+// Tax types
+export interface Tax {
+  id: string;
+  userId: string;
+  name: string;
+  month: number; // 0 for January, 11 for December
+  amount: number;
+  date: Date; // The date the record was created, for sorting
+}
+
+export type TaxFormValues = Omit<Tax, "id" | "userId" | "date">;
+
 export type Language = "en" | "es" | "pt";
+
+export const MONTHS = [
+  "January", "February", "March", "April", "May", "June", 
+  "July", "August", "September", "October", "November", "December"
+] as const;
+export type Month = (typeof MONTHS)[number];
+
 
 export interface Translations {
   appName: string;
@@ -112,4 +131,30 @@ export interface Translations {
   categoryRequired: string;
   typeRequired: string;
   paymentTypeRequired: string;
+  // Tax-related translations
+  taxes: string;
+  newTax: string;
+  taxName: string;
+  month: string;
+  monthRegistered: string;
+  amountOfMonth: string;
+  noTaxes: string;
+  taxNameRequired: string;
+  monthRequired: string;
+  selectTax: string;
+  searchTax: string;
+  noTaxFound: string;
+  // Months
+  January: string;
+  February: string;
+  March: string;
+  April: string;
+  May: string;
+  June: string;
+  July: string;
+  August: string;
+  September: string;
+  October: string;
+  November: string;
+  December: string;
 }

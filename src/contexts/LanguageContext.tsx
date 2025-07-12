@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { Language, Translations, Category, PaymentType } from "@/types";
+import { MONTHS } from "@/types";
 
 import enTranslations from "@/locales/en.json";
 import esTranslations from "@/locales/es.json";
@@ -15,6 +16,7 @@ interface LanguageContextType {
   translations: Translations;
   translateCategory: (category: Category) => string;
   translatePaymentType: (paymentType: PaymentType) => string;
+  translateMonth: (monthIndex: number) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -64,10 +66,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
      const key = paymentType === "Other" ? "OtherPaymentType" : paymentType.replace(/\s/g, '');
     return translations[key as keyof Translations] || paymentType;
   }, [translations]);
+  
+  const translateMonth = useCallback((monthIndex: number): string => {
+    const monthName = MONTHS[monthIndex];
+    return translations[monthName as keyof Translations] || monthName;
+  }, [translations]);
 
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, translations, translateCategory, translatePaymentType }}>
+    <LanguageContext.Provider value={{ language, setLanguage, translations, translateCategory, translatePaymentType, translateMonth }}>
       {children}
     </LanguageContext.Provider>
   );

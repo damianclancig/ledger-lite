@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { LogOut, Menu, Home, PlusCircle } from "lucide-react";
+import { LogOut, Menu, Home, PlusCircle, Landmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -38,6 +38,12 @@ export function Header() {
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
                   <span>{translations.home}</span>
+                </Link>
+              </DropdownMenuItem>
+               <DropdownMenuItem asChild>
+                <Link href="/taxes">
+                  <Landmark className="mr-2 h-4 w-4" />
+                  <span>{translations.taxes}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
