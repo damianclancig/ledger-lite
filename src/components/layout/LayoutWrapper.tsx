@@ -21,9 +21,14 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we are on the login page, render only the children without header/main wrappers
+  // If we are on the login page, render the page content and the footer
   if (isLoginPage) {
-    return <>{children}</>;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </div>
+    );
   }
   
   // If we are not on login page, but there's no user, we are in a redirect state.
@@ -36,7 +41,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If user is authenticated, show the main layout
+  // If user is authenticated, show the main layout with header and footer
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
