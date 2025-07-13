@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Header } from "./Header";
+import { Footer } from "./Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { BackgroundWrapper } from "./BackgroundWrapper";
@@ -44,6 +45,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </BackgroundWrapper>
+      <Footer />
     </div>
   );
 }

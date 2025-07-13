@@ -25,12 +25,12 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="container flex h-16 items-center justify-between max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-3">
-                <Menu className="h-6 w-6 text-primary" />
+              <Button variant="ghost" size="icon" className="mr-3 sm:mr-4">
+                <Menu className="h-6 w-6 text-primary" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
@@ -59,7 +59,7 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/" className="text-2xl font-bold text-primary no-underline transition-colors duration-300 hover:text-accent">
+          <Link href="/" className="text-xl sm:text-2xl font-bold text-primary no-underline transition-colors duration-300 hover:text-accent">
             {translations.appName}
           </Link>
         </div>

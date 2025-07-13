@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 
 interface AggregatedTax {
@@ -154,13 +155,13 @@ export default function TaxesPage() {
                         <div className="flex items-center">
                           <span>{translateMonth(latestRecord.month)}</span>
                           {history.length > 0 && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
                                   <PlusCircle className="h-4 w-4 text-primary/70" />
                                 </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto">
                                 <div className="p-2">
                                   <h4 className="font-semibold text-center mb-2">{translations.history}</h4>
                                    {history.length === 0 ? (
@@ -192,8 +193,8 @@ export default function TaxesPage() {
                                   </table>
                                   )}
                                 </div>
-                              </TooltipContent>
-                            </Tooltip>
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </div>
                       </TableCell>
