@@ -14,6 +14,7 @@ Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a ll
 - **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
 - **Soporte Multilenguaje**: La interfaz está disponible en Español, Inglés y Portugués.
 - **Temas Claro y Oscuro**: Cambia entre el tema claro y oscuro para adaptar la aplicación a tus preferencias visuales.
+- **Optimización para SEO**: Configuración completa de metadatos (títulos dinámicos, descripciones, palabras clave) y etiquetas Open Graph para una excelente visualización al compartir en redes sociales. Incluye `robots.txt` y `sitemap.xml` para una indexación eficiente en motores de búsqueda.
 
 ## 🛠️ Pila Tecnológica
 
@@ -101,7 +102,7 @@ MONGODB_DB="ledger_lite"
 
 ### 4. Ejecutar la Aplicación
 
-Una vez que hayas configurado todas las variables de entorno, puedes iniciar el servidor de desarrollo:
+Once you have configured all the environment variables, you can start the development server:
 
 ```bash
 npm run dev

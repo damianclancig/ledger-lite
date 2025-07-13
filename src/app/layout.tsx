@@ -7,9 +7,63 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { Toaster } from '@/components/ui/toaster';
 
+const APP_URL = 'https://caja.clancig.com.ar';
+
 export const metadata: Metadata = {
-  title: 'Ledger Lite',
-  description: 'A simple app to track income and expenses.',
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: 'Ledger Lite',
+    template: '%s | Ledger Lite',
+  },
+  description: 'Ledger Lite: Your personal finance manager to easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
+  keywords: ['personal finance', 'expense tracker', 'income management', 'budgeting app', 'tax management', 'finanzas personales', 'gestor de gastos', 'ingresos y gastos', 'control de impuestos'],
+  authors: [{ name: 'The Ledger Lite Authors', url: 'https://github.com/damianclancig/ledger-lite' }],
+  creator: 'The Ledger Lite Authors',
+  publisher: 'The Ledger Lite Authors',
+  
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: APP_URL,
+    siteName: 'Ledger Lite',
+    title: 'Ledger Lite - Personal Finance Manager',
+    description: 'Easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
+    images: [
+      {
+        url: `${APP_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Ledger Lite Dashboard showing financial totals.',
+      },
+    ],
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ledger Lite - Personal Finance Manager',
+    description: 'Easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
+    images: [`${APP_URL}/og-image.png`],
+  },
+
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/apple-icon.png',
+  },
+  
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  
+  manifest: `${APP_URL}/site.webmanifest`,
 };
 
 export default function RootLayout({
