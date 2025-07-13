@@ -51,7 +51,7 @@ interface TransactionFormProps {
 const getFormSchema = (translations: Translations) => z.object({
   description: z.string().min(1, { message: translations.descriptionRequired }).max(100, { message: translations.descriptionMaxLength }),
   amount: z.coerce
-    .number({ invalid_type_error: translations.amountRequired })
+    .number({ required_error: translations.amountRequired, invalid_type_error: translations.amountRequired })
     .positive({ message: translations.amountPositive }),
   date: z.date({ required_error: translations.dateRequired }),
   category: z.enum(CATEGORIES, { required_error: translations.categoryRequired }),
@@ -110,6 +110,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
       });
       setDisplayAmount("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, form.reset]);
   
   const locales = {
@@ -125,26 +126,21 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    // 1. Clean the input to get only the numeric value string
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parts = numericValue.split('.');
     
-    // Ensure we only have one decimal point
     if (parts.length > 2) {
       numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
     }
 
-    // Limit decimal part to 2 digits
     if (parts[1] && parts[1].length > 2) {
       parts[1] = parts[1].substring(0, 2);
       numericValue = parts.join('.');
     }
     
-    // 2. Format for display
     const formattedDisplay = formatNumberWithCommas(numericValue);
     setDisplayAmount(formattedDisplay);
     
-    // 3. Update form state with the actual number
     const valueForForm = numericValue.replace(/,/g, '');
     const parsedNumber = parseFloat(valueForForm);
     form.setValue('amount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
@@ -247,7 +243,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
             render={({ field }) => (
               <FormItem>
                 <FormLabel><Type className="inline-block mr-2 h-4 w-4" />{translations.type}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={isTaxPayment}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isTaxPayment}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.type} />
@@ -269,7 +265,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
             render={({ field }) => (
               <FormItem>
                 <FormLabel><ListTree className="inline-block mr-2 h-4 w-4" />{translations.category}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={isTaxPayment}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isTaxPayment}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.category} />
@@ -294,7 +290,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
             render={({ field }) => (
               <FormItem>
                 <FormLabel><CreditCard className="inline-block mr-2 h-4 w-4" />{translations.paymentType}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.paymentType} />

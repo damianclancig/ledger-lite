@@ -69,20 +69,26 @@ export default function TaxesPage() {
 
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
     const taxGroups = new Map<string, Tax[]>();
-    
-    // Create a copy and sort by month descending to easily find the latest
-    const sortedTaxes = [...taxes].sort((a, b) => b.month - a.month);
-
+  
+    const sortedTaxes = [...taxes].sort((a, b) => {
+      // Assuming a year is not stored, this will group by name and sort by month
+      // If year becomes a factor, sorting logic will need to be updated.
+      return b.month - a.month;
+    });
+  
     sortedTaxes.forEach(tax => {
-      const group = taxGroups.get(tax.name) || [];
-      group.push(tax);
-      taxGroups.set(tax.name, group);
+      const group = taxGroups.get(tax.name);
+      if (group) {
+        group.push(tax);
+      } else {
+        taxGroups.set(tax.name, [tax]);
+      }
     });
   
     const result: AggregatedTax[] = [];
   
     taxGroups.forEach((group) => {
-      // The group is already sorted by month descending from the initial sort
+      // The group is already sorted by month descending. The first one is the latest.
       const latestRecord = group[0];
       const history = group.slice(1); // All records except the most recent one
   

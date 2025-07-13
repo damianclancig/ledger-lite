@@ -38,7 +38,7 @@ const getFormSchema = (translations: Translations) => z.object({
   name: z.string().min(1, { message: translations.taxNameRequired }),
   month: z.coerce.number({ required_error: translations.monthRequired, invalid_type_error: translations.monthRequired }),
   amount: z.coerce
-    .number({ invalid_type_error: translations.amountRequired })
+    .number({ required_error: translations.amountRequired, invalid_type_error: translations.amountRequired })
     .positive({ message: translations.amountPositive }),
 });
 
@@ -67,7 +67,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
     if (decimalPart !== undefined) {
       return `${formattedIntegerPart}.${decimalPart}`;
     }
-    // This is key: if the user just typed a decimal point, keep it.
+    
     if (numStr.slice(-1) === '.') {
       return `${formattedIntegerPart}.`;
     }
@@ -93,10 +93,10 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
     
     const valueForForm = numericValue.endsWith('.') ? numericValue.slice(0, -1) : numericValue;
     const parsedNumber = parseFloat(valueForForm);
-    // Only set the value if it's a valid number
+
     if (!isNaN(parsedNumber)) {
         form.setValue('amount', parsedNumber, { shouldValidate: true });
-    } else if (valueForForm === '') {
+    } else {
         form.setValue('amount', undefined, { shouldValidate: true });
     }
   };
@@ -126,7 +126,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel><Calendar className="inline-block mr-2 h-4 w-4" />{translations.month}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value !== undefined ? String(field.value) : ''}>
+                <Select onValueChange={field.onChange} value={field.value !== undefined ? String(field.value) : ''}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.month} />
@@ -159,9 +159,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
                     value={displayAmount}
                     onChange={handleAmountChange}
                     onBlur={() => {
-                      // Trigger validation on blur
                       field.onBlur();
-                      // Format the display amount cleanly on blur
                       const value = form.getValues('amount');
                       if (value) {
                         setDisplayAmount(formatNumberWithCommas(value.toFixed(2)));
