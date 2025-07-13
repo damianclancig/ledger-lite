@@ -11,15 +11,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Landmark } from "lucide-react";
+import { Plus, Landmark, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 interface AggregatedTax {
-  name: string;
-  monthRegistered: number;
-  amountOfMonth: number;
-  lastRecordDate: Date;
+  latestRecord: Tax;
+  history: Tax[];
 }
 
 export default function TaxesPage() {
@@ -51,30 +56,28 @@ export default function TaxesPage() {
   }, [user]);
 
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
-    const taxMap = new Map<string, AggregatedTax>();
-
-    // Sort by month index descending to get the latest month first
-    const sortedTaxes = [...taxes].sort((a, b) => {
-        if (b.month !== a.month) {
-            return b.month - a.month;
-        }
-        // If months are the same, sort by creation date as a fallback
-        return b.date.getTime() - a.date.getTime();
-    });
-
-    sortedTaxes.forEach(tax => {
-      // If we haven't seen this tax name yet, it's the most recent one.
-      if (!taxMap.has(tax.name)) {
-        taxMap.set(tax.name, {
-          name: tax.name,
-          monthRegistered: tax.month,
-          amountOfMonth: tax.amount,
-          lastRecordDate: tax.date,
-        });
+    const taxGroups = new Map<string, Tax[]>();
+    taxes.forEach(tax => {
+      if (!taxGroups.has(tax.name)) {
+        taxGroups.set(tax.name, []);
       }
+      taxGroups.get(tax.name)!.push(tax);
     });
 
-    return Array.from(taxMap.values());
+    const result: AggregatedTax[] = [];
+
+    taxGroups.forEach((group, name) => {
+      const sortedGroup = [...group].sort((a, b) => b.month - a.month);
+      const latestRecord = sortedGroup[0];
+      const history = sortedGroup.slice(1);
+
+      result.push({
+        latestRecord,
+        history,
+      });
+    });
+
+    return result.sort((a, b) => a.latestRecord.name.localeCompare(b.latestRecord.name));
   }, [taxes]);
 
   const formatCurrency = (value: number) => {
@@ -96,7 +99,7 @@ export default function TaxesPage() {
   }
 
   return (
-    <>
+    <TooltipProvider>
       <div className="space-y-8">
         <Card className="shadow-xl border-2 border-primary">
           <CardHeader>
@@ -121,11 +124,45 @@ export default function TaxesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {aggregatedTaxes.map((tax) => (
-                    <TableRow key={tax.name} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-medium">{tax.name}</TableCell>
-                      <TableCell>{translateMonth(tax.monthRegistered)}</TableCell>
-                      <TableCell className="text-right font-semibold text-primary">{formatCurrency(tax.amountOfMonth)}</TableCell>
+                  {aggregatedTaxes.map(({ latestRecord, history }) => (
+                    <TableRow key={latestRecord.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">{latestRecord.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <span>{translateMonth(latestRecord.month)}</span>
+                          {history.length > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
+                                  <PlusCircle className="h-4 w-4 text-primary/70" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="p-2">
+                                  <h4 className="font-semibold text-center mb-2">{translations.paymentHistory}</h4>
+                                  <table className="w-full text-center">
+                                    <thead>
+                                      <tr>
+                                        {history.sort((a, b) => a.month - b.month).map((rec) => (
+                                          <th key={rec.id} className="px-3 py-1 font-normal text-muted-foreground">{translateMonth(rec.month)}</th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr>
+                                        {history.sort((a, b) => a.month - b.month).map((rec) => (
+                                          <td key={rec.id} className="px-3 py-1 font-semibold">{formatCurrency(rec.amount)}</td>
+                                        ))}
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-primary">{formatCurrency(latestRecord.amount)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -148,6 +185,6 @@ export default function TaxesPage() {
           {translations.newTax}
         </span>
       </Button>
-    </>
+    </TooltipProvider>
   );
 }

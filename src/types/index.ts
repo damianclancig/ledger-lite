@@ -144,6 +144,8 @@ export interface Translations {
   selectTax: string;
   searchTax: string;
   noTaxFound: string;
+  paymentHistory: string;
+  noHistory: string;
   // Months
   January: string;
   February: string;

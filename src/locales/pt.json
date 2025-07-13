@@ -81,6 +81,8 @@
   "selectTax": "Selecione um imposto...",
   "searchTax": "Pesquisar imposto...",
   "noTaxFound": "Nenhum imposto encontrado.",
+  "paymentHistory": "Histórico",
+  "noHistory": "Nenhum outro registro encontrado.",
   "January": "Janeiro",
   "February": "Fevereiro",
   "March": "Março",

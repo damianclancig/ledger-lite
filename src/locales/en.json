@@ -81,6 +81,8 @@
   "selectTax": "Select a tax...",
   "searchTax": "Search tax...",
   "noTaxFound": "No tax found.",
+  "paymentHistory": "History",
+  "noHistory": "No other records found.",
   "January": "January",
   "February": "February",
   "March": "March",
