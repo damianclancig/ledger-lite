@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -49,32 +50,50 @@ export default function LoginPage() {
 
   if (loading || (!loading && user)) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-2xl border-2 border-primary">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary">{translations.appName}</CardTitle>
-          <CardDescription>
-            {translations.signInToContinue}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={signInWithGoogle}
-            className="w-full bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 shadow-md"
-            variant="outline"
-          >
-            <GoogleIcon className="mr-3 h-6 w-6" />
-            {translations.signInWithGoogle}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <BackgroundWrapper>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-lg border-2 border-primary/50 text-white shadow-2xl rounded-2xl">
+          <CardHeader className="text-center p-8">
+            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-100 via-accent to-slate-100 mb-4 animate-[gradient-text_2s_ease_infinite]">
+              {translations.appName}
+            </h1>
+            <p className="text-slate-300">
+              Bienvenido a tu asistente financiero personal. Con Ledger Lite, puedes registrar tus ingresos y gastos de forma sencilla, categorizarlos y visualizar tu balance en tiempo real. Toma el control de tus finanzas hoy mismo.
+            </p>
+          </CardHeader>
+          <CardContent className="p-8 pt-0">
+            <p className="text-center text-slate-400 mb-6 text-sm">
+                Inicia sesión de forma segura para empezar a gestionar tu dinero.
+            </p>
+            <Button
+              onClick={signInWithGoogle}
+              className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
+            >
+              <GoogleIcon className="mr-3 h-6 w-6" />
+              {translations.signInWithGoogle}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+       <style jsx global>{`
+        @keyframes gradient-text {
+          0%, 100% {
+            background-size: 200% 200%;
+            background-position: 10% 0%;
+          }
+          50% {
+            background-size: 200% 200%;
+            background-position: 91% 100%;
+          }
+        }
+      `}</style>
+    </BackgroundWrapper>
   );
 }

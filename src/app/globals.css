@@ -7,7 +7,7 @@
     --background: 215 28% 91%; /* Light Grayish-Blue #E2E8F0 */
     --foreground: 222 47% 11%; /* Dark text, e.g., Night Blue #0F172A for contrast */
 
-    --card: 215 28% 91%; /* Same as background for a flatter look or slightly off for depth */
+    --card: 215 28% 91% / 0.85; /* Card background with transparency for glassmorphism */
     --card-foreground: 222 47% 11%;
 
     --popover: 215 28% 91%;
@@ -56,7 +56,7 @@
     --background: 222 47% 11%; /* Night Blue #0F172A */
     --foreground: 215 28% 91%; /* Light Grayish-Blue #E2E8F0 for text */
 
-    --card: 222 47% 11%;
+    --card: 222 47% 11% / 0.5; /* Dark card background with transparency */
     --card-foreground: 215 28% 91%;
 
     --popover: 222 47% 11%;

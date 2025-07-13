@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { BackgroundWrapper } from "./BackgroundWrapper";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,9 +39,11 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <BackgroundWrapper>
+        <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          {children}
+        </main>
+      </BackgroundWrapper>
     </div>
   );
 }
