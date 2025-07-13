@@ -5,11 +5,13 @@ Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a ll
 ## ✨ Características Principales
 
 - **Gestión Completa de Transacciones**: Crea, visualiza, edita y elimina transacciones de ingresos y gastos de forma rápida.
+- **Gestión de Impuestos**: Registra impuestos recurrentes, visualiza su historial y márcalos como pagados, generando automáticamente la transacción de gasto correspondiente.
 - **Seguridad Multiusuario**: Cada usuario tiene su propia cuenta segura. Tus registros financieros son privados y solo tú puedes acceder a ellos.
 - **Autenticación con Google**: Inicia sesión de forma segura y con un solo clic utilizando tu cuenta de Google, gracias a la integración con Firebase Authentication.
 - **Panel de Totales**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
-- **Diseño Responsivo**: Disfruta de una experiencia de usuario perfecta tanto en tu ordenador de escritorio como en dispositivos móviles.
+- **Experiencia de Usuario Moderna**: Disfruta de una interfaz pulida con efectos visuales como "glassmorphism" en las tarjetas y un fondo animado que mejora la inmersión.
+- **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
 - **Soporte Multilenguaje**: La interfaz está disponible en Español, Inglés y Portugués.
 - **Temas Claro y Oscuro**: Cambia entre el tema claro y oscuro para adaptar la aplicación a tus preferencias visuales.
 
