@@ -61,6 +61,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     }
 
     revalidateTag(`transactions_${userId}`);
+    revalidateTag(`taxes_${userId}`); // Invalidate taxes too in case a tax was paid
     const newTransaction = await transactionsCollection.findOne({ _id: result.insertedId });
     if (!newTransaction) {
         throw new Error('Could not find the newly created transaction.');
@@ -142,7 +143,7 @@ export async function addTax(data: TaxFormValues, userId: string): Promise<Tax |
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { taxesCollection } = await getDb();
-    const documentToInsert = { ...data, date: new Date(), userId }; // date is for sorting
+    const documentToInsert = { ...data, date: new Date(), userId, isPaid: false };
     const result = await taxesCollection.insertOne(documentToInsert);
     
     if (!result.insertedId) {
@@ -159,5 +160,31 @@ export async function addTax(data: TaxFormValues, userId: string): Promise<Tax |
     console.error('Error adding tax record:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return { error: `Failed to add tax record. ${errorMessage}` };
+  }
+}
+
+export async function markTaxAsPaid(taxId: string, transactionId: string, userId: string): Promise<{ success: boolean, error?: string }> {
+  if (!ObjectId.isValid(taxId)) {
+    return { success: false, error: 'Invalid tax ID.' };
+  }
+  if (!userId) return { success: false, error: 'User not authenticated.' };
+
+  try {
+    const { taxesCollection } = await getDb();
+    const result = await taxesCollection.updateOne(
+      { _id: new ObjectId(taxId), userId },
+      { $set: { isPaid: true, transactionId: transactionId } }
+    );
+
+    if (result.matchedCount === 0) {
+      return { success: false, error: 'Tax record not found or user mismatch.' };
+    }
+
+    revalidateTag(`taxes_${userId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error marking tax as paid:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: `Failed to update tax record. ${errorMessage}` };
   }
 }

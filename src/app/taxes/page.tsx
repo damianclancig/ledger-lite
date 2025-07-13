@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Landmark, PlusCircle } from "lucide-react";
+import { Plus, Landmark, PlusCircle, DollarSign, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import {
@@ -55,30 +55,46 @@ export default function TaxesPage() {
     loadTaxes();
   }, [user]);
 
+  const handlePayClick = (tax: Tax) => {
+    const description = `${translations.taxPayment} ${tax.name} - ${translateMonth(tax.month)}`;
+    const params = new URLSearchParams({
+      taxId: tax.id,
+      description: description,
+      amount: tax.amount.toString(),
+      category: 'Taxes',
+      type: 'expense'
+    });
+    router.push(`/add-transaction?${params.toString()}`);
+  }
+
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
     const taxGroups = new Map<string, Tax[]>();
-    taxes.forEach(tax => {
-      if (!taxGroups.has(tax.name)) {
-        taxGroups.set(tax.name, []);
-      }
-      taxGroups.get(tax.name)!.push(tax);
+    
+    // Create a copy and sort by month descending to easily find the latest
+    const sortedTaxes = [...taxes].sort((a, b) => b.month - a.month);
+
+    sortedTaxes.forEach(tax => {
+      const group = taxGroups.get(tax.name) || [];
+      group.push(tax);
+      taxGroups.set(tax.name, group);
     });
-
+  
     const result: AggregatedTax[] = [];
-
-    taxGroups.forEach((group, name) => {
-      const sortedGroup = [...group].sort((a, b) => b.month - a.month);
-      const latestRecord = sortedGroup[0];
-      const history = sortedGroup.slice(1);
-
+  
+    taxGroups.forEach((group) => {
+      // The group is already sorted by month descending from the initial sort
+      const latestRecord = group[0];
+      const history = group.slice(0); // All records for history
+  
       result.push({
         latestRecord,
         history,
       });
     });
-
+  
     return result.sort((a, b) => a.latestRecord.name.localeCompare(b.latestRecord.name));
   }, [taxes]);
+  
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -121,6 +137,7 @@ export default function TaxesPage() {
                     <TableHead>{translations.taxName}</TableHead>
                     <TableHead>{translations.monthRegistered}</TableHead>
                     <TableHead className="text-right">{translations.amountOfMonth}</TableHead>
+                    <TableHead className="text-center">{translations.pay}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -139,7 +156,10 @@ export default function TaxesPage() {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <div className="p-2">
-                                  <h4 className="font-semibold text-center mb-2">{translations.paymentHistory}</h4>
+                                  <h4 className="font-semibold text-center mb-2">{translations.history}</h4>
+                                   {history.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">{translations.noHistory}</p>
+                                  ) : (
                                   <table className="w-full text-center">
                                     <thead>
                                       <tr>
@@ -151,11 +171,20 @@ export default function TaxesPage() {
                                     <tbody>
                                       <tr>
                                         {history.sort((a, b) => a.month - b.month).map((rec) => (
-                                          <td key={rec.id} className="px-3 py-1 font-semibold">{formatCurrency(rec.amount)}</td>
+                                          <td key={rec.id} className="px-3 py-1 font-semibold">
+                                            {rec.isPaid ? (
+                                              <span className="text-green-500">{formatCurrency(rec.amount)}</span>
+                                            ) : (
+                                              <Button variant="ghost" className="h-auto px-2 text-red-500 hover:text-red-600" onClick={() => handlePayClick(rec)}>
+                                                {formatCurrency(rec.amount)}
+                                              </Button>
+                                            )}
+                                          </td>
                                         ))}
                                       </tr>
                                     </tbody>
                                   </table>
+                                  )}
                                 </div>
                               </TooltipContent>
                             </Tooltip>
@@ -163,6 +192,29 @@ export default function TaxesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-primary">{formatCurrency(latestRecord.amount)}</TableCell>
+                       <TableCell className="text-center">
+                        {latestRecord.isPaid ? (
+                           <Tooltip>
+                              <TooltipTrigger>
+                                <CheckCircle className="h-6 w-6 text-green-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{translations.paid}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => handlePayClick(latestRecord)}>
+                                <DollarSign className="h-6 w-6 text-red-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{translations.payTax}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

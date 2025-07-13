@@ -4,7 +4,7 @@ export const CATEGORIES = [
   "Salary",
   "Groceries",
   "Transport",
-  "Utilities",
+  "Taxes",
   "Entertainment",
   "Health",
   "Education",
@@ -43,9 +43,11 @@ export interface Tax {
   month: number; // 0 for January, 11 for December
   amount: number;
   date: Date; // The date the record was created, for sorting
+  isPaid: boolean;
+  transactionId?: string; // ID of the transaction that paid this tax
 }
 
-export type TaxFormValues = Omit<Tax, "id" | "userId" | "date">;
+export type TaxFormValues = Omit<Tax, "id" | "userId" | "date" | "isPaid" | "transactionId">;
 
 export type Language = "en" | "es" | "pt";
 
@@ -102,7 +104,7 @@ export interface Translations {
   Salary: string;
   Groceries: string;
   Transport: string;
-  Utilities: string;
+  Taxes: string;
   Entertainment: string;
   Health: string;
   Education: string;
@@ -144,8 +146,12 @@ export interface Translations {
   selectTax: string;
   searchTax: string;
   noTaxFound: string;
-  paymentHistory: string;
+  history: string;
   noHistory: string;
+  pay: string;
+  payTax: string;
+  paid: string;
+  taxPayment: string;
   // Months
   January: string;
   February: string;
