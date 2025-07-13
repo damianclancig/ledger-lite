@@ -59,7 +59,9 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <h1 className="text-2xl font-bold text-primary">{translations.appName}</h1>
+          <Link href="/" className="text-2xl font-bold text-primary no-underline transition-colors duration-300 hover:text-accent">
+            {translations.appName}
+          </Link>
         </div>
         <div className="flex items-center space-x-2">
           <ThemeSwitcher />
