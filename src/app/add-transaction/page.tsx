@@ -24,6 +24,7 @@ function AddTransactionContent() {
   const [isReady, setIsReady] = React.useState(false);
 
   const taxId = searchParams.get('taxId');
+  const isTaxPayment = !!taxId;
 
   useEffect(() => {
     // If we have search params, we're likely coming from the taxes page.
@@ -31,18 +32,18 @@ function AddTransactionContent() {
     const amount = searchParams.get('amount');
     const category = searchParams.get('category');
     
-    if (description && amount && category) {
+    if (isTaxPayment && description && amount && category) {
       setInitialData({
         description,
         amount: parseFloat(amount),
         date: new Date(),
         category: category as any, // Assume it's a valid category
         type: 'expense',
-        paymentType: 'Cash' // Default payment type
+        paymentType: undefined, // Force user to select payment type
       });
     }
     setIsReady(true);
-  }, [searchParams]);
+  }, [searchParams, isTaxPayment]);
 
   const handleFormSubmit = async (values: TransactionFormValues) => {
     if (!user) {
@@ -115,6 +116,7 @@ function AddTransactionContent() {
             onSubmit={handleFormSubmit}
             onClose={handleClose}
             initialData={initialData}
+            isTaxPayment={isTaxPayment}
           />
         </CardContent>
       </Card>

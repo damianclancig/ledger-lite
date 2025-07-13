@@ -45,6 +45,7 @@ interface TransactionFormProps {
   onSubmit: (values: TransactionFormValues) => void;
   initialData?: Partial<Transaction>;
   onClose: () => void;
+  isTaxPayment?: boolean;
 }
 
 const getFormSchema = (translations: Translations) => z.object({
@@ -58,7 +59,7 @@ const getFormSchema = (translations: Translations) => z.object({
   paymentType: z.enum(PAYMENT_TYPES, { required_error: translations.paymentTypeRequired }),
 });
 
-export function TransactionForm({ onSubmit, initialData, onClose }: TransactionFormProps) {
+export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment = false }: TransactionFormProps) {
   const { translations, translateCategory, translatePaymentType, language } = useTranslations();
   const [isCalendarOpen, setCalendarOpen] = React.useState(false);
   const [displayAmount, setDisplayAmount] = useState<string>("");
@@ -71,9 +72,9 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
       description: initialData?.description || "",
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
-      category: initialData?.category || CATEGORIES[0],
-      type: initialData?.type || "expense",
-      paymentType: initialData?.paymentType || PAYMENT_TYPES[0],
+      category: initialData?.category || undefined,
+      type: initialData?.type || undefined,
+      paymentType: initialData?.paymentType || undefined,
     },
   });
 
@@ -103,9 +104,9 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
         description: "",
         amount: undefined,
         date: new Date(),
-        category: CATEGORIES[0],
-        type: "expense",
-        paymentType: PAYMENT_TYPES[0],
+        category: undefined,
+        type: undefined,
+        paymentType: undefined,
       });
       setDisplayAmount("");
     }
@@ -246,7 +247,7 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
             render={({ field }) => (
               <FormItem>
                 <FormLabel><Type className="inline-block mr-2 h-4 w-4" />{translations.type}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={isTaxPayment}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.type} />
@@ -268,7 +269,7 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
             render={({ field }) => (
               <FormItem>
                 <FormLabel><ListTree className="inline-block mr-2 h-4 w-4" />{translations.category}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={isTaxPayment}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.category} />
@@ -293,7 +294,7 @@ export function TransactionForm({ onSubmit, initialData, onClose }: TransactionF
             render={({ field }) => (
               <FormItem>
                 <FormLabel><CreditCard className="inline-block mr-2 h-4 w-4" />{translations.paymentType}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={translations.paymentType} />
