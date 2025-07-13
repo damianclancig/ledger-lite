@@ -161,8 +161,8 @@ export default function TaxesPage() {
                                   <PlusCircle className="h-4 w-4 text-primary/70" />
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto">
-                                <div className="p-2">
+                              <PopoverContent className="w-auto max-w-[90vw]">
+                                <div className="p-1 overflow-x-auto">
                                   <h4 className="font-semibold text-center mb-2">{translations.history}</h4>
                                    {history.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">{translations.noHistory}</p>
