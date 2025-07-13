@@ -84,7 +84,7 @@ export default function TaxesPage() {
     taxGroups.forEach((group) => {
       // The group is already sorted by month descending from the initial sort
       const latestRecord = group[0];
-      const history = group.slice(0); // All records for history
+      const history = group.slice(1); // All records except the most recent one
   
       result.push({
         latestRecord,
@@ -191,7 +191,7 @@ export default function TaxesPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-primary">{formatCurrency(latestRecord.amount)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(latestRecord.amount)}</TableCell>
                        <TableCell className="text-center">
                         {latestRecord.isPaid ? (
                            <Tooltip>
