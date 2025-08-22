@@ -3,19 +3,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from 'next/navigation';
-import type { Transaction, TransactionType, Category } from "@/types";
-import { CATEGORIES } from "@/types";
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod } from "@/types";
 import { TransactionList } from "@/components/transactions/TransactionList";
-import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm";
 import { TotalsDisplay } from "@/components/transactions/TotalsDisplay";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,17 +19,21 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Filter, CalendarIcon, Search, Loader2 } from "lucide-react";
+import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format } from "date-fns";
+import { format, isSameMonth, isSameYear } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
-import { getTransactions, updateTransaction, deleteTransaction } from "@/app/actions";
+import { getTransactions, deleteTransaction, getCategories, getPaymentMethods } from "@/app/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
+import { TransactionTypeToggle } from "@/components/transactions/TransactionTypeToggle";
+import { MonthSelector } from "@/components/common/MonthSelector";
+import { ExpensesChart } from "@/components/transactions/ExpensesChart";
+import { IncomeExpenseChart } from "@/components/transactions/IncomeExpenseChart";
 
 
 export default function LedgerPage() {
@@ -49,16 +45,17 @@ export default function LedgerPage() {
   const scrollDirection = useScrollDirection();
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
-  const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
 
   const locales = {
     en: enUS,
@@ -68,45 +65,33 @@ export default function LedgerPage() {
   const currentLocale = locales[language] || enUS;
 
   useEffect(() => {
-    async function loadTransactions() {
+    async function loadData() {
       if (!user) {
         setTransactions([]);
+        setCategories([]);
         setIsLoading(false);
         return;
       }
       setIsLoading(true);
-      const initialTransactions = await getTransactions(user.uid);
+      const [initialTransactions, initialCategories, initialPaymentMethods] = await Promise.all([
+        getTransactions(user.uid),
+        getCategories(user.uid),
+        getPaymentMethods(user.uid),
+      ]);
       const parsed = initialTransactions.map((t) => ({
         ...t,
         date: new Date(t.date),
       }));
       setTransactions(parsed);
+      setCategories(initialCategories);
+      setPaymentMethods(initialPaymentMethods);
       setIsLoading(false);
     }
-    loadTransactions();
+    loadData();
   }, [user]);
 
-  const handleUpdateSubmit = async (values: TransactionFormValues) => {
-    if (!user || !editingTransaction) return;
-
-    const result = await updateTransaction(editingTransaction.id, values, user.uid);
-
-    if (result && 'error' in result) {
-        toast({ title: "Error", description: result.error, variant: "destructive" });
-    } else if(result) {
-        const updatedTransaction = { ...result, date: new Date(result.date) };
-        setTransactions(transactions.map((t) => (t.id === editingTransaction.id ? updatedTransaction : t)));
-        toast({ title: "Transaction updated", description: "Your transaction has been successfully updated." });
-        
-        setIsFormOpen(false);
-        setEditingTransaction(null);
-    }
-  };
-
-
   const handleEdit = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setIsFormOpen(true);
+    router.push(`/edit-transaction/${transaction.id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -118,9 +103,9 @@ export default function LedgerPage() {
       const result = await deleteTransaction(deletingTransactionId, user.uid);
       if (result.success) {
         setTransactions(transactions.filter((t) => t.id !== deletingTransactionId));
-        toast({ title: "Transaction deleted", description: "The transaction has been removed.", variant: "destructive" });
+        toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });
       } else {
-        toast({ title: "Error", description: result.error, variant: "destructive" });
+        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
       }
       setDeletingTransactionId(null);
     }
@@ -128,20 +113,68 @@ export default function LedgerPage() {
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
+      const transactionDate = new Date(t.date);
       const lowerSearchTerm = searchTerm.toLowerCase();
+      
       const matchesSearch = t.description.toLowerCase().includes(lowerSearchTerm);
       const matchesType = selectedType === "all" || t.type === selectedType;
-      const matchesCategory = selectedCategory === "all" || t.category === selectedCategory;
-      const matchesDate =
-        (!dateRange.from || new Date(t.date) >= dateRange.from) &&
-        (!dateRange.to || new Date(t.date) <= dateRange.to);
-      return matchesSearch && matchesType && matchesCategory && matchesDate;
+      const matchesCategory = selectedCategory === "all" || t.categoryId === selectedCategory;
+      
+      const matchesDateRange =
+        !dateRange?.from || transactionDate >= dateRange.from;
+
+      const matchesDateRangeEnd = 
+        !dateRange?.to || transactionDate <= dateRange.to;
+
+      const matchesMonth = 
+        !selectedMonth || 
+        (isSameMonth(transactionDate, selectedMonth) && isSameYear(transactionDate, selectedMonth));
+
+      return matchesSearch && matchesType && matchesCategory && matchesDateRange && matchesDateRangeEnd && matchesMonth;
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, searchTerm, selectedType, selectedCategory, dateRange]);
+  }, [transactions, searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
+
+   const handleDateSelect = (range: DateRange | undefined) => {
+    if (range?.from && dateRange?.from && dateRange?.to) {
+        setDateRange({ from: range.from, to: undefined });
+    } else {
+        setDateRange(range);
+    }
+  };
+
+  const isAnyFilterActive = useMemo(() => {
+    return (
+      searchTerm !== "" ||
+      selectedType !== "all" ||
+      selectedCategory !== "all" ||
+      dateRange?.from !== undefined ||
+      (selectedMonth !== null && !isSameMonth(selectedMonth, new Date()))
+    );
+  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedType("all");
+    setSelectedCategory("all");
+    setDateRange(undefined);
+    setSelectedMonth(new Date());
+  };
+
+  const expenseTransactions = useMemo(() => {
+    return filteredTransactions.filter(t => t.type === 'expense');
+  }, [filteredTransactions]);
+  
+  const categoryIdToNameMap = useMemo(() => {
+    return categories.reduce((acc, cat) => {
+        acc[cat.id] = cat.name;
+        return acc;
+    }, {} as Record<string, string>);
+  }, [categories]);
 
   if (isLoading) {
     return (
       <div className="space-y-8">
+        <Skeleton className="h-10 mb-8" />
         <div className="grid gap-6 md:grid-cols-3 mb-8">
             <Skeleton className="h-24" />
             <Skeleton className="h-24" />
@@ -156,14 +189,58 @@ export default function LedgerPage() {
   return (
     <>
     <div className="space-y-8">
-      <TotalsDisplay transactions={filteredTransactions} />
+       <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-8">
+            <TotalsDisplay transactions={filteredTransactions} />
+          </div>
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="shadow-xl border-2 border-primary h-full">
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                <PieChart className="h-5 w-5 mr-2 text-primary" />
+                {translations.expensesByCategory}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <ExpensesChart transactions={expenseTransactions} categoryIdToNameMap={categoryIdToNameMap} />
+            </CardContent>
+            </Card>
+            <Card className="shadow-xl border-2 border-primary h-full">
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                <BarChart className="h-5 w-5 mr-2 text-primary" />
+                {translations.incomeVsExpense}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <IncomeExpenseChart transactions={filteredTransactions} />
+            </CardContent>
+            </Card>
+          </div>
+        </div>
 
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="h-5 w-5 mr-2 text-primary" />
-            {translations.transactions}
-          </CardTitle>
+           <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between">
+            <CardTitle className="flex items-center mb-2 md:mb-0">
+              <Filter className="h-5 w-5 mr-2 text-primary" />
+              {translations.transactions}
+            </CardTitle>
+            <Button
+              variant="link"
+              onClick={clearFilters}
+              className={cn(
+                "hidden md:flex text-base text-muted-foreground hover:text-primary p-0 h-auto justify-start transition-opacity duration-300",
+                isAnyFilterActive ? "opacity-100" : "opacity-0 pointer-events-none"
+              )}
+              aria-hidden={!isAnyFilterActive}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              <span className="mr-2">{translations.clearFilters}</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
@@ -176,31 +253,22 @@ export default function LedgerPage() {
               className="pl-10"
             />
           </div>
-          <Select
+          <TransactionTypeToggle
             value={selectedType}
-            onValueChange={(value: string) => setSelectedType(value as TransactionType | "all")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={translations.filterByType} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{translations.allTypes}</SelectItem>
-              <SelectItem value="income">{translations.income}</SelectItem>
-              <SelectItem value="expense">{translations.expense}</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(value) => setSelectedType(value as TransactionType | "all")}
+          />
           <Select
             value={selectedCategory}
-            onValueChange={(value: string) => setSelectedCategory(value as Category | "all")}
+            onValueChange={(value: string) => setSelectedCategory(value as string | "all")}
           >
-            <SelectTrigger>
+            <SelectTrigger className="text-base">
               <SelectValue placeholder={translations.filterByCategory} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{translations.allCategories}</SelectItem>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {translateCategory(cat)}
+              {categories.filter(c => c.isEnabled).map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -210,57 +278,57 @@ export default function LedgerPage() {
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !dateRange.from && !dateRange.to && "text-muted-foreground"
+                  "w-full justify-start text-left font-normal text-base h-10",
+                  !dateRange?.from && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.from && dateRange.to
-                  ? `${format(dateRange.from, "PPP", {locale: currentLocale})} - ${format(dateRange.to, "PPP", {locale: currentLocale})}`
-                  : dateRange.from 
-                  ? `${translations.startDate}: ${format(dateRange.from, "PPP", {locale: currentLocale})}`
-                  : dateRange.to
-                  ? `${translations.endDate}: ${format(dateRange.to, "PPP", {locale: currentLocale})}`
-                  : <span>{translations.filterByDateRange}</span>}
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>{translations.filterByDateRange}</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                locale={currentLocale}
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => setDateRange(range || {})}
+               <Calendar
                 initialFocus
-                numberOfMonths={isMobile ? 1 : 2}
+                mode="range"
+                month={selectedMonth || new Date()}
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={handleDateSelect}
+                numberOfMonths={1}
               />
             </PopoverContent>
           </Popover>
+          {isMobile && isAnyFilterActive && (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="w-full md:hidden"
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                {translations.clearFilters}
+              </Button>
+            )}
         </CardContent>
       </Card>
 
       <TransactionList
         transactions={filteredTransactions}
+        categories={categories}
+        paymentMethods={paymentMethods}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-      
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-lg border-2 border-primary shadow-xl">
-          <DialogHeader>
-            <DialogTitle>
-              {translations.editTransaction}
-            </DialogTitle>
-          </DialogHeader>
-          <TransactionForm
-            onSubmit={handleUpdateSubmit}
-            initialData={editingTransaction || undefined}
-            onClose={() => {
-              setIsFormOpen(false);
-              setEditingTransaction(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
 
       <DeleteConfirmationDialog
         isOpen={!!deletingTransactionId}
@@ -272,12 +340,12 @@ export default function LedgerPage() {
     <Button
       onClick={() => router.push('/add-transaction')}
       className={cn(
-        "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-all duration-300 ease-in-out hover:w-56 hover:bg-primary/90 gap-0 hover:gap-2",
+        "group fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary shadow-lg transition-all duration-300 ease-in-out hover:w-56 hover:bg-primary/90 gap-0 hover:gap-2",
         scrollDirection === "down" ? "scale-0" : "scale-100"
       )}
       aria-label={translations.addTransaction}
     >
-      <Plus className="h-8 w-8 text-primary-foreground transition-transform duration-300 group-hover:rotate-90" strokeWidth={3} />
+      <Plus className="h-7 w-7 text-primary-foreground transition-transform duration-300 group-hover:rotate-90" strokeWidth={3} />
       <span className="w-0 overflow-hidden whitespace-nowrap text-lg font-semibold text-primary-foreground opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
         {translations.addTransaction}
       </span>
@@ -285,3 +353,5 @@ export default function LedgerPage() {
     </>
   );
 }
+
+    

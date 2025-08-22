@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -176,10 +177,10 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
         </div>
 
         <div className="flex justify-end space-x-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose} className="text-base">
             {translations.cancel}
           </Button>
-          <Button type="submit" className="bg-primary hover:bg-primary/90">
+          <Button type="submit" className="bg-primary hover:bg-primary/90 text-base">
             {translations.save}
           </Button>
         </div>
@@ -187,3 +188,5 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
     </Form>
   );
 }
+
+    

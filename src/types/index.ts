@@ -1,3 +1,6 @@
+
+import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
+
 export type TransactionType = "income" | "expense";
 
 export const CATEGORIES = [
@@ -11,16 +14,37 @@ export const CATEGORIES = [
   "Gifts",
   "Other",
 ] as const;
-export type Category = (typeof CATEGORIES)[number];
 
-export const PAYMENT_TYPES = [
+export const PAYMENT_METHOD_TYPES = [
   "Cash",
   "Credit Card",
   "Debit Card",
   "Bank Transfer",
+  "Virtual Wallet",
   "Other",
 ] as const;
-export type PaymentType = (typeof PAYMENT_TYPES)[number];
+export type PaymentMethodType = (typeof PAYMENT_METHOD_TYPES)[number];
+
+export interface PaymentMethod {
+  id: string;
+  userId: string;
+  name: string;
+  type: PaymentMethodType;
+  bank?: string;
+  isEnabled: boolean;
+}
+export type PaymentMethodFormValues = Omit<PaymentMethod, "id" | "userId">;
+
+
+export interface Category {
+  id: string;
+  userId: string;
+  name: string;
+  isEnabled: boolean;
+}
+
+export type CategoryFormValues = Omit<Category, "id" | "userId">;
+
 
 export interface Transaction {
   id: string;
@@ -28,12 +52,13 @@ export interface Transaction {
   description: string;
   amount: number;
   date: Date;
-  category: Category;
+  categoryId: string;
   type: TransactionType;
-  paymentType: PaymentType;
+  paymentMethodId: string;
 }
 
 export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
+
 
 // Tax types
 export interface Tax {
@@ -71,8 +96,10 @@ export interface Translations {
   income: string;
   expense: string;
   save: string;
+  saveAndAddAnother: string;
   cancel: string;
   delete: string;
+  edit: string;
   confirmDelete: string;
   areYouSureDelete: string;
   totalIncome: string;
@@ -82,10 +109,11 @@ export interface Translations {
   filterByType: string;
   filterByCategory: string;
   filterByDateRange: string;
+  clearFilters: string;
   startDate: string;
   endDate: string;
-  allTypes: string;
   allCategories: string;
+  allMonths: string;
   searchDescription: string;
   actions: string;
   page: string;
@@ -115,6 +143,7 @@ export interface Translations {
   CreditCard: string;
   DebitCard: string;
   BankTransfer: string;
+  VirtualWallet: string;
   OtherPaymentType: string;
   // Auth translations
   signOut: string;
@@ -124,6 +153,18 @@ export interface Translations {
   // New translations
   home: string;
   back: string;
+  options: string;
+  manageCategories: string;
+  newCategory: string;
+  editCategory: string;
+  categoryName: string;
+  categoryNameRequired: string;
+  categoryStatus: string;
+  enabled: string;
+  disabled: string;
+  categoryAddedSuccess: string;
+  categoryUpdatedSuccess: string;
+  categoryInUseError: string;
   // Validation messages
   descriptionRequired: string;
   descriptionMaxLength: string;
@@ -132,7 +173,7 @@ export interface Translations {
   dateRequired: string;
   categoryRequired: string;
   typeRequired: string;
-  paymentTypeRequired: string;
+  paymentMethodRequired: string;
   // Tax-related translations
   taxes: string;
   newTax: string;
@@ -165,4 +206,37 @@ export interface Translations {
   October: string;
   November: string;
   December: string;
+  // Footer
+  footerRights: string;
+  footerAuthor: string;
+  // Toast Messages
+  transactionAddedTitle: string;
+  transactionAddedDesc: string;
+  transactionUpdatedTitle: string;
+  transactionUpdatedDesc: string;
+  transactionDeletedTitle: string;
+  transactionDeletedDesc: string;
+  deleteTransaction: string;
+  taxAddedTitle: string;
+  taxAddedDesc: string;
+  errorTitle: string;
+  // Charts
+  expensesByCategory: string;
+  incomeVsExpense: string;
+  // Payment Methods
+  managePaymentMethods: string;
+  newPaymentMethod: string;
+  editPaymentMethod: string;
+  paymentMethodName: string;
+  paymentMethodType: string;
+  paymentMethodBank: string;
+  paymentMethodBankPlaceholder: string;
+  paymentMethodNameRequired: string;
+  paymentMethodTypeRequired: string;
+  paymentMethodStatus: string;
+  paymentMethodAddedSuccess: string;
+  paymentMethodUpdatedSuccess: string;
+  paymentMethodInUseError: string;
 }
+
+export type DateRange = ReactDayPickerDateRange;

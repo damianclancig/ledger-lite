@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import type { Language, Translations, Category, PaymentType } from "@/types";
+import type { Language, Translations, Category, PaymentMethodType } from "@/types";
 import { MONTHS } from "@/types";
 
 import enTranslations from "@/locales/en.json";
@@ -14,8 +14,8 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   translations: Translations;
-  translateCategory: (category: Category) => string;
-  translatePaymentType: (paymentType: PaymentType) => string;
+  translateCategory: (categoryName: string) => string;
+  translatePaymentType: (paymentType: PaymentMethodType) => string;
   translateMonth: (monthIndex: number) => string;
 }
 
@@ -57,14 +57,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const translateCategory = useCallback((category: Category): string => {
-    const key = category === "Other" ? "OtherCategory" : category;
-    return translations[key as keyof Translations] || category;
+  const translateCategory = useCallback((categoryName: string): string => {
+    const key = categoryName === "Other" ? "OtherCategory" : categoryName;
+    return translations[key as keyof Translations] || categoryName;
   }, [translations]);
 
-  const translatePaymentType = useCallback((paymentType: PaymentType): string => {
-     const key = paymentType === "Other" ? "OtherPaymentType" : paymentType.replace(/\s/g, '');
-    return translations[key as keyof Translations] || paymentType;
+  const translatePaymentType = useCallback((paymentType: PaymentMethodType): string => {
+     const key = paymentType.replace(/\s/g, '');
+     if (key === "Other") return translations.OtherPaymentType;
+     return translations[key as keyof Translations] || paymentType;
   }, [translations]);
   
   const translateMonth = useCallback((monthIndex: number): string => {

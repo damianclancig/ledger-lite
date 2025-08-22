@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -8,11 +9,21 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    fontFamily: {
+      sans: ['Faustina', 'sans-serif'],
+      serif: ['Faustina', 'serif'],
+      mono: ['Roboto Mono', 'monospace'],
+    },
     extend: {
-      fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+      fontSize: {
+        base: '17px',
+        lg: ['20px', { lineHeight: '1.5' }],
+        xl: ['20px', { lineHeight: '1.5', fontWeight: '500' }],
+        '2xl': ['1.75rem', {
+          lineHeight: '2rem',
+          letterSpacing: '-0.01em',
+          fontWeight: '700',
+        }],
       },
       colors: {
         background: 'hsl(var(--background))',

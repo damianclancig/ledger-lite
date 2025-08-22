@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { LogOut, Menu, Home, PlusCircle, Landmark } from "lucide-react";
+import { LogOut, Menu, Home, PlusCircle, Landmark, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -29,8 +29,8 @@ export function Header() {
         <div className="flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-3 sm:mr-4">
-                <Menu className="h-6 w-6 text-primary" strokeWidth={2.5} />
+              <Button variant="outline" size="icon" className="mr-3 sm:mr-4 border-2 border-primary">
+                <Menu className="h-6 w-6" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
@@ -52,6 +52,19 @@ export function Header() {
                   <span>{translations.addTransaction}</span>
                 </Link>
               </DropdownMenuItem>
+               <DropdownMenuItem asChild>
+                <Link href="/add-tax">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  <span>{translations.newTax}</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings/categories">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>{translations.options}</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -59,7 +72,7 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/" className="text-xl sm:text-2xl font-bold text-primary no-underline transition-colors duration-300 hover:text-accent">
+          <Link href="/" className="text-xl sm:text-2xl font-bold text-primary dark:text-foreground no-underline transition-colors duration-300 hover:text-accent">
             {translations.appName}
           </Link>
         </div>
@@ -79,8 +92,8 @@ export function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-base font-medium leading-none">{user.displayName}</p>
+                    <p className="text-sm leading-none text-muted-foreground">
                       {user.email}
                     </p>
                   </div>

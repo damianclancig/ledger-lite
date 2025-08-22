@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
@@ -33,9 +34,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard } from "lucide-react";
-import type { Transaction, Category, PaymentType, TransactionType, Translations } from "@/types";
-import { CATEGORIES, PAYMENT_TYPES } from "@/types";
+import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard, TrendingUp, TrendingDown } from "lucide-react";
+import type { Transaction, Category, PaymentMethod, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -43,9 +43,12 @@ export type TransactionFormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface TransactionFormProps {
   onSubmit: (values: TransactionFormValues) => void;
+  onSaveAndAddAnother?: (values: TransactionFormValues) => void;
   initialData?: Partial<Transaction>;
   onClose: () => void;
   isTaxPayment?: boolean;
+  categories: Category[];
+  paymentMethods: PaymentMethod[];
 }
 
 const getFormSchema = (translations: Translations) => z.object({
@@ -54,15 +57,25 @@ const getFormSchema = (translations: Translations) => z.object({
     .number({ required_error: translations.amountRequired, invalid_type_error: translations.amountRequired })
     .positive({ message: translations.amountPositive }),
   date: z.date({ required_error: translations.dateRequired }),
-  category: z.enum(CATEGORIES, { required_error: translations.categoryRequired }),
+  categoryId: z.string({ required_error: translations.categoryRequired }),
   type: z.enum(["income", "expense"], { required_error: translations.typeRequired }),
-  paymentType: z.enum(PAYMENT_TYPES, { required_error: translations.paymentTypeRequired }),
+  paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
 });
 
-export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment = false }: TransactionFormProps) {
-  const { translations, translateCategory, translatePaymentType, language } = useTranslations();
+const formatNumberWithCommas = (numStr: string): string => {
+  if (!numStr) return '';
+  const [integerPart, decimalPart] = numStr.split('.');
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (decimalPart !== undefined) {
+    return `${formattedIntegerPart}.${decimalPart}`;
+  }
+  return formattedIntegerPart;
+};
+
+export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, onClose, isTaxPayment = false, categories, paymentMethods }: TransactionFormProps) {
+  const { translations, language } = useTranslations();
   const [isCalendarOpen, setCalendarOpen] = React.useState(false);
-  const [displayAmount, setDisplayAmount] = useState<string>("");
+  const [displayAmount, setDisplayAmount] = useState<string>('');
 
   const formSchema = getFormSchema(translations);
 
@@ -72,46 +85,25 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
       description: initialData?.description || "",
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
-      category: initialData?.category || undefined,
+      categoryId: initialData?.categoryId || undefined,
       type: initialData?.type || undefined,
-      paymentType: initialData?.paymentType || undefined,
+      paymentMethodId: initialData?.paymentMethodId || undefined,
     },
   });
-
-  const formatNumberWithCommas = (numStr: string): string => {
-    if (!numStr) return '';
-    const [integerPart, decimalPart] = numStr.split('.');
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    if (decimalPart !== undefined) {
-      return `${formattedIntegerPart}.${decimalPart}`;
-    }
-    return formattedIntegerPart;
-  };
-
+  
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        ...initialData,
-        date: initialData.date ? new Date(initialData.date) : new Date(),
-      });
-      if (initialData.amount) {
-        setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
-      } else {
-        setDisplayAmount("");
-      }
-    } else {
-      form.reset({
-        description: "",
-        amount: undefined,
-        date: new Date(),
-        category: undefined,
-        type: undefined,
-        paymentType: undefined,
-      });
-      setDisplayAmount("");
+    if (initialData?.amount) {
+      setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, form.reset]);
+    form.reset({
+      description: initialData?.description || "",
+      amount: initialData?.amount,
+      date: initialData?.date ? new Date(initialData.date) : new Date(),
+      categoryId: initialData?.categoryId || undefined,
+      type: initialData?.type || undefined,
+      paymentMethodId: initialData?.paymentMethodId || undefined,
+    });
+  }, [initialData, form]);
   
   const locales = {
     en: enUS,
@@ -122,6 +114,12 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
 
   const handleSubmit = (values: TransactionFormValues) => {
     onSubmit(values);
+  };
+  
+  const handleSaveAndAddAnother = (values: TransactionFormValues) => {
+    if (onSaveAndAddAnother) {
+      onSaveAndAddAnother(values);
+    }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +147,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 p-1">
+      <form className="space-y-4">
         <FormField
           control={form.control}
           name="description"
@@ -164,7 +162,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <FormField
             control={form.control}
             name="amount"
@@ -197,7 +195,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
                     type="button"
                     variant={"outline"}
                     className={cn(
-                      "w-full pl-3 text-left font-normal",
+                      "w-full pl-3 text-left font-normal text-base",
                       !field.value && "text-muted-foreground"
                     )}
                     onClick={() => setCalendarOpen(true)}
@@ -236,32 +234,64 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
           />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel><Type className="inline-block mr-2 h-4 w-4" />{translations.type}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isTaxPayment}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={translations.type} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="income">{translations.income}</SelectItem>
-                    <SelectItem value="expense">{translations.expense}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel><Type className="inline-block mr-2 h-4 w-4" />{translations.type}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  className="grid grid-cols-2 gap-4"
+                  disabled={isTaxPayment}
+                >
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroupItem value="income" id="income" className="sr-only" />
+                    </FormControl>
+                    <FormLabel
+                      htmlFor="income"
+                       className={cn(
+                        "flex flex-col items-center justify-center rounded-md border-2 p-2 cursor-pointer transition-colors duration-300 text-base",
+                        field.value === 'income'
+                          ? "bg-green-800 border-green-800 text-white font-semibold dark:bg-green-600 dark:border-green-600 dark:text-white"
+                          : "font-normal bg-green-100 border-green-600 text-green-800 hover:bg-green-200 dark:bg-green-950 dark:border-green-950 dark:hover:bg-green-900 dark:text-green-300"
+                      )}
+                    >
+                      <TrendingUp className={cn("mb-1 h-5 w-5", field.value === 'income' ? 'text-white' : 'text-green-500')} />
+                      {translations.income}
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroupItem value="expense" id="expense" className="sr-only" />
+                    </FormControl>
+                    <FormLabel
+                      htmlFor="expense"
+                       className={cn(
+                        "flex flex-col items-center justify-center rounded-md border-2 p-2 cursor-pointer transition-colors duration-300 text-base",
+                         field.value === 'expense'
+                          ? "bg-red-800 border-red-800 text-white font-semibold dark:bg-red-600 dark:border-red-600 dark:text-white"
+                          : "font-normal bg-red-100 border-red-600 text-red-800 hover:bg-red-200 dark:bg-red-950 dark:border-red-950 dark:hover:bg-red-900 dark:text-red-300"
+                      )}
+                    >
+                      <TrendingDown className={cn("mb-1 h-5 w-5", field.value === 'expense' ? 'text-white' : 'text-red-500')} />
+                      {translations.expense}
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="category"
+            name="categoryId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel><ListTree className="inline-block mr-2 h-4 w-4" />{translations.category}</FormLabel>
@@ -272,9 +302,9 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {translateCategory(cat as Category)}
+                    {categories.filter(c => c.isEnabled).map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -286,7 +316,7 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
 
           <FormField
             control={form.control}
-            name="paymentType"
+            name="paymentMethodId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel><CreditCard className="inline-block mr-2 h-4 w-4" />{translations.paymentType}</FormLabel>
@@ -297,9 +327,9 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {PAYMENT_TYPES.map((pt) => (
-                      <SelectItem key={pt} value={pt}>
-                        {translatePaymentType(pt as PaymentType)}
+                    {paymentMethods.filter(pm => pm.isEnabled).map((pm) => (
+                      <SelectItem key={pm.id} value={pm.id}>
+                        {pm.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -310,13 +340,25 @@ export function TransactionForm({ onSubmit, initialData, onClose, isTaxPayment =
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            {translations.cancel}
-          </Button>
-          <Button type="submit" className="bg-primary hover:bg-primary/90">
-            {translations.save}
-          </Button>
+        <div className="pt-4 flex flex-col md:flex-row md:justify-end gap-3">
+          {onSaveAndAddAnother && !initialData && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={form.handleSubmit(handleSaveAndAddAnother)}
+              className="w-full md:w-auto md:order-2 text-base"
+            >
+              {translations.saveAndAddAnother}
+            </Button>
+          )}
+          <div className="flex w-full md:w-auto gap-3 order-1">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 md:flex-initial text-base">
+              {translations.cancel}
+            </Button>
+            <Button type="button" onClick={form.handleSubmit(handleSubmit)} className="bg-primary hover:bg-primary/90 flex-1 md:flex-initial text-base">
+              {translations.save}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

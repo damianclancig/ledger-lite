@@ -65,13 +65,10 @@ export default function LoginPage() {
               {translations.appName}
             </h1>
             <p className="text-slate-300">
-              Bienvenido a tu asistente financiero personal. Con Ledger Lite, puedes registrar tus ingresos y gastos de forma sencilla, categorizarlos y visualizar tu balance en tiempo real. Toma el control de tus finanzas hoy mismo.
+              {translations.signInToContinue}
             </p>
           </CardHeader>
           <CardContent className="p-8 pt-0">
-            <p className="text-center text-slate-400 mb-6 text-sm">
-                Inicia sesión de forma segura para empezar a gestionar tu dinero.
-            </p>
             <Button
               onClick={signInWithGoogle}
               className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -19,23 +20,23 @@ export default function AddTaxPage() {
 
   const handleFormSubmit = async (values: TaxFormSubmitValues) => {
     if (!user) {
-      toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive" });
+      toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
 
     const result = await addTax(values, user.uid);
 
     if (result && 'error' in result) {
-      toast({ title: "Error", description: result.error, variant: "destructive" });
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
-      toast({ title: "Tax record added", description: "New tax payment successfully recorded." });
+      toast({ title: translations.taxAddedTitle, description: translations.taxAddedDesc });
       router.push("/taxes");
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Button asChild variant="ghost" className="mb-4">
+      <Button asChild variant="ghost" className="mb-4 text-base">
         <Link href="/taxes">
           <ArrowLeft className="mr-2 h-4 w-4" />
           {translations.back}
@@ -55,3 +56,5 @@ export default function AddTaxPage() {
     </div>
   );
 }
+
+    

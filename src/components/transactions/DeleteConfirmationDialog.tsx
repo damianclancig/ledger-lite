@@ -34,12 +34,12 @@ export function DeleteConfirmationDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{translations.confirmDelete}</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-base">
             {translations.areYouSureDelete}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>{translations.cancel}</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose} className="text-base">{translations.cancel}</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
               onConfirm();
@@ -47,7 +47,7 @@ export function DeleteConfirmationDialog({
             }}
             asChild
           >
-            <Button variant="destructive">{translations.delete}</Button>
+            <Button variant="destructive" className="text-base">{translations.delete}</Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

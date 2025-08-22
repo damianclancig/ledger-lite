@@ -1,69 +1,103 @@
+
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { Suspense, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addTransaction, markTaxAsPaid } from "@/app/actions";
+import { addTransaction, markTaxAsPaid, getCategories, getPaymentMethods } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
+import type { Category, PaymentMethod } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function AddTransactionContent() {
+export default function AddTransactionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
+  const [formKey, setFormKey] = useState(Date.now());
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [initialData, setInitialData] = React.useState<Partial<TransactionFormValues> | undefined>();
-  const [isReady, setIsReady] = React.useState(false);
+  useEffect(() => {
+    async function loadData() {
+      if (!user) return;
+      setIsLoading(true);
+      const [userCategories, userPaymentMethods] = await Promise.all([
+        getCategories(user.uid),
+        getPaymentMethods(user.uid),
+      ]);
+      setCategories(userCategories);
+      setPaymentMethods(userPaymentMethods);
+      setIsLoading(false);
+    }
+    loadData();
+  }, [user]);
 
   const taxId = searchParams.get('taxId');
   const isTaxPayment = !!taxId;
 
-  useEffect(() => {
-    // If we have search params, we're likely coming from the taxes page.
-    const description = searchParams.get('description');
-    const amount = searchParams.get('amount');
-    const category = searchParams.get('category');
-    
-    if (isTaxPayment && description && amount && category) {
-      setInitialData({
-        description,
-        amount: parseFloat(amount),
-        date: new Date(),
-        category: category as any, // Assume it's a valid category
-        type: 'expense',
-        paymentType: undefined, // Force user to select payment type
-      });
-    }
-    setIsReady(true);
-  }, [searchParams, isTaxPayment]);
+  // Process search params directly to build initial data for the form.
+  const description = searchParams.get('description');
+  const amount = searchParams.get('amount');
+  const taxCategoryName = searchParams.get('category');
+  
+  let initialData: Partial<TransactionFormValues> | undefined;
+  if (isTaxPayment && description && amount && taxCategoryName) {
+    const taxCategory = categories.find(c => c.name === taxCategoryName);
+    initialData = {
+      description,
+      amount: parseFloat(amount),
+      date: new Date(),
+      categoryId: taxCategory?.id,
+      type: 'expense',
+      paymentMethodId: undefined,
+    };
+  }
 
   const handleFormSubmit = async (values: TransactionFormValues) => {
     if (!user) {
-      toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive" });
+      toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
 
     const result = await addTransaction(values, user.uid);
 
     if (result && 'error' in result) {
-      toast({ title: "Error", description: result.error, variant: "destructive" });
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else if (result) {
       // If the transaction was for a tax, mark the tax as paid
       if (taxId) {
         await markTaxAsPaid(taxId, result.id, user.uid);
       }
-      toast({ title: "Transaction added", description: "New transaction successfully recorded." });
-      // Redirect based on origin
+      toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
+      
       const redirectPath = taxId ? '/taxes' : '/';
       router.push(redirectPath);
+    }
+  };
+  
+  const handleSaveAndAddAnother = async (values: TransactionFormValues) => {
+    if (!user) {
+        toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
+        return;
+    }
+
+    const result = await addTransaction(values, user.uid);
+
+    if (result && 'error' in result) {
+        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+    } else {
+        toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
+        // By changing the key, we force the form to re-mount with initial state
+        setFormKey(Date.now());
     }
   };
 
@@ -71,9 +105,9 @@ function AddTransactionContent() {
     const redirectPath = taxId ? '/taxes' : '/';
     router.push(redirectPath);
   }
-
-  if (!isReady) {
-    return (
+  
+  if (isLoading) {
+     return (
        <div className="max-w-2xl mx-auto">
         <Skeleton className="h-10 w-24 mb-4" />
         <Card>
@@ -101,33 +135,28 @@ function AddTransactionContent() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Button asChild variant="ghost" className="mb-4" onClick={handleClose}>
-        <span className="cursor-pointer">
+      <Button variant="ghost" className="mb-4 text-base" onClick={handleClose}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           {translations.back}
-        </span>
       </Button>
       <Card className="shadow-xl border-2 border-primary">
-        <CardHeader>
+        <CardHeader className="p-6 pb-4">
           <CardTitle>{translations.addTransaction}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <Separator />
+        <CardContent className="p-6 pt-4">
           <TransactionForm
+            key={formKey}
             onSubmit={handleFormSubmit}
+            onSaveAndAddAnother={handleSaveAndAddAnother}
             onClose={handleClose}
             initialData={initialData}
             isTaxPayment={isTaxPayment}
+            categories={categories}
+            paymentMethods={paymentMethods}
           />
         </CardContent>
       </Card>
     </div>
   );
-}
-
-export default function AddTransactionPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AddTransactionContent />
-    </Suspense>
-  )
 }
