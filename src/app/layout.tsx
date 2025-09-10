@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
     images: [
       {
-        url: `${APP_URL}/og-image.png`,
+        url: `${APP_URL}/og-image.webp`,
         width: 1200,
         height: 630,
         alt: 'FinanClan Dashboard mostrando totales financieros.',
@@ -44,14 +44,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'FinanClan - Tu Gestor de Finanzas Personales',
     description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
-    images: [`${APP_URL}/og-image.png`],
+    images: [`${APP_URL}/og-image.webp`],
     creator: '@dclancig',
   },
 
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
-    apple: '/apple-icon.png',
   },
   
   robots: {

@@ -1,0 +1,16 @@
+{
+  "name": "FinanClan",
+  "short_name": "FinanClan",
+  "description": "Tu gestor de finanzas personales para controlar ingresos y gastos fácilmente.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E2E8F0",
+  "theme_color": "#1E3A8A"
+}
