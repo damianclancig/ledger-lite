@@ -17,6 +17,7 @@ Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a ll
 - **Soporte Multilenguaje**: La interfaz está disponible en Español, Inglés y Portugués.
 - **Temas Claro y Oscuro**: Cambia entre el tema claro y oscuro para adaptar la aplicación a tus preferencias visuales.
 - **Optimización para SEO**: Configuración completa de metadatos (títulos dinámicos, descripciones, palabras clave) y etiquetas Open Graph para una excelente visualización al compartir en redes sociales. Incluye `robots.txt` y `sitemap.xml` para una indexación eficiente en motores de búsqueda.
+- **Analíticas y Rendimiento**: Integrado con Vercel Analytics y Speed Insights para monitorizar el tráfico y el rendimiento de la aplicación en tiempo real.
 
 ## 🛠️ Pila Tecnológica
 
@@ -28,6 +29,7 @@ Este proyecto está construido con tecnologías modernas y robustas para garanti
 - **Componentes de UI**: [ShadCN UI](https://ui.shadcn.com/) y [Radix UI](https://www.radix-ui.com/)
 - **Base de Datos**: [MongoDB](https://www.mongodb.com/) (a través de MongoDB Atlas)
 - **Autenticación**: [Firebase Authentication](https://firebase.google.com/docs/auth)
+- **Analíticas**: [Vercel Analytics](https://vercel.com/analytics) y [Speed Insights](https://vercel.com/speed-insights)
 - **Iconos**: [Lucide React](https://lucide.dev/)
 
 ---

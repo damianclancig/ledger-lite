@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { Toaster } from '@/components/ui/toaster';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const APP_URL = 'https://caja.clancig.com.ar';
 
@@ -15,34 +17,35 @@ export const metadata: Metadata = {
     default: 'Ledger Lite',
     template: '%s | Ledger Lite',
   },
-  description: 'Ledger Lite: Your personal finance manager to easily track income and expenses. Customize categories and payment methods to fit your needs. Take control of your money with a modern and secure app.',
+  description: 'Ledger Lite: Tu gestor de finanzas personales para controlar ingresos y gastos fácilmente. Personaliza categorías y métodos de pago a tu medida. Toma el control de tu dinero con una app moderna y segura.',
   keywords: ['personal finance', 'expense tracker', 'income management', 'budgeting app', 'tax management', 'custom categories', 'payment methods', 'finanzas personales', 'gestor de gastos', 'ingresos y gastos', 'control de impuestos', 'categorías personalizadas', 'métodos de pago'],
-  authors: [{ name: 'The Ledger Lite Authors', url: 'https://github.com/damianclancig/ledger-lite' }],
-  creator: 'The Ledger Lite Authors',
-  publisher: 'The Ledger Lite Authors',
+  authors: [{ name: 'Clancig FullstackDev', url: 'https://clancig.com.ar' }],
+  creator: 'Damián Clancig',
+  publisher: 'Damián Clancig',
   
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'es_AR',
     url: APP_URL,
     siteName: 'Ledger Lite',
-    title: 'Ledger Lite - Personal Finance Manager',
-    description: 'Easily track income and expenses. Customize categories and payment methods. Take control of your money with a modern and secure app.',
+    title: 'Ledger Lite - Tu Gestor de Finanzas Personales',
+    description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
     images: [
       {
         url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Ledger Lite Dashboard showing financial totals.',
+        alt: 'Ledger Lite Dashboard mostrando totales financieros.',
       },
     ],
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Ledger Lite - Personal Finance Manager',
-    description: 'Easily track income and expenses. Customize categories and payment methods. Take control of your money with a modern and secure app.',
+    title: 'Ledger Lite - Tu Gestor de Finanzas Personales',
+    description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
     images: [`${APP_URL}/og-image.png`],
+    creator: '@dclancig',
   },
 
   icons: {
@@ -94,6 +97,8 @@ export default function RootLayout({
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
