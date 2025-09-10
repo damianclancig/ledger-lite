@@ -5,10 +5,12 @@ Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a ll
 ## ✨ Características Principales
 
 - **Gestión Completa de Transacciones**: Crea, visualiza, edita y elimina transacciones de ingresos y gastos de forma rápida.
+- **Gestión de Categorías Personalizadas**: Añade, renombra y habilita o deshabilita tus propias categorías de gastos e ingresos para adaptar la aplicación a tu vida financiera.
+- **Gestión de Métodos de Pago Personalizados**: Define tus propios métodos de pago, como tarjetas de crédito de bancos específicos, billeteras virtuales o efectivo, para un seguimiento detallado.
 - **Gestión de Impuestos**: Registra impuestos recurrentes, visualiza su historial y márcalos como pagados, generando automáticamente la transacción de gasto correspondiente.
 - **Seguridad Multiusuario**: Cada usuario tiene su propia cuenta segura. Tus registros financieros son privados y solo tú puedes acceder a ellos.
 - **Autenticación con Google**: Inicia sesión de forma segura y con un solo clic utilizando tu cuenta de Google, gracias a la integración con Firebase Authentication.
-- **Panel de Totales**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual.
+- **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría y la comparativa de ingresos vs. gastos con gráficos dinámicos.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
 - **Experiencia de Usuario Moderna**: Disfruta de una interfaz pulida con efectos visuales como "glassmorphism" en las tarjetas y un fondo animado que mejora la inmersión.
 - **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
@@ -27,6 +29,14 @@ Este proyecto está construido con tecnologías modernas y robustas para garanti
 - **Base de Datos**: [MongoDB](https://www.mongodb.com/) (a través de MongoDB Atlas)
 - **Autenticación**: [Firebase Authentication](https://firebase.google.com/docs/auth)
 - **Iconos**: [Lucide React](https://lucide.dev/)
+
+---
+
+## 🌐 Demo en Vivo
+
+¡Puedes probar la aplicación ahora mismo! Visita el siguiente enlace para acceder a la versión en producción:
+
+**[Acceder a Ledger Lite](https://caja.clancig.com.ar)**
 
 ---
 

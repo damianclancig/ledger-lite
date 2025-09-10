@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     default: 'Ledger Lite',
     template: '%s | Ledger Lite',
   },
-  description: 'Ledger Lite: Your personal finance manager to easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
-  keywords: ['personal finance', 'expense tracker', 'income management', 'budgeting app', 'tax management', 'finanzas personales', 'gestor de gastos', 'ingresos y gastos', 'control de impuestos'],
+  description: 'Ledger Lite: Your personal finance manager to easily track income and expenses. Customize categories and payment methods to fit your needs. Take control of your money with a modern and secure app.',
+  keywords: ['personal finance', 'expense tracker', 'income management', 'budgeting app', 'tax management', 'custom categories', 'payment methods', 'finanzas personales', 'gestor de gastos', 'ingresos y gastos', 'control de impuestos', 'categorías personalizadas', 'métodos de pago'],
   authors: [{ name: 'The Ledger Lite Authors', url: 'https://github.com/damianclancig/ledger-lite' }],
   creator: 'The Ledger Lite Authors',
   publisher: 'The Ledger Lite Authors',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     url: APP_URL,
     siteName: 'Ledger Lite',
     title: 'Ledger Lite - Personal Finance Manager',
-    description: 'Easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
+    description: 'Easily track income and expenses. Customize categories and payment methods. Take control of your money with a modern and secure app.',
     images: [
       {
         url: `${APP_URL}/og-image.png`,
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Ledger Lite - Personal Finance Manager',
-    description: 'Easily track income, expenses, and taxes. Take control of your money with a modern and secure app.',
+    description: 'Easily track income and expenses. Customize categories and payment methods. Take control of your money with a modern and secure app.',
     images: [`${APP_URL}/og-image.png`],
   },
 
