@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -172,7 +173,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-4 pt-8">
         <Skeleton className="h-10 mb-8" />
         <div className="grid gap-6 md:grid-cols-3 mb-8">
             <Skeleton className="h-24" />
@@ -187,7 +188,7 @@ export default function DashboardPage() {
 
   return (
     <>
-    <div className="space-y-8">
+    <div className="space-y-4 pt-8">
        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

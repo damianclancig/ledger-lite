@@ -14,10 +14,10 @@ const APP_URL = 'https://caja.clancig.com.ar';
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: 'Ledger Lite',
-    template: '%s | Ledger Lite',
+    default: 'FinanClan',
+    template: '%s | FinanClan',
   },
-  description: 'Ledger Lite: Tu gestor de finanzas personales para controlar ingresos y gastos fácilmente. Personaliza categorías y métodos de pago a tu medida. Toma el control de tu dinero con una app moderna y segura.',
+  description: 'FinanClan: Tu gestor de finanzas personales para controlar ingresos y gastos fácilmente. Personaliza categorías y métodos de pago a tu medida. Toma el control de tu dinero con una app moderna y segura.',
   keywords: ['personal finance', 'expense tracker', 'income management', 'budgeting app', 'tax management', 'custom categories', 'payment methods', 'finanzas personales', 'gestor de gastos', 'ingresos y gastos', 'control de impuestos', 'categorías personalizadas', 'métodos de pago'],
   authors: [{ name: 'Clancig FullstackDev', url: 'https://clancig.com.ar' }],
   creator: 'Damián Clancig',
@@ -27,22 +27,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'es_AR',
     url: APP_URL,
-    siteName: 'Ledger Lite',
-    title: 'Ledger Lite - Tu Gestor de Finanzas Personales',
+    siteName: 'FinanClan',
+    title: 'FinanClan - Tu Gestor de Finanzas Personales',
     description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
     images: [
       {
         url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Ledger Lite Dashboard mostrando totales financieros.',
+        alt: 'FinanClan Dashboard mostrando totales financieros.',
       },
     ],
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Ledger Lite - Tu Gestor de Finanzas Personales',
+    title: 'FinanClan - Tu Gestor de Finanzas Personales',
     description: 'Controla fácilmente tus ingresos y gastos. Personaliza categorías y métodos de pago. Toma el control de tu dinero con una app moderna y segura.',
     images: [`${APP_URL}/og-image.png`],
     creator: '@dclancig',

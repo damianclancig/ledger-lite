@@ -1,6 +1,7 @@
-# Ledger Lite: Tu Gestor de Finanzas Personales
 
-Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a llevar un control claro y sencillo de tus ingresos y gastos. Con una interfaz intuitiva y potentes funcionalidades, gestionar tus finanzas nunca ha sido tan fácil.
+# FinanClan: Tu Gestor de Finanzas Personales
+
+FinanClan es una aplicación web moderna y segura diseñada para ayudarte a llevar un control claro y sencillo de tus ingresos y gastos. Con una interfaz intuitiva y potentes funcionalidades, gestionar tus finanzas nunca ha sido tan fácil.
 
 ## ✨ Características Principales
 
@@ -12,7 +13,7 @@ Ledger Lite es una aplicación web moderna y segura diseñada para ayudarte a ll
 - **Autenticación con Google**: Inicia sesión de forma segura y con un solo clic utilizando tu cuenta de Google, gracias a la integración con Firebase Authentication.
 - **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría y la comparativa de ingresos vs. gastos con gráficos dinámicos.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
-- **Experiencia de Usuario Moderna**: Disfruta de una interfaz pulida con efectos visuales como "glassmorphism" en las tarjetas y un fondo animado que mejora la inmersión.
+- **Experiencia de Usuario Moderna**: Disfruta de una interfaz pulida con un **encabezado fijo** para una navegación rápida, efectos visuales como "glassmorphism" en las tarjetas y un fondo animado que mejora la inmersión.
 - **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
 - **Soporte Multilenguaje**: La interfaz está disponible en Español, Inglés y Portugués.
 - **Temas Claro y Oscuro**: Cambia entre el tema claro y oscuro para adaptar la aplicación a tus preferencias visuales.
@@ -38,7 +39,7 @@ Este proyecto está construido con tecnologías modernas y robustas para garanti
 
 ¡Puedes probar la aplicación ahora mismo! Visita el siguiente enlace para acceder a la versión en producción:
 
-**[Acceder a Ledger Lite](https://caja.clancig.com.ar)**
+**[Acceder a FinanClan](https://caja.clancig.com.ar)**
 
 ---
 
@@ -120,4 +121,4 @@ Once you have configured all the environment variables, you can start the develo
 npm run dev
 ```
 
-Abre tu navegador y visita [http://localhost:3000](http://localhost:3000) (o el puerto que se indique en la terminal). ¡Ya deberías poder ver la página de inicio de sesión y empezar a usar Ledger Lite!
+Abre tu navegador y visita [http://localhost:3000](http://localhost:3000) (o el puerto que se indique en la terminal). ¡Ya deberías poder ver la página de inicio de sesión y empezar a usar FinanClan!

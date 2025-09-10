@@ -6,6 +6,7 @@ import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { BackgroundWrapper } from "./BackgroundWrapper";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,10 +25,10 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   // If we are on a public page (the new home/login page)
   if (isPublicPage) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <BackgroundWrapper>
         <main className="flex-grow">{children}</main>
         <Footer />
-      </div>
+      </BackgroundWrapper>
     );
   }
   
@@ -43,12 +44,16 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   // If user is authenticated, show the main layout with header and footer
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <>
       <Header />
-      <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
-      <Footer />
-    </div>
+      <BackgroundWrapper>
+        <div className="min-h-screen flex flex-col">
+          <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </BackgroundWrapper>
+    </>
   );
 }

@@ -72,8 +72,29 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-primary dark:text-foreground no-underline transition-colors duration-300 hover:text-accent">
-            {translations.appName}
+          <Link href="/dashboard" className="text-2xl sm:text-3xl font-bold no-underline">
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 2px 4px rgba(30, 58, 138, 0.4)',
+                WebkitTextStroke: '1px rgba(0,0,0,0.1)',
+              }}
+            >
+              Finan
+            </span>
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #FBBF24, #FDE68A, #F59E0B)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 2px 3px rgba(245, 158, 11, 0.5)',
+                WebkitTextStroke: '1px rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              Clan
+            </span>
           </Link>
         </div>
         <div className="flex items-center space-x-2">

@@ -1,5 +1,6 @@
+
 {
-  "appName": "Ledger Lite",
+  "appName": "FinanClan",
   "addTransaction": "Adicionar Transação",
   "editTransaction": "Editar Transação",
   "deleteTransaction": "Excluir Transação",
@@ -60,7 +61,7 @@
   "VirtualWallet": "Carteira Virtual",
   "OtherPaymentType": "Outro",
   "signOut": "Sair",
-  "signInToContinue": "Faça login para continuar no seu livro-caixa",
+  "signInToContinue": "Faça login para gerenciar as finanças do seu clã.",
   "signInWithGoogle": "Entrar com o Google",
   "unauthorizedDomainError": "Este domínio não está autorizado. Vá para a seção Authentication > Settings > Domínios autorizados do seu projeto Firebase e adicione o domínio que você está usando no momento. Lembre-se de reiniciar o servidor se você alterar as variáveis de ambiente.",
   "home": "Início",
@@ -115,7 +116,7 @@
   "October": "Outubro",
   "November": "Novembro",
   "December": "Dezembro",
-  "footerRights": "© {currentYear} Ledger Lite. Todos os direitos reservados.",
+  "footerRights": "© {currentYear} FinanClan. Todos os direitos reservados.",
   "footerAuthor": "Design e desenvolvimento web por",
   "transactionAddedTitle": "Transação adicionada",
   "transactionAddedDesc": "A nova transação foi registada com sucesso.",

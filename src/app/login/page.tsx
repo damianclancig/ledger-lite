@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -57,37 +58,47 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-lg border-2 border-primary/50 text-white shadow-2xl rounded-2xl bg-card/80 backdrop-blur-sm">
+      <Card className="w-full max-w-lg border-2 border-primary/50 shadow-2xl rounded-2xl bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center p-8">
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-100 via-accent to-slate-100 mb-4 animate-[gradient-text_2s_ease_infinite]">
-            {translations.appName}
+          <h1 className="text-6xl font-extrabold">
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 2px 4px rgba(30, 58, 138, 0.4)',
+                WebkitTextStroke: '1px rgba(0,0,0,0.1)',
+              }}
+            >
+              Finan
+            </span>
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #FBBF24, #FDE68A, #F59E0B)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 2px 3px rgba(245, 158, 11, 0.5)',
+                WebkitTextStroke: '1px rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              Clan
+            </span>
           </h1>
-          <p className="text-slate-300">
+          <p className="text-muted-foreground text-base">
             {translations.signInToContinue}
           </p>
         </CardHeader>
         <CardContent className="p-8 pt-0">
           <Button
             onClick={signInWithGoogle}
-            className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
+            className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/80 border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
           >
             <GoogleIcon className="mr-3 h-6 w-6" />
             {translations.signInWithGoogle}
           </Button>
         </CardContent>
       </Card>
-      <style jsx global>{`
-        @keyframes gradient-text {
-          0%, 100% {
-            background-size: 200% 200%;
-            background-position: 10% 0%;
-          }
-          50% {
-            background-size: 200% 200%;
-            background-position: 91% 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 }
+

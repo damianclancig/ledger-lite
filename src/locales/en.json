@@ -1,5 +1,6 @@
+
 {
-  "appName": "Ledger Lite",
+  "appName": "FinanClan",
   "addTransaction": "Add Transaction",
   "editTransaction": "Edit Transaction",
   "deleteTransaction": "Delete Transaction",
@@ -60,7 +61,7 @@
   "VirtualWallet": "Virtual Wallet",
   "OtherPaymentType": "Other",
   "signOut": "Sign Out",
-  "signInToContinue": "Sign in to continue to your ledger",
+  "signInToContinue": "Sign in to continue to your clan's finances",
   "signInWithGoogle": "Sign in with Google",
   "unauthorizedDomainError": "This domain is not authorized. Go to your Firebase project's Authentication > Settings > Authorized domains and add the domain you are currently using. Remember to restart the server if you change environment variables.",
   "home": "Home",
@@ -115,7 +116,7 @@
   "October": "October",
   "November": "November",
   "December": "December",
-  "footerRights": "© {currentYear} Ledger Lite. All rights reserved.",
+  "footerRights": "© {currentYear} FinanClan. All rights reserved.",
   "footerAuthor": "Web design and development by",
   "transactionAddedTitle": "Transaction added",
   "transactionAddedDesc": "New transaction successfully recorded.",
