@@ -21,11 +21,13 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we are on the login page, render the page content and the footer
+  // If we are on the login page, render the page content inside the background wrapper
   if (isLoginPage) {
     return (
       <div className="min-h-screen flex flex-col">
-        <main className="flex-grow">{children}</main>
+         <BackgroundWrapper>
+          <main className="flex-grow">{children}</main>
+        </BackgroundWrapper>
         <Footer />
       </div>
     );
@@ -33,7 +35,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   
   // If we are not on login page, but there's no user, we are in a redirect state.
   // The AuthProvider's useEffect is handling the redirect. Show a loader to prevent flicker.
-  if (!user && !isLoginPage) {
+  if (!user) {
      return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -43,13 +45,11 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   // If user is authenticated, show the main layout with header and footer
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <BackgroundWrapper>
-        <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
-      </BackgroundWrapper>
+      <main className="flex-grow container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
       <Footer />
     </div>
   );

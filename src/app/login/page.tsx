@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -57,29 +56,27 @@ export default function LoginPage() {
   }
 
   return (
-    <BackgroundWrapper>
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-lg border-2 border-primary/50 text-white shadow-2xl rounded-2xl">
-          <CardHeader className="text-center p-8">
-            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-100 via-accent to-slate-100 mb-4 animate-[gradient-text_2s_ease_infinite]">
-              {translations.appName}
-            </h1>
-            <p className="text-slate-300">
-              {translations.signInToContinue}
-            </p>
-          </CardHeader>
-          <CardContent className="p-8 pt-0">
-            <Button
-              onClick={signInWithGoogle}
-              className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
-            >
-              <GoogleIcon className="mr-3 h-6 w-6" />
-              {translations.signInWithGoogle}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-       <style jsx global>{`
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-lg border-2 border-primary/50 text-white shadow-2xl rounded-2xl bg-card/80 backdrop-blur-sm">
+        <CardHeader className="text-center p-8">
+          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-100 via-accent to-slate-100 mb-4 animate-[gradient-text_2s_ease_infinite]">
+            {translations.appName}
+          </h1>
+          <p className="text-slate-300">
+            {translations.signInToContinue}
+          </p>
+        </CardHeader>
+        <CardContent className="p-8 pt-0">
+          <Button
+            onClick={signInWithGoogle}
+            className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            <GoogleIcon className="mr-3 h-6 w-6" />
+            {translations.signInWithGoogle}
+          </Button>
+        </CardContent>
+      </Card>
+      <style jsx global>{`
         @keyframes gradient-text {
           0%, 100% {
             background-size: 200% 200%;
@@ -91,6 +88,6 @@ export default function LoginPage() {
           }
         }
       `}</style>
-    </BackgroundWrapper>
+    </div>
   );
 }
