@@ -35,7 +35,7 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem asChild>
-                <Link href="/">
+                <Link href="/dashboard">
                   <Home className="mr-2 h-4 w-4" />
                   <span>{translations.home}</span>
                 </Link>
@@ -72,7 +72,7 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/" className="text-xl sm:text-2xl font-bold text-primary dark:text-foreground no-underline transition-colors duration-300 hover:text-accent">
+          <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-primary dark:text-foreground no-underline transition-colors duration-300 hover:text-accent">
             {translations.appName}
           </Link>
         </div>

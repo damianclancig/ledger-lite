@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from "react";
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = useCallback(async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       const authError = error as AuthError;
       if (authError.code === 'auth/unauthorized-domain') {
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
-      router.push('/login');
+      router.push('/');
     } catch (error) {
       console.error("Error signing out", error);
     }
@@ -66,12 +67,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
    useEffect(() => {
     if (!loading) {
-      const isAuthPage = pathname === '/login';
-      if (!user && !isAuthPage) {
-        router.push('/login');
-      }
-      if (user && isAuthPage) {
+      const isPublicPage = pathname === '/';
+      if (!user && !isPublicPage) {
         router.push('/');
+      }
+      if (user && isPublicPage) {
+        router.push('/dashboard');
       }
     }
   }, [user, loading, pathname, router]);

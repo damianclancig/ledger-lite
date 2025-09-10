@@ -52,11 +52,11 @@ export default function EditTransactionPage() {
           setPaymentMethods(userPaymentMethods);
         } else {
           toast({ title: translations.errorTitle, description: "Transaction not found or you don't have permission to view it.", variant: "destructive" });
-          router.push("/");
+          router.push("/dashboard");
         }
       } catch (error) {
          toast({ title: translations.errorTitle, description: "Failed to load data.", variant: "destructive" });
-         router.push("/");
+         router.push("/dashboard");
       } finally {
         setIsLoading(false);
       }
@@ -78,7 +78,7 @@ export default function EditTransactionPage() {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.transactionUpdatedTitle, description: translations.transactionUpdatedDesc });
-      router.push("/");
+      router.push("/dashboard");
     }
   };
   
@@ -112,7 +112,7 @@ export default function EditTransactionPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <Button asChild variant="ghost" className="mb-4 text-base">
-        <Link href="/">
+        <Link href="/dashboard">
           <ArrowLeft className="mr-2 h-4 w-4" />
           {translations.back}
         </Link>
@@ -125,7 +125,7 @@ export default function EditTransactionPage() {
         <CardContent className="p-6 pt-4">
           <TransactionForm
             onSubmit={handleFormSubmit}
-            onClose={() => router.push("/")}
+            onClose={() => router.push("/dashboard")}
             initialData={transaction}
             categories={categories}
             paymentMethods={paymentMethods}

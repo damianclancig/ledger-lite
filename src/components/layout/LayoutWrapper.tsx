@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -5,12 +6,11 @@ import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import { BackgroundWrapper } from "./BackgroundWrapper";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { loading, user } = useAuth();
-  const isLoginPage = pathname === '/login';
+  const isPublicPage = pathname === '/';
 
   // While loading auth state, show a full-screen loader
   if (loading) {
@@ -21,20 +21,18 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we are on the login page, render the page content inside the background wrapper
-  if (isLoginPage) {
+  // If we are on a public page (the new home/login page)
+  if (isPublicPage) {
     return (
       <div className="min-h-screen flex flex-col">
-         <BackgroundWrapper>
-          <main className="flex-grow">{children}</main>
-        </BackgroundWrapper>
+        <main className="flex-grow">{children}</main>
         <Footer />
       </div>
     );
   }
   
-  // If we are not on login page, but there's no user, we are in a redirect state.
-  // The AuthProvider's useEffect is handling the redirect. Show a loader to prevent flicker.
+  // If we are on an authenticated page but there's no user, show a loader.
+  // The AuthProvider's useEffect is handling the redirect.
   if (!user) {
      return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
