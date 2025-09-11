@@ -1,4 +1,3 @@
-
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -114,6 +113,8 @@ export interface Translations {
   endDate: string;
   allCategories: string;
   allMonths: string;
+  currentMonth: string;
+  previousMonth: string;
   searchDescription: string;
   actions: string;
   page: string;
@@ -155,6 +156,7 @@ export interface Translations {
   back: string;
   options: string;
   manageCategories: string;
+  new: string;
   newCategory: string;
   editCategory: string;
   categoryName: string;

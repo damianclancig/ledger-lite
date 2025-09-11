@@ -252,6 +252,20 @@ export async function getCategories(userId: string): Promise<Category[]> {
   }
 }
 
+export async function getCategoryById(id: string, userId: string): Promise<Category | null> {
+  if (!ObjectId.isValid(id) || !userId) {
+    return null;
+  }
+  try {
+    const { categoriesCollection } = await getDb();
+    const category = await categoriesCollection.findOne({ _id: new ObjectId(id), userId });
+    return category ? mapMongoDocumentCategory(category) : null;
+  } catch (error) {
+    console.error('Error fetching category by ID:', error);
+    return null;
+  }
+}
+
 export async function addCategory(data: CategoryFormValues, userId: string): Promise<Category | { error: string }> {
   if (!userId) return { error: 'User not authenticated.' };
   try {
@@ -332,6 +346,20 @@ export async function getPaymentMethods(userId: string): Promise<PaymentMethod[]
   } catch (error) {
     console.error('Error fetching payment methods:', error);
     return [];
+  }
+}
+
+export async function getPaymentMethodById(id: string, userId: string): Promise<PaymentMethod | null> {
+  if (!ObjectId.isValid(id) || !userId) {
+    return null;
+  }
+  try {
+    const { paymentMethodsCollection } = await getDb();
+    const paymentMethod = await paymentMethodsCollection.findOne({ _id: new ObjectId(id), userId });
+    return paymentMethod ? mapMongoDocumentPaymentMethod(paymentMethod) : null;
+  } catch (error) {
+    console.error('Error fetching payment method by ID:', error);
+    return null;
   }
 }
 

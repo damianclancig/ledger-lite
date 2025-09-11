@@ -12,8 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus, Landmark, PlusCircle, DollarSign, CheckCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -23,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 
 
 interface AggregatedTax {
@@ -34,7 +33,6 @@ export default function TaxesPage() {
   const { user } = useAuth();
   const { translations, translateMonth } = useTranslations();
   const router = useRouter();
-  const scrollDirection = useScrollDirection();
   const isMobile = useIsMobile();
   
   const [taxes, setTaxes] = useState<Tax[]>([]);
@@ -295,20 +293,11 @@ export default function TaxesPage() {
         {renderContent()}
       </div>
 
-      <Button
+      <FloatingActionButton
         onClick={() => router.push('/add-tax')}
-        className={cn(
-          "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-all duration-300 ease-in-out hover:w-48 hover:bg-primary/90 gap-0 hover:gap-2",
-          scrollDirection === "down" ? "scale-0" : "scale-100"
-        )}
-        aria-label={translations.newTax}
-      >
-        <Plus className="h-8 w-8 text-primary-foreground transition-transform duration-300 group-hover:rotate-90" strokeWidth={3} />
-        <span className="w-0 overflow-hidden whitespace-nowrap text-lg font-semibold text-primary-foreground opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
-          {translations.newTax}
-        </span>
-      </Button>
+        label={translations.newTax}
+        icon={Plus}
+      />
     </TooltipProvider>
   );
 }
-

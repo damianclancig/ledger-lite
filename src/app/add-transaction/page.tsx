@@ -27,6 +27,10 @@ export default function AddTransactionPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     async function loadData() {
       if (!user) return;
       setIsLoading(true);
@@ -98,6 +102,7 @@ export default function AddTransactionPage() {
         toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
         // By changing the key, we force the form to re-mount with initial state
         setFormKey(Date.now());
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

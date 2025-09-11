@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -23,17 +22,17 @@ import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart } from 
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format, isSameMonth, isSameYear } from "date-fns";
+import { format, isSameMonth, isSameYear, subMonths } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { getTransactions, deleteTransaction, getCategories, getPaymentMethods } from "@/app/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { TransactionTypeToggle } from "@/components/transactions/TransactionTypeToggle";
 import { MonthSelector } from "@/components/common/MonthSelector";
 import { ExpensesChart } from "@/components/transactions/ExpensesChart";
 import { IncomeExpenseChart } from "@/components/transactions/IncomeExpenseChart";
+import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 
 
 export default function DashboardPage() {
@@ -42,7 +41,6 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const router = useRouter();
-  const scrollDirection = useScrollDirection();
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -171,9 +169,37 @@ export default function DashboardPage() {
     }, {} as Record<string, string>);
   }, [categories]);
 
+  const incomeExpenseChartData = useMemo(() => {
+    const getTotalsForMonth = (monthDate: Date) => {
+        const monthlyTransactions = transactions.filter(t => isSameMonth(t.date, monthDate) && isSameYear(t.date, monthDate));
+        const income = monthlyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const expense = monthlyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        return { income, expense };
+    };
+
+    const currentMonthDate = selectedMonth || new Date();
+    const previousMonthDate = subMonths(currentMonthDate, 1);
+
+    const currentTotals = getTotalsForMonth(currentMonthDate);
+    const previousTotals = getTotalsForMonth(previousMonthDate);
+
+    return [
+        {
+            name: translations.income,
+            current: currentTotals.income,
+            previous: previousTotals.income,
+        },
+        {
+            name: translations.expense,
+            current: currentTotals.expense,
+            previous: previousTotals.expense,
+        },
+    ];
+}, [transactions, selectedMonth, translations]);
+
   if (isLoading) {
     return (
-      <div className="space-y-4 pt-8">
+      <div className="space-y-4">
         <Skeleton className="h-10 mb-8" />
         <div className="grid gap-6 md:grid-cols-3 mb-8">
             <Skeleton className="h-24" />
@@ -188,7 +214,7 @@ export default function DashboardPage() {
 
   return (
     <>
-    <div className="space-y-4 pt-8">
+    <div className="space-y-4">
        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -215,7 +241,7 @@ export default function DashboardPage() {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <IncomeExpenseChart transactions={filteredTransactions} />
+                <IncomeExpenseChart chartData={incomeExpenseChartData} />
             </CardContent>
             </Card>
           </div>
@@ -306,6 +332,9 @@ export default function DashboardPage() {
                 selected={dateRange}
                 onSelect={handleDateSelect}
                 numberOfMonths={1}
+                captionLayout="dropdown-buttons" 
+                fromYear={2020} 
+                toYear={new Date().getFullYear()}
               />
             </PopoverContent>
           </Popover>
@@ -337,19 +366,11 @@ export default function DashboardPage() {
       />
     </div>
 
-    <Button
-      onClick={() => router.push('/add-transaction')}
-      className={cn(
-        "group fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary shadow-lg transition-all duration-300 ease-in-out hover:w-56 hover:bg-primary/90 gap-0 hover:gap-2",
-        scrollDirection === "down" ? "scale-0" : "scale-100"
-      )}
-      aria-label={translations.addTransaction}
-    >
-      <Plus className="h-7 w-7 text-primary-foreground transition-transform duration-300 group-hover:rotate-90" strokeWidth={3} />
-      <span className="w-0 overflow-hidden whitespace-nowrap text-lg font-semibold text-primary-foreground opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
-        {translations.addTransaction}
-      </span>
-    </Button>
+    <FloatingActionButton
+        onClick={() => router.push('/add-transaction')}
+        label={translations.addTransaction}
+        icon={Plus}
+    />
     </>
   );
 }

@@ -1,4 +1,3 @@
-
 {
   "appName": "FinanClan",
   "addTransaction": "Añadir Transacción",
@@ -31,6 +30,8 @@
   "endDate": "Fecha de Fin",
   "allCategories": "Todas las Categorías",
   "allMonths": "Todos los Meses",
+  "currentMonth": "Mes Actual",
+  "previousMonth": "Mes Anterior",
   "searchDescription": "Buscar descripción...",
   "actions": "Acciones",
   "page": "Página",
@@ -68,6 +69,7 @@
   "back": "Volver",
   "options": "Opciones",
   "manageCategories": "Categorías",
+  "new": "Nuevo",
   "newCategory": "Nueva Categoría",
   "editCategory": "Editar Categoría",
   "categoryName": "Nombre de la Categoría",

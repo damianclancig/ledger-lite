@@ -3,12 +3,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCategories, addCategory, updateCategory } from "@/app/actions";
-import type { Category, CategoryFormValues } from "@/types";
+import { useRouter } from "next/navigation";
+import { getCategories, updateCategory } from "@/app/actions";
+import type { Category } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, List, Edit } from "lucide-react";
+import { List, Edit } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,14 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { CategoryForm } from "@/components/settings/CategoryForm";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -36,11 +29,10 @@ export default function ManageCategoriesPage() {
   const { translations } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -53,23 +45,8 @@ export default function ManageCategoriesPage() {
     loadCategories();
   }, [user]);
 
-  const handleFormSubmit = async (values: CategoryFormValues) => {
-    if (!user) return;
-
-    const result = editingCategory
-      ? await updateCategory(editingCategory.id, values, user.uid)
-      : await addCategory(values, user.uid);
-
-    if (result && 'error' in result) {
-      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
-    } else {
-      toast({
-        title: editingCategory ? translations.categoryUpdatedSuccess : translations.categoryAddedSuccess,
-      });
-      const userCategories = await getCategories(user.uid);
-      setCategories(userCategories);
-      handleDialogClose();
-    }
+  const handleEditClick = (category: Category) => {
+    router.push(`/settings/categories/edit/${category.id}`);
   };
 
   const handleToggleEnabled = async (category: Category) => {
@@ -84,16 +61,6 @@ export default function ManageCategoriesPage() {
       setCategories(userCategories);
     }
   };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingCategory(null);
-  };
-
-  const handleOpenDialog = (category: Category | null = null) => {
-    setEditingCategory(category);
-    setIsDialogOpen(true);
-  }
 
   if (isLoading) {
     return <Skeleton className="h-96 w-full" />;
@@ -112,7 +79,7 @@ export default function ManageCategoriesPage() {
                   onCheckedChange={() => handleToggleEnabled(category)}
                   aria-label={`Toggle category ${category.name}`}
                 />
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleOpenDialog(category)}>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(category)}>
                     <Edit className="h-5 w-5" />
                  </Button>
               </div>
@@ -143,7 +110,7 @@ export default function ManageCategoriesPage() {
               />
             </TableCell>
             <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(category)}>
+              <Button variant="ghost" size="icon" onClick={() => handleEditClick(category)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </TableCell>
@@ -154,33 +121,20 @@ export default function ManageCategoriesPage() {
   );
 
   return (
-    <Card className="shadow-xl border-2 border-primary">
-      <CardHeader className="flex flex-col items-start gap-4">
-        <div className="flex items-center">
-            <List className="h-6 w-6 mr-3 text-primary" />
-            <CardTitle>{translations.manageCategories}</CardTitle>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="text-base">
-              <PlusCircle className="mr-2 h-4 w-4" /> {translations.newCategory}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingCategory ? translations.editCategory : translations.newCategory}</DialogTitle>
-            </DialogHeader>
-            <CategoryForm
-              onSubmit={handleFormSubmit}
-              onClose={handleDialogClose}
-              initialData={editingCategory ?? undefined}
-            />
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        {isMobile ? renderMobileView() : renderDesktopView()}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="shadow-xl border-2 border-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+                <List className="h-6 w-6 mr-3 text-primary" />
+                <CardTitle>{translations.manageCategories}</CardTitle>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isMobile ? renderMobileView() : renderDesktopView()}
+        </CardContent>
+      </Card>
+    </>
   );
 }

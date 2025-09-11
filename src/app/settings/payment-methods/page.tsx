@@ -3,12 +3,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPaymentMethods, addPaymentMethod, updatePaymentMethod } from "@/app/actions";
+import { useRouter } from "next/navigation";
+import { getPaymentMethods, updatePaymentMethod } from "@/app/actions";
 import type { PaymentMethod, PaymentMethodFormValues } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, CreditCard, Edit, Banknote, Building } from "lucide-react";
+import { CreditCard, Edit, Banknote, Building } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,14 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { PaymentMethodForm } from "@/components/settings/PaymentMethodForm";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -36,11 +29,10 @@ export default function ManagePaymentMethodsPage() {
   const { translations, translatePaymentType } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const router = useRouter();
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -53,23 +45,8 @@ export default function ManagePaymentMethodsPage() {
     loadData();
   }, [user]);
 
-  const handleFormSubmit = async (values: PaymentMethodFormValues) => {
-    if (!user) return;
-
-    const result = editingMethod
-      ? await updatePaymentMethod(editingMethod.id, values, user.uid)
-      : await addPaymentMethod(values, user.uid);
-
-    if (result && 'error' in result) {
-        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
-    } else {
-      toast({
-        title: editingMethod ? translations.paymentMethodUpdatedSuccess : translations.paymentMethodAddedSuccess,
-      });
-      const userMethods = await getPaymentMethods(user.uid);
-      setPaymentMethods(userMethods);
-      handleDialogClose();
-    }
+  const handleEditClick = (method: PaymentMethod) => {
+    router.push(`/settings/payment-methods/edit/${method.id}`);
   };
 
   const handleToggleEnabled = async (method: PaymentMethod) => {
@@ -90,16 +67,6 @@ export default function ManagePaymentMethodsPage() {
       setPaymentMethods(userMethods);
     }
   };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingMethod(null);
-  };
-
-  const handleOpenDialog = (method: PaymentMethod | null = null) => {
-    setEditingMethod(method);
-    setIsDialogOpen(true);
-  }
 
   if (isLoading) {
     return <Skeleton className="h-96 w-full" />;
@@ -130,7 +97,7 @@ export default function ManagePaymentMethodsPage() {
                   onCheckedChange={() => handleToggleEnabled(method)}
                   aria-label={`Toggle payment method ${method.name}`}
                 />
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleOpenDialog(method)}>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(method)}>
                     <Edit className="h-5 w-5" />
                  </Button>
               </div>
@@ -165,7 +132,7 @@ export default function ManagePaymentMethodsPage() {
               />
             </TableCell>
             <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(method)}>
+              <Button variant="ghost" size="icon" onClick={() => handleEditClick(method)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </TableCell>
@@ -176,33 +143,20 @@ export default function ManagePaymentMethodsPage() {
   );
 
   return (
-    <Card className="shadow-xl border-2 border-primary">
-      <CardHeader className="flex flex-col items-start gap-4">
-        <div className="flex items-center">
-            <CreditCard className="h-6 w-6 mr-3 text-primary" />
-            <CardTitle>{translations.managePaymentMethods}</CardTitle>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="text-base">
-              <PlusCircle className="mr-2 h-4 w-4" /> {translations.newPaymentMethod}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingMethod ? translations.editPaymentMethod : translations.newPaymentMethod}</DialogTitle>
-            </DialogHeader>
-            <PaymentMethodForm
-              onSubmit={handleFormSubmit}
-              onClose={handleDialogClose}
-              initialData={editingMethod ?? undefined}
-            />
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        {isMobile ? renderMobileView() : renderDesktopView()}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="shadow-xl border-2 border-primary">
+        <CardHeader>
+           <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                  <CreditCard className="h-6 w-6 mr-3 text-primary" />
+                  <CardTitle>{translations.managePaymentMethods}</CardTitle>
+              </div>
+            </div>
+        </CardHeader>
+        <CardContent>
+          {isMobile ? renderMobileView() : renderDesktopView()}
+        </CardContent>
+      </Card>
+    </>
   );
 }
