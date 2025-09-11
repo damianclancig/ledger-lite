@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: '/favicon.ico',
+    icon: `${APP_URL}/favicon.ico`,
   },
   
   robots: {
@@ -88,9 +88,9 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <AuthProvider>
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
               <Toaster />
             </AuthProvider>
           </LanguageProvider>
