@@ -157,10 +157,11 @@ export default function TaxesPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Card className="shadow-xl border-2 border-primary">
-          <CardHeader><Skeleton className="h-8 w-1/4" /></CardHeader>
-          <CardContent><Skeleton className="h-48" /></CardContent>
-        </Card>
+        <div className="flex items-center mb-8">
+            <Skeleton className="h-8 w-8 mr-3" />
+            <Skeleton className="h-8 w-64" />
+        </div>
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
@@ -169,12 +170,6 @@ export default function TaxesPage() {
     if (aggregatedTaxes.length === 0) {
        return (
         <Card className="shadow-xl border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Landmark className="h-5 w-5 mr-2 text-primary" />
-              {translations.taxes}
-            </CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="text-center py-10 px-6 text-muted-foreground">
               <Landmark className="mx-auto h-12 w-12 mb-4" />
@@ -188,15 +183,6 @@ export default function TaxesPage() {
     if (isMobile) {
       return (
         <div className="space-y-4">
-          <Card className="shadow-xl border-2 border-primary">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Landmark className="h-5 w-5 mr-2 text-primary" />
-                {translations.taxes}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
           {aggregatedTaxes.map(({ latestRecord, history }) => (
             <Card key={latestRecord.id} className="shadow-lg border-2 border-primary/20 overflow-hidden flex flex-col">
               <CardContent className="p-4 flex-grow space-y-3">
@@ -235,12 +221,6 @@ export default function TaxesPage() {
 
     return (
       <Card className="shadow-xl border-2 border-primary">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Landmark className="h-5 w-5 mr-2 text-primary" />
-            {translations.taxes}
-          </CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -290,6 +270,10 @@ export default function TaxesPage() {
   return (
     <TooltipProvider>
       <div className="space-y-8">
+        <div className="flex items-center">
+            <Landmark className="h-8 w-8 mr-3 text-primary" />
+            <h1 className="text-3xl font-bold">{translations.taxes}</h1>
+        </div>
         {renderContent()}
       </div>
 

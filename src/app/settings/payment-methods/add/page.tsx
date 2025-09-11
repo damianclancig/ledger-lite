@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -42,18 +43,20 @@ export default function AddPaymentMethodPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Button asChild variant="ghost" className="mb-4 text-base">
-        <Link href="/settings/payment-methods">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {translations.back}
-        </Link>
-      </Button>
+      <div className="flex justify-end mb-4">
+        <Button asChild variant="ghost" className="text-base">
+            <Link href="/settings/payment-methods">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {translations.back}
+            </Link>
+        </Button>
+      </div>
       <Card className="shadow-xl border-2 border-primary">
-        <CardHeader className="p-6 pb-4">
+        <CardHeader className="p-4 pb-2">
           <CardTitle>{translations.newPaymentMethod}</CardTitle>
         </CardHeader>
         <Separator />
-        <CardContent className="p-6 pt-4">
+        <CardContent className="p-4">
           <PaymentMethodForm
             onSubmit={handleFormSubmit}
             onClose={() => router.push("/settings/payment-methods")}

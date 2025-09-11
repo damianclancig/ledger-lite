@@ -4,8 +4,9 @@
 import { revalidateTag } from 'next/cache';
 import { MongoClient, ObjectId, type WithId, type Document } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
-import type { Transaction, TransactionFormValues, Tax, TaxFormValues, Category, CategoryFormValues, PaymentMethod, PaymentMethodFormValues } from '@/types';
+import type { Transaction, TransactionFormValues, Tax, TaxFormValues, Category, CategoryFormValues, PaymentMethod, PaymentMethodFormValues, InstallmentDetail } from '@/types';
 import { CATEGORIES, PAYMENT_METHOD_TYPES } from "@/types";
+import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear } from 'date-fns';
 
 
 // Helper function to get the database and collection
@@ -86,21 +87,40 @@ export async function addTransaction(data: TransactionFormValues, userId: string
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { transactionsCollection } = await getDb();
-    // MongoDB driver expects a Date object for date fields
-    const documentToInsert = { ...data, date: new Date(data.date), userId };
-    const result = await transactionsCollection.insertOne(documentToInsert);
-    
-    if (!result.insertedId) {
-        throw new Error('Failed to insert transaction.');
-    }
+    const { installments, ...transactionData } = data;
 
-    revalidateTag(`transactions_${userId}`);
-    revalidateTag(`taxes_${userId}`); // Invalidate taxes too in case a tax was paid
-    const newTransaction = await transactionsCollection.findOne({ _id: result.insertedId });
-    if (!newTransaction) {
-        throw new Error('Could not find the newly created transaction.');
+    if (installments && installments > 1) {
+      const installmentAmount = transactionData.amount / installments;
+      const originalDate = new Date(transactionData.date);
+      const transactionsToInsert = [];
+
+      for (let i = 0; i < installments; i++) {
+        transactionsToInsert.push({
+          ...transactionData,
+          amount: installmentAmount,
+          date: addMonths(originalDate, i),
+          description: `${transactionData.description} (Cuota ${i + 1}/${installments})`,
+          userId,
+        });
+      }
+      await transactionsCollection.insertMany(transactionsToInsert);
+    } else {
+      const documentToInsert = { ...transactionData, date: new Date(transactionData.date), userId };
+      await transactionsCollection.insertOne(documentToInsert);
     }
-    return mapMongoDocument(newTransaction);
+    
+    revalidateTag(`transactions_${userId}`);
+    revalidateTag(`taxes_${userId}`);
+
+    // For simplicity, we'll just return a success-like object.
+    // Returning the first created transaction in an installment scenario.
+    const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (Cuota 1/${installments})` : transactionData.description }, { sort: { date: 1 } });
+    
+    if (!firstTransaction) {
+      throw new Error('Could not find the newly created transaction.');
+    }
+    return mapMongoDocument(firstTransaction);
+
   } catch (error) {
     console.error('Error adding transaction:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -115,7 +135,10 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { transactionsCollection } = await getDb();
-    const documentToUpdate = { ...data, date: new Date(data.date) };
+    // Installment logic is not applied on update for simplicity
+    const { installments, ...transactionData } = data;
+    const documentToUpdate = { ...transactionData, date: new Date(transactionData.date) };
+
     const result = await transactionsCollection.updateOne(
       { _id: new ObjectId(id), userId }, // Ensure user owns the doc
       { $set: documentToUpdate }
@@ -416,3 +439,151 @@ export async function updatePaymentMethod(id: string, data: PaymentMethodFormVal
     return { error: `Failed to update payment method. ${errorMessage}` };
   }
 }
+
+
+export async function getInstallmentDetails(userId: string): Promise<{ details: InstallmentDetail[], totalPending: number, totalForCurrentMonth: number }> {
+  if (!userId) return { details: [], totalPending: 0, totalForCurrentMonth: 0 };
+  
+  try {
+    const { transactionsCollection } = await getDb();
+    const paymentMethods = await getPaymentMethods(userId);
+    const paymentMethodMap = new Map(paymentMethods.map(pm => [pm.id, pm]));
+
+    const installmentTransactions = await transactionsCollection.find({
+      userId,
+      type: 'expense',
+      description: { $regex: /\(Cuota \d+\/\d+\)/ }
+    }).sort({ date: 1 }).toArray();
+
+    if (installmentTransactions.length === 0) {
+      return { details: [], totalPending: 0, totalForCurrentMonth: 0 };
+    }
+
+    const groupedInstallments = new Map<string, Transaction[]>();
+
+    const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+
+    for (const trans of installmentTransactions) {
+      const match = trans.description.match(installmentRegex);
+      if (match) {
+        const baseDescription = match[1].trim();
+        const key = `${baseDescription}-${trans.paymentMethodId}`;
+        
+        if (!groupedInstallments.has(key)) {
+          groupedInstallments.set(key, []);
+        }
+        groupedInstallments.get(key)!.push(mapMongoDocument(trans));
+      }
+    }
+    
+    const details: InstallmentDetail[] = [];
+    let totalPending = 0;
+    let totalForCurrentMonth = 0;
+    const now = new Date();
+    const currentMonthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
+
+    groupedInstallments.forEach((group) => {
+      const firstInstallment = group[0];
+      const totalInstallments = group.length;
+      const purchaseAmount = group.reduce((sum, item) => sum + item.amount, 0);
+
+      const pendingInstallments = group.filter(item => {
+        const itemDate = new Date(item.date);
+        return isFuture(itemDate) || isSameMonth(itemDate, now);
+      });
+      
+      if (pendingInstallments.length > 0) {
+        const pendingAmount = pendingInstallments.reduce((sum, item) => sum + item.amount, 0);
+        totalPending += pendingAmount;
+        
+        const currentMonthInstallment = pendingInstallments.find(item => isWithinInterval(new Date(item.date), currentMonthInterval));
+        if (currentMonthInstallment) {
+          totalForCurrentMonth += currentMonthInstallment.amount;
+        }
+
+        const paymentMethod = paymentMethodMap.get(firstInstallment.paymentMethodId);
+
+        details.push({
+          id: firstInstallment.id,
+          description: firstInstallment.description.match(installmentRegex)![1].trim(),
+          totalAmount: purchaseAmount,
+          installmentAmount: firstInstallment.amount,
+          currentInstallment: totalInstallments - pendingInstallments.length + 1,
+          totalInstallments: totalInstallments,
+          pendingAmount: pendingAmount,
+          paymentMethodName: paymentMethod ? `${paymentMethod.name} (${paymentMethod.bank || 'N/A'})` : 'Unknown',
+        });
+      }
+    });
+
+    return { details: details.sort((a,b) => b.pendingAmount - a.pendingAmount), totalPending, totalForCurrentMonth };
+
+  } catch (error) {
+    console.error('Error fetching installment details:', error);
+    return { details: [], totalPending: 0, totalForCurrentMonth: 0 };
+  }
+}
+
+export async function getInstallmentProjection(userId: string): Promise<{ month: string; total: number }[]> {
+  if (!userId) return [];
+  try {
+    const { transactionsCollection } = await getDb();
+    const now = new Date();
+    const yearStart = startOfYear(now);
+    const yearEnd = endOfYear(now);
+
+    const pipeline = [
+      {
+        $match: {
+          userId: userId,
+          type: 'expense',
+          description: { $regex: /\(Cuota \d+\/\d+\)/ },
+          date: {
+            $gte: yearStart,
+            $lte: yearEnd
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+          total: { $sum: "$amount" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id",
+          total: "$total"
+        }
+      }
+    ];
+
+    const result = await transactionsCollection.aggregate(pipeline).toArray() as { month: string; total: number }[];
+
+    const projectionMap = new Map(result.map(item => [item.month, item.total]));
+    const finalProjection = [];
+    const currentYear = getYear(now);
+
+    for (let i = 0; i < 12; i++) {
+      const monthDate = new Date(currentYear, i, 1);
+      const monthKey = format(monthDate, 'yyyy-MM');
+      finalProjection.push({
+        month: monthKey,
+        total: projectionMap.get(monthKey) || 0
+      });
+    }
+
+    return finalProjection;
+    
+  } catch (error) {
+    console.error('Error fetching installment projection:', error);
+    return [];
+  }
+}
+    
+
+    

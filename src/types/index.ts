@@ -1,3 +1,4 @@
+
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -54,6 +55,7 @@ export interface Transaction {
   categoryId: string;
   type: TransactionType;
   paymentMethodId: string;
+  installments?: number;
 }
 
 export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
@@ -225,6 +227,7 @@ export interface Translations {
   // Charts
   expensesByCategory: string;
   incomeVsExpense: string;
+  installmentProjection: string;
   // Payment Methods
   managePaymentMethods: string;
   newPaymentMethod: string;
@@ -239,6 +242,33 @@ export interface Translations {
   paymentMethodAddedSuccess: string;
   paymentMethodUpdatedSuccess: string;
   paymentMethodInUseError: string;
+  // Installments
+  installments: string;
+  pendingInstallments: string;
+  noInstallments: string;
+  totalDebt: string;
+  totalThisMonth: string;
+  pendingAmount: string;
+  total: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;
+
+export interface InstallmentDetail {
+  id: string;
+  description: string;
+  totalAmount: number;
+  installmentAmount: number;
+  currentInstallment: number;
+  totalInstallments: number;
+  pendingAmount: number;
+  paymentMethodName: string;
+}
+
+export interface InstallmentProjection {
+  month: string; // YYYY-MM
+  total: number;
+}
+    
+
+    

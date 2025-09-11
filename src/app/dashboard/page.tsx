@@ -1,8 +1,9 @@
+
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from 'next/navigation';
-import type { Transaction, TransactionType, Category, DateRange, PaymentMethod } from "@/types";
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, InstallmentProjection } from "@/types";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { TotalsDisplay } from "@/components/transactions/TotalsDisplay";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
@@ -18,14 +19,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart } from "lucide-react";
+import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart, LayoutDashboard, LineChart } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, isSameMonth, isSameYear, subMonths } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
-import { getTransactions, deleteTransaction, getCategories, getPaymentMethods } from "@/app/actions";
+import { getTransactions, deleteTransaction, getCategories, getPaymentMethods, getInstallmentProjection } from "@/app/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { TransactionTypeToggle } from "@/components/transactions/TransactionTypeToggle";
@@ -33,6 +34,7 @@ import { MonthSelector } from "@/components/common/MonthSelector";
 import { ExpensesChart } from "@/components/transactions/ExpensesChart";
 import { IncomeExpenseChart } from "@/components/transactions/IncomeExpenseChart";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
+import { InstallmentProjectionChart } from "@/components/transactions/InstallmentProjectionChart";
 
 
 export default function DashboardPage() {
@@ -41,10 +43,13 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const router = useRouter();
+  const filtersCardRef = useRef<HTMLDivElement>(null);
+  const transactionListRef = useRef<HTMLDivElement>(null);
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
@@ -54,6 +59,8 @@ export default function DashboardPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
+  const [currentPage, setCurrentPage] = useState(1);
+  const prevPageRef = useRef(currentPage);
 
   const locales = {
     en: enUS,
@@ -71,10 +78,11 @@ export default function DashboardPage() {
         return;
       }
       setIsLoading(true);
-      const [initialTransactions, initialCategories, initialPaymentMethods] = await Promise.all([
+      const [initialTransactions, initialCategories, initialPaymentMethods, projectionData] = await Promise.all([
         getTransactions(user.uid),
         getCategories(user.uid),
         getPaymentMethods(user.uid),
+        getInstallmentProjection(user.uid),
       ]);
       const parsed = initialTransactions.map((t) => ({
         ...t,
@@ -83,6 +91,7 @@ export default function DashboardPage() {
       setTransactions(parsed);
       setCategories(initialCategories);
       setPaymentMethods(initialPaymentMethods);
+      setInstallmentProjection(projectionData);
       setIsLoading(false);
     }
     loadData();
@@ -132,12 +141,35 @@ export default function DashboardPage() {
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
+
+  useEffect(() => {
+    if (prevPageRef.current !== currentPage) {
+      if (currentPage > prevPageRef.current) {
+        filtersCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (currentPage < prevPageRef.current) {
+        transactionListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+      prevPageRef.current = currentPage;
+    }
+  }, [currentPage]);
+
    const handleDateSelect = (range: DateRange | undefined) => {
     if (range?.from && dateRange?.from && dateRange?.to) {
         setDateRange({ from: range.from, to: undefined });
     } else {
         setDateRange(range);
     }
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => prev - 1);
   };
 
   const isAnyFilterActive = useMemo(() => {
@@ -214,7 +246,11 @@ export default function DashboardPage() {
 
   return (
     <>
-    <div className="space-y-4">
+    <div className="space-y-8">
+      <div className="flex items-center">
+            <LayoutDashboard className="h-8 w-8 mr-3 text-primary" />
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+      </div>
        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -245,119 +281,136 @@ export default function DashboardPage() {
             </CardContent>
             </Card>
           </div>
+            <div className="lg:col-span-3">
+                <Card className="shadow-xl border-2 border-primary h-full">
+                    <CardHeader>
+                        <CardTitle className="flex items-center">
+                        <LineChart className="h-5 w-5 mr-2 text-primary" />
+                        {translations.installmentProjection}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <InstallmentProjectionChart data={installmentProjection} />
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
-      <Card className="shadow-xl border-2 border-primary">
-        <CardHeader>
-           <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between">
-            <CardTitle className="flex items-center mb-2 md:mb-0">
-              <Filter className="h-5 w-5 mr-2 text-primary" />
-              {translations.transactions}
-            </CardTitle>
-            <Button
-              variant="link"
-              onClick={clearFilters}
-              className={cn(
-                "hidden md:flex text-base text-muted-foreground hover:text-primary p-0 h-auto justify-start transition-opacity duration-300",
-                isAnyFilterActive ? "opacity-100" : "opacity-0 pointer-events-none"
-              )}
-              aria-hidden={!isAnyFilterActive}
-            >
-              <XCircle className="mr-2 h-4 w-4" />
-              <span className="mr-2">{translations.clearFilters}</span>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={translations.searchDescription}
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <TransactionTypeToggle
-            value={selectedType}
-            onChange={(value) => setSelectedType(value as TransactionType | "all")}
-          />
-          <Select
-            value={selectedCategory}
-            onValueChange={(value: string) => setSelectedCategory(value as string | "all")}
-          >
-            <SelectTrigger className="text-base">
-              <SelectValue placeholder={translations.filterByCategory} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{translations.allCategories}</SelectItem>
-              {categories.filter(c => c.isEnabled).map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Popover>
-            <PopoverTrigger asChild>
+      <div ref={filtersCardRef} className="scroll-mt-24">
+        <Card className="shadow-xl border-2 border-primary">
+          <CardHeader>
+            <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between">
+              <CardTitle className="flex items-center mb-2 md:mb-0">
+                <Filter className="h-5 w-5 mr-2 text-primary" />
+                {translations.transactions}
+              </CardTitle>
               <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal text-base h-10",
-                  !dateRange?.from && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>{translations.filterByDateRange}</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-               <Calendar
-                initialFocus
-                mode="range"
-                month={selectedMonth || new Date()}
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={handleDateSelect}
-                numberOfMonths={1}
-                captionLayout="dropdown-buttons" 
-                fromYear={2020} 
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
-          {isMobile && isAnyFilterActive && (
-              <Button
-                variant="outline"
+                variant="link"
                 onClick={clearFilters}
-                className="w-full md:hidden"
+                className={cn(
+                  "hidden md:flex text-base text-muted-foreground hover:text-primary p-0 h-auto justify-start transition-opacity duration-300",
+                  isAnyFilterActive ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}
+                aria-hidden={!isAnyFilterActive}
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                {translations.clearFilters}
+                <span className="mr-2">{translations.clearFilters}</span>
               </Button>
-            )}
-        </CardContent>
-      </Card>
-
-      <TransactionList
-        transactions={filteredTransactions}
-        categories={categories}
-        paymentMethods={paymentMethods}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+            </div>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={translations.searchDescription}
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <TransactionTypeToggle
+              value={selectedType}
+              onChange={(value) => setSelectedType(value as TransactionType | "all")}
+            />
+            <Select
+              value={selectedCategory}
+              onValueChange={(value: string) => setSelectedCategory(value as string | "all")}
+            >
+              <SelectTrigger className="text-base">
+                <SelectValue placeholder={translations.filterByCategory} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translations.allCategories}</SelectItem>
+                {categories.filter(c => c.isEnabled).map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal text-base h-10",
+                    !dateRange?.from && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>{translations.filterByDateRange}</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  month={selectedMonth || new Date()}
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={handleDateSelect}
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+            {isMobile && isAnyFilterActive && (
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="w-full md:hidden"
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  {translations.clearFilters}
+                </Button>
+              )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div ref={transactionListRef}>
+        <TransactionList
+          transactions={filteredTransactions}
+          categories={categories}
+          paymentMethods={paymentMethods}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          currentPage={currentPage}
+          onNextPage={handleNextPage}
+          onPreviousPage={handlePreviousPage}
+        />
+      </div>
 
       <DeleteConfirmationDialog
         isOpen={!!deletingTransactionId}
@@ -374,3 +427,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    

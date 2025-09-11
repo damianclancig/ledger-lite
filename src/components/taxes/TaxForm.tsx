@@ -105,7 +105,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -120,7 +120,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
           )}
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <FormField
             control={form.control}
             name="month"
@@ -176,7 +176,7 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end space-x-3 pt-2">
           <Button type="button" variant="outline" onClick={onClose} className="text-base">
             {translations.cancel}
           </Button>
@@ -188,5 +188,3 @@ export function TaxForm({ onSubmit, onClose }: TaxFormProps) {
     </Form>
   );
 }
-
-    

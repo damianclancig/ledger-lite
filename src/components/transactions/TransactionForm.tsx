@@ -34,10 +34,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard, TrendingUp, TrendingDown } from "lucide-react";
+import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard, TrendingUp, TrendingDown, Layers } from "lucide-react";
 import type { Transaction, Category, PaymentMethod, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+
 
 export type TransactionFormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
@@ -60,6 +62,7 @@ const getFormSchema = (translations: Translations) => z.object({
   categoryId: z.string({ required_error: translations.categoryRequired }),
   type: z.enum(["income", "expense"], { required_error: translations.typeRequired }),
   paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
+  installments: z.number().optional(),
 });
 
 const formatNumberWithCommas = (numStr: string): string => {
@@ -76,6 +79,8 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   const { translations, language } = useTranslations();
   const [isCalendarOpen, setCalendarOpen] = React.useState(false);
   const [displayAmount, setDisplayAmount] = useState<string>('');
+  const [showInstallments, setShowInstallments] = useState(false);
+  const [installments, setInstallments] = useState(initialData?.installments || 1);
 
   const formSchema = getFormSchema(translations);
 
@@ -88,6 +93,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       categoryId: initialData?.categoryId || undefined,
       type: initialData?.type || undefined,
       paymentMethodId: initialData?.paymentMethodId || undefined,
+      installments: initialData?.installments || 1,
     },
   });
   
@@ -102,8 +108,22 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       categoryId: initialData?.categoryId || undefined,
       type: initialData?.type || undefined,
       paymentMethodId: initialData?.paymentMethodId || undefined,
+      installments: initialData?.installments || 1,
     });
   }, [initialData, form]);
+
+  const selectedPaymentMethodId = form.watch("paymentMethodId");
+
+  useEffect(() => {
+    const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethodId);
+    if (paymentMethod && paymentMethod.type === 'Credit Card') {
+      setShowInstallments(true);
+    } else {
+      setShowInstallments(false);
+      setInstallments(1);
+      form.setValue('installments', 1);
+    }
+  }, [selectedPaymentMethodId, paymentMethods, form]);
   
   const locales = {
     en: enUS,
@@ -144,6 +164,10 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     form.setValue('amount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
   };
   
+  const handleInstallmentsChange = (value: number[]) => {
+    setInstallments(value[0]);
+    form.setValue('installments', value[0]);
+  };
 
   return (
     <Form {...form}>
@@ -339,8 +363,29 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
             )}
           />
         </div>
+        
+        {showInstallments && (
+          <FormField
+            control={form.control}
+            name="installments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center"><Layers className="inline-block mr-2 h-4 w-4" />Cuotas: {installments}</FormLabel>
+                <FormControl>
+                  <Slider
+                    defaultValue={[1]}
+                    min={1}
+                    max={24}
+                    step={1}
+                    onValueChange={handleInstallmentsChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
 
-        <div className="pt-4 flex flex-col md:flex-row md:justify-end gap-3">
+        <div className="pt-2 flex flex-col md:flex-row md:justify-end gap-3">
           {onSaveAndAddAnother && !initialData && (
             <Button
               type="button"

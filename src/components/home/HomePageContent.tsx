@@ -61,6 +61,7 @@ export function HomePageContent() {
   const features = [
     "Control total de tus ingresos y gastos.",
     "Categorías y métodos de pago 100% personalizables.",
+    "Gestión y proyección anual de tus compras en cuotas.",
     "Registro y seguimiento de impuestos recurrentes.",
     "Gráficos interactivos para visualizar tu salud financiera.",
     "Seguridad y privacidad para tus datos.",
@@ -116,7 +117,7 @@ export function HomePageContent() {
                   </li>
                 ))}
               </ul>
-            <Separator className="my-6" />
+            <Separator className="my-4" />
             <p className="text-center text-muted-foreground text-base">
               ¿Listo para empezar?
             </p>

@@ -78,7 +78,7 @@ export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesCha
   };
 
   return (
-    <div className="h-[350px] w-full">
+    <div className="h-[300px] md:h-[350px] w-full">
       <ChartContainer config={chartConfig} className="w-full h-full">
         <PieChart>
           <Tooltip
@@ -149,5 +149,3 @@ export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesCha
     </div>
   );
 }
-
-    

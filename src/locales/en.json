@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Add Transaction",
@@ -131,6 +132,7 @@
   "errorTitle": "Error",
   "expensesByCategory": "Expenses by Category",
   "incomeVsExpense": "Income vs. Expense",
+  "installmentProjection": "Installment Projection",
   "managePaymentMethods": "Payment Methods",
   "newPaymentMethod": "New Payment Method",
   "editPaymentMethod": "Edit Payment Method",
@@ -143,5 +145,14 @@
   "paymentMethodStatus": "Status",
   "paymentMethodAddedSuccess": "Payment method added.",
   "paymentMethodUpdatedSuccess": "Payment method updated.",
-  "paymentMethodInUseError": "Cannot rename a payment method that is currently in use."
+  "paymentMethodInUseError": "Cannot rename a payment method that is currently in use.",
+  "installments": "Installments",
+  "pendingInstallments": "Pending Installments",
+  "noInstallments": "No pending installments found.",
+  "totalDebt": "Total Debt",
+  "totalThisMonth": "Total for This Month",
+  "pendingAmount": "Pending",
+  "total": "Total"
 }
+
+    

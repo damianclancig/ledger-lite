@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -25,6 +26,13 @@ const formatCurrency = (value: number) => {
       currency: "USD",
       maximumFractionDigits: 0,
     }).format(value);
+};
+
+const formatCurrencyK = (value: number): string => {
+    if (Math.abs(value) >= 1000) {
+      return `$${(value / 1000).toFixed(0)}k`;
+    }
+    return formatCurrency(value);
 };
 
 const CustomLegend = () => {
@@ -117,7 +125,7 @@ export function IncomeExpenseChart({ chartData }: IncomeExpenseChartProps) {
   }
   
   return (
-    <div className="h-[350px] w-full">
+    <div className="h-[300px] md:h-[350px] w-full">
       <ChartContainer config={chartConfig} className="w-full h-full">
         <BarChart 
             accessibilityLayer
@@ -134,7 +142,7 @@ export function IncomeExpenseChart({ chartData }: IncomeExpenseChartProps) {
             tick={{ fill: 'hsl(var(--foreground))' }}
           />
           <YAxis 
-            tickFormatter={(value) => formatCurrency(value as number)}
+            tickFormatter={(value) => formatCurrencyK(value as number)}
             stroke="hsl(var(--foreground))"
           />
           <Tooltip

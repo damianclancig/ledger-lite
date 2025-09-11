@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { LogOut, Menu, Home, PlusCircle, Landmark, Settings } from "lucide-react";
+import { LogOut, Menu, Home, PlusCircle, Landmark, Settings, Layers } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -45,6 +46,13 @@ export function Header() {
                   <span>{translations.taxes}</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/installments">
+                  <Layers className="mr-2 h-4 w-4" />
+                  <span>{translations.installments}</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/add-transaction">
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -131,3 +139,5 @@ export function Header() {
     </header>
   );
 }
+
+    

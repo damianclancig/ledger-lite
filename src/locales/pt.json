@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Adicionar Transação",
@@ -131,6 +132,7 @@
   "errorTitle": "Erro",
   "expensesByCategory": "Despesas por Categoria",
   "incomeVsExpense": "Receitas vs. Despesas",
+  "installmentProjection": "Projeção de Parcelas",
   "managePaymentMethods": "Métodos de Pagamento",
   "newPaymentMethod": "Novo Método de Pagamento",
   "editPaymentMethod": "Editar Método de Pagamento",
@@ -143,5 +145,14 @@
   "paymentMethodStatus": "Status",
   "paymentMethodAddedSuccess": "Método de pagamento adicionado.",
   "paymentMethodUpdatedSuccess": "Método de pagamento atualizado.",
-  "paymentMethodInUseError": "Não é possível renomear um método de pagamento que está em uso."
+  "paymentMethodInUseError": "Não é possível renomear um método de pagamento que está em uso.",
+  "installments": "Parcelas",
+  "pendingInstallments": "Parcelas Pendentes",
+  "noInstallments": "Nenhuma parcela pendente encontrada.",
+  "totalDebt": "Dívida Total",
+  "totalThisMonth": "Total deste Mês",
+  "pendingAmount": "Pendente",
+  "total": "Total"
 }
+
+    
