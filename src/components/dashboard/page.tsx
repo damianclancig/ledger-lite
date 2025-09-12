@@ -229,13 +229,6 @@ export default function DashboardPage() {
     ];
 }, [transactions, selectedMonth, translations]);
 
-  const getCategoryDisplay = (cat: Category) => {
-    if (cat.name === "Taxes" && language !== "en") {
-      return `Taxes (${translateCategory("Taxes")})`;
-    }
-    return cat.name;
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -351,7 +344,7 @@ export default function DashboardPage() {
                 <SelectItem value="all">{translations.allCategories}</SelectItem>
                 {categories.filter(c => c.isEnabled).map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
-                    {getCategoryDisplay(cat)}
+                    {translateCategory(cat.name)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -435,5 +428,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    

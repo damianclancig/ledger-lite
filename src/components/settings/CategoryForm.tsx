@@ -32,7 +32,7 @@ const getFormSchema = (translations: Translations) => z.object({
 });
 
 export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormProps) {
-  const { translations } = useTranslations();
+  const { translations, translateCategory } = useTranslations();
   const formSchema = getFormSchema(translations);
 
   const form = useForm<CategoryFormValues>({
@@ -52,6 +52,8 @@ export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormPro
     });
   }, [initialData, form]);
 
+  const translatedCategoryName = initialData?.name ? translateCategory(initialData.name) : translations.categoryName;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -62,7 +64,7 @@ export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormPro
             <FormItem>
               <FormLabel>{translations.categoryName}</FormLabel>
               <FormControl>
-                <Input placeholder={translations.categoryName} {...field} />
+                <Input placeholder={translatedCategoryName} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

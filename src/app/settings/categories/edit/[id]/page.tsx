@@ -41,6 +41,11 @@ export default function EditCategoryPage() {
         const fetchedCategory = await getCategoryById(id, user.uid);
         
         if (fetchedCategory) {
+          if (fetchedCategory.isSystem) {
+            toast({ title: translations.errorTitle, description: "System categories cannot be modified.", variant: "destructive" });
+            router.push("/settings/categories");
+            return;
+          }
           setCategory(fetchedCategory);
         } else {
           toast({ title: translations.errorTitle, description: "Category not found or you don't have permission to view it.", variant: "destructive" });

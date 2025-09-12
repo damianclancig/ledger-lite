@@ -4,16 +4,17 @@ import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 export type TransactionType = "income" | "expense";
 
 export const CATEGORIES = [
-  "Salary",
-  "Groceries",
-  "Transport",
-  "Taxes",
-  "Entertainment",
-  "Health",
-  "Education",
-  "Gifts",
-  "Other",
+  { key: "Salary", isSystem: false },
+  { key: "Groceries", isSystem: false },
+  { key: "Transport", isSystem: false },
+  { key: "Taxes", isSystem: true },
+  { key: "Entertainment", isSystem: false },
+  { key: "Health", isSystem: false },
+  { key: "Education", isSystem: false },
+  { key: "Gifts", isSystem: false },
+  { key: "Other", isSystem: false },
 ] as const;
+
 
 export const PAYMENT_METHOD_TYPES = [
   "Cash",
@@ -41,9 +42,10 @@ export interface Category {
   userId: string;
   name: string;
   isEnabled: boolean;
+  isSystem?: boolean;
 }
 
-export type CategoryFormValues = Omit<Category, "id" | "userId">;
+export type CategoryFormValues = Omit<Category, "id" | "userId" | "isSystem">;
 
 
 export interface Transaction {
@@ -107,6 +109,7 @@ export interface Translations {
   totalExpenses: string;
   transactions: string;
   noTransactions: string;
+  noTransactionsForFilters: string;
   filterByType: string;
   filterByCategory: string;
   filterByDateRange: string;
@@ -140,7 +143,7 @@ export interface Translations {
   Health: string;
   Education: string;
   Gifts: string;
-  OtherCategory: string; // "Other" for category is a reserved keyword
+  Other: string;
   // Payment Type translations
   Cash: string;
   CreditCard: string;
@@ -169,6 +172,7 @@ export interface Translations {
   categoryAddedSuccess: string;
   categoryUpdatedSuccess: string;
   categoryInUseError: string;
+  systemCategoryTooltip: string;
   // Validation messages
   descriptionRequired: string;
   descriptionMaxLength: string;
@@ -269,6 +273,3 @@ export interface InstallmentProjection {
   month: string; // YYYY-MM
   total: number;
 }
-    
-
-    

@@ -76,7 +76,7 @@ const formatNumberWithCommas = (numStr: string): string => {
 };
 
 export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, onClose, isTaxPayment = false, categories, paymentMethods }: TransactionFormProps) {
-  const { translations, language } = useTranslations();
+  const { translations, language, translateCategory } = useTranslations();
   const [isCalendarOpen, setCalendarOpen] = React.useState(false);
   const [displayAmount, setDisplayAmount] = useState<string>('');
   const [showInstallments, setShowInstallments] = useState(false);
@@ -167,6 +167,13 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   const handleInstallmentsChange = (value: number[]) => {
     setInstallments(value[0]);
     form.setValue('installments', value[0]);
+  };
+
+  const getCategoryDisplay = (cat: Category) => {
+    if (cat.name === "Taxes" && language !== "en") {
+      return `Taxes (${translateCategory("Taxes")})`;
+    }
+    return cat.name;
   };
 
   return (
@@ -328,7 +335,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                   <SelectContent>
                     {categories.filter(c => c.isEnabled).map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
+                        {getCategoryDisplay(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -409,3 +416,5 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     </Form>
   );
 }
+
+    

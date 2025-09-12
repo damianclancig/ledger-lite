@@ -23,6 +23,7 @@
   "totalExpenses": "Total Expenses",
   "transactions": "Transactions",
   "noTransactions": "No transactions yet. Add one to get started!",
+  "noTransactionsForFilters": "No transactions found for the applied filters.",
   "filterByType": "Filter by type",
   "filterByCategory": "Filter by category",
   "filterByDateRange": "Filter by date range",
@@ -55,7 +56,7 @@
   "Health": "Health",
   "Education": "Education",
   "Gifts": "Gifts",
-  "OtherCategory": "Other",
+  "Other": "Other",
   "Cash": "Cash",
   "CreditCard": "Credit Card",
   "DebitCard": "Debit Card",
@@ -81,6 +82,7 @@
   "categoryAddedSuccess": "Category successfully added.",
   "categoryUpdatedSuccess": "Category successfully updated.",
   "categoryInUseError": "Cannot rename a category that is currently in use in transactions.",
+  "systemCategoryTooltip": "This is a system category and cannot be modified.",
   "descriptionRequired": "Description is required",
   "descriptionMaxLength": "Description cannot exceed 100 characters",
   "amountRequired": "Amount is required",
@@ -154,5 +156,3 @@
   "pendingAmount": "Pending",
   "total": "Total"
 }
-
-    

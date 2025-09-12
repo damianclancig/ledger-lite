@@ -58,7 +58,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const translateCategory = useCallback((categoryName: string): string => {
-    const key = categoryName === "Other" ? "OtherCategory" : categoryName;
+    const key = categoryName;
     return translations[key as keyof Translations] || categoryName;
   }, [translations]);
 

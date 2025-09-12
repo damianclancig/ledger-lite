@@ -30,13 +30,14 @@ const COLORS = [
 ];
 
 export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesChartProps) {
-  const { translations } = useTranslations();
+  const { translations, translateCategory } = useTranslations();
 
   const chartData = React.useMemo(() => {
     const expenses = transactions.filter((t) => t.type === "expense");
     const categoryTotals = expenses.reduce((acc, transaction) => {
-      const categoryName = categoryIdToNameMap[transaction.categoryId] || "Unknown";
-      acc[categoryName] = (acc[categoryName] || 0) + transaction.amount;
+      const categoryKey = categoryIdToNameMap[transaction.categoryId] || "Unknown";
+      const translatedCategory = translateCategory(categoryKey);
+      acc[translatedCategory] = (acc[translatedCategory] || 0) + transaction.amount;
       return acc;
     }, {} as Record<string, number>);
 
@@ -47,7 +48,7 @@ export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesCha
         fill: COLORS[Math.floor(Math.random() * COLORS.length)]
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [transactions, categoryIdToNameMap]);
+  }, [transactions, categoryIdToNameMap, translateCategory]);
   
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};

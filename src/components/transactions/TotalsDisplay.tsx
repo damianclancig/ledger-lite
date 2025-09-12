@@ -38,7 +38,7 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
           <TrendingUp className="h-5 w-5 text-green-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400 font-mono">
+          <div className="text-xl md:text-2xl font-bold text-center text-green-600 dark:text-green-400 font-mono">
             {formatCurrency(totalIncome)}
           </div>
         </CardContent>
@@ -49,7 +49,7 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
           <TrendingDown className="h-5 w-5 text-red-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl md:text-2xl font-bold text-red-600 dark:text-red-400 font-mono">
+          <div className="text-xl md:text-2xl font-bold text-center text-red-600 dark:text-red-400 font-mono">
             {formatCurrency(totalExpenses)}
           </div>
         </CardContent>
@@ -60,7 +60,7 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
           <DollarSign className={`h-5 w-5 ${balance >= 0 ? 'text-blue-500' : 'text-orange-500'}`} />
         </CardHeader>
         <CardContent>
-          <div className={`text-xl md:text-2xl font-bold ${balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'} font-mono`}>
+          <div className={`text-xl md:text-2xl font-bold text-center ${balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'} font-mono`}>
             {formatCurrency(balance)}
           </div>
         </CardContent>

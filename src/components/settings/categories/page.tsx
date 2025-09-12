@@ -21,13 +21,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function ManageCategoriesPage() {
   const { user } = useAuth();
-  const { translations, translateCategory, language } = useTranslations();
+  const { translations, translateCategory } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -68,28 +68,21 @@ export default function ManageCategoriesPage() {
     return <Skeleton className="h-96 w-full" />;
   }
   
-  const CategoryNameCell = ({ category }: { category: Category }) => {
-    let displayName = category.name;
-    if (category.name === "Taxes" && language !== "en") {
-      displayName = `Taxes (${translateCategory("Taxes")})`;
-    }
-
-    return (
-        <div className="flex items-center gap-2">
-        <span className="font-medium text-base">{displayName}</span>
-        {category.isSystem && (
-            <Tooltip>
-            <TooltipTrigger>
-                <Lock className="h-4 w-4 text-muted-foreground" />
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{translations.systemCategoryTooltip}</p>
-            </TooltipContent>
-            </Tooltip>
-        )}
-        </div>
-    );
-  };
+  const CategoryNameCell = ({ category }: { category: Category }) => (
+    <div className="flex items-center gap-2">
+      <span className="font-medium text-base">{translateCategory(category.name)}</span>
+      {category.isSystem && (
+        <Tooltip>
+          <TooltipTrigger>
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Esta categoría es del sistema y no puede ser modificada.</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  );
 
   const renderMobileView = () => (
     <div className="space-y-4">
@@ -167,5 +160,3 @@ export default function ManageCategoriesPage() {
     </TooltipProvider>
   );
 }
-
-    

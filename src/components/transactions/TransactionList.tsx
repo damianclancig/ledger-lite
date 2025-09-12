@@ -31,6 +31,7 @@ interface TransactionListProps {
   currentPage: number;
   onNextPage: () => void;
   onPreviousPage: () => void;
+  totalTransactionsCount: number;
 }
 
 export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListProps>(
@@ -44,8 +45,9 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
     currentPage,
     onNextPage,
     onPreviousPage,
+    totalTransactionsCount,
   }, ref) => {
-    const { translations, language } = useTranslations();
+    const { translations, language, translateCategory } = useTranslations();
     const isMobile = useIsMobile();
 
     const totalPages = Math.max(1, Math.ceil(transactions.length / itemsPerPage));
@@ -85,7 +87,9 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
       return (
         <div className="text-center py-10 text-muted-foreground">
           <ListTree className="mx-auto h-12 w-12 mb-4" />
-          <p className="text-lg">{translations.noTransactions}</p>
+          <p className="text-lg">
+            {totalTransactionsCount > 0 ? translations.noTransactionsForFilters : translations.noTransactions}
+          </p>
         </div>
       );
     }
@@ -109,7 +113,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div className="flex items-center">
                           <Tag className="mr-3 h-4 w-4" />
-                          <span className="text-base">{categoryMap.get(transaction.categoryId) || transaction.categoryId}</span>
+                          <span className="text-base">{translateCategory(categoryMap.get(transaction.categoryId) || transaction.categoryId)}</span>
                         </div>
                         <div className="flex items-center">
                           <CreditCard className="mr-3 h-4 w-4" />
@@ -191,7 +195,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                 <TableCell className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy")}</TableCell>
                 <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="text-base">{categoryMap.get(transaction.categoryId) || 'N/A'}</Badge>
+                  <Badge variant="outline" className="text-base">{translateCategory(categoryMap.get(transaction.categoryId) || 'N/A')}</Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   {transaction.type === "income" ? (

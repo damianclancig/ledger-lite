@@ -249,10 +249,11 @@ export async function markTaxAsPaid(taxId: string, transactionId: string, userId
 // Category actions
 async function seedDefaultCategories(userId: string) {
   const { categoriesCollection } = await getDb();
-  const defaultCategories = CATEGORIES.map(name => ({
-    name,
+  const defaultCategories = CATEGORIES.map(cat => ({
+    name: cat.key,
     userId,
     isEnabled: true,
+    isSystem: cat.isSystem,
   }));
   await categoriesCollection.insertMany(defaultCategories);
 }
@@ -265,6 +266,34 @@ export async function getCategories(userId: string): Promise<Category[]> {
 
     if (userCategoriesCount === 0) {
       await seedDefaultCategories(userId);
+    } else {
+      // One-time migration logic for existing users
+      const systemTaxesCategory = await categoriesCollection.findOne({ userId, name: "Taxes", isSystem: true });
+      if (!systemTaxesCategory) {
+        const legacyTaxesCategory = await categoriesCollection.findOne({
+          userId,
+          name: { $in: ["Taxes", "Impuestos", "Impostos"] }
+        });
+
+        if (legacyTaxesCategory) {
+          // Found a legacy tax category, update it
+          await categoriesCollection.updateOne(
+            { _id: legacyTaxesCategory._id },
+            { $set: { name: "Taxes", isSystem: true } }
+          );
+        } else {
+          // No legacy tax category found, create a new system one
+          const taxesCategoryData = CATEGORIES.find(c => c.key === "Taxes");
+          if (taxesCategoryData) {
+            await categoriesCollection.insertOne({
+              name: taxesCategoryData.key,
+              userId,
+              isEnabled: true,
+              isSystem: taxesCategoryData.isSystem,
+            });
+          }
+        }
+      }
     }
 
     const categories = await categoriesCollection.find({ userId }).sort({ name: 1 }).toArray();
@@ -293,7 +322,7 @@ export async function addCategory(data: CategoryFormValues, userId: string): Pro
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { categoriesCollection } = await getDb();
-    const documentToInsert = { ...data, userId };
+    const documentToInsert = { ...data, userId, isSystem: false }; // User-added categories are not system categories
     const result = await categoriesCollection.insertOne(documentToInsert);
     
     if (!result.insertedId) {
@@ -320,6 +349,12 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { categoriesCollection } = await getDb();
+
+    // Prevent updating system categories
+    const categoryToUpdate = await categoriesCollection.findOne({ _id: new ObjectId(id), userId });
+    if (categoryToUpdate?.isSystem) {
+      return { error: 'System categories cannot be modified.' };
+    }
     
     const result = await categoriesCollection.updateOne(
       { _id: new ObjectId(id), userId },
