@@ -90,6 +90,10 @@ La aplicación necesita credenciales para conectarse a Firebase y MongoDB.
 7.  Pega las claves en tu archivo `.env.local`:
 
 ```
+# URL principal de la aplicación (usada en metadatos y dialog de soporte)
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Credenciales de Firebase
 NEXT_PUBLIC_FIREBASE_API_KEY="TU_API_KEY"
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="TU_AUTH_DOMAIN"
 NEXT_PUBLIC_FIREBASE_PROJECT_ID="TU_PROJECT_ID"
@@ -110,8 +114,20 @@ NEXT_PUBLIC_FIREBASE_APP_ID="TU_APP_ID"
 6.  Pégala en tu archivo `.env.local`. **Recuerda reemplazar `<password>` con la contraseña del usuario que creaste.**
 
 ```
+# Credenciales de MongoDB
 MONGODB_URI="mongodb+srv://tu_usuario:<password>@tu_cluster.mongodb.net/?retryWrites=true&w=majority"
 MONGODB_DB="ledger_lite"
+```
+
+#### c. Configuración de Soporte y Enlaces Personales
+
+Estos valores se utilizan en el diálogo de soporte en el pie de página.
+
+```
+# Enlaces para el diálogo de soporte
+NEXT_PUBLIC_CAFECITO_USER="tu_usuario_de_cafecito"
+NEXT_PUBLIC_PORTFOLIO_URL="https://tu_portfolio.com"
+NEXT_PUBLIC_GITHUB_REPO_URL="https://github.com/tu_usuario/tu_repositorio"
 ```
 
 ### 4. Ejecutar la Aplicación

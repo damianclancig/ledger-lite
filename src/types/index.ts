@@ -1,4 +1,3 @@
-
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -69,13 +68,19 @@ export interface Tax {
   userId: string;
   name: string;
   month: number; // 0 for January, 11 for December
+  year: number;
   amount: number;
   date: Date; // The date the record was created, for sorting
   isPaid: boolean;
   transactionId?: string; // ID of the transaction that paid this tax
 }
 
-export type TaxFormValues = Omit<Tax, "id" | "userId" | "date" | "isPaid" | "transactionId">;
+export interface TaxFormValues {
+  name: string;
+  month: number;
+  year: number;
+  amount: number;
+}
 
 export type Language = "en" | "es" | "pt";
 
@@ -185,13 +190,17 @@ export interface Translations {
   // Tax-related translations
   taxes: string;
   newTax: string;
+  addNewTax: string;
   taxName: string;
   month: string;
+  year: string;
   monthRegistered: string;
   amountOfMonth: string;
   noTaxes: string;
   taxNameRequired: string;
   monthRequired: string;
+  yearRequired: string;
+  taxExistsError: string;
   selectTax: string;
   searchTax: string;
   noTaxFound: string;
@@ -201,6 +210,9 @@ export interface Translations {
   payTax: string;
   paid: string;
   taxPayment: string;
+  editTax: string;
+  taxUpdatedSuccess: string;
+  paidTaxEditError: string;
   // Months
   January: string;
   February: string;
@@ -254,6 +266,16 @@ export interface Translations {
   totalThisMonth: string;
   pendingAmount: string;
   total: string;
+  // Support Dialog
+  supportProject: string;
+  supportMessage1: string;
+  supportMessage2: string;
+  supportMessage3: string;
+  supportCafecito: string;
+  supportGithub: string;
+  supportCopyLink: string;
+  copied: string;
+  supportVisitPortfolio: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

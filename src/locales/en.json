@@ -1,4 +1,3 @@
-
 {
   "appName": "FinanClan",
   "addTransaction": "Add Transaction",
@@ -93,13 +92,17 @@
   "paymentMethodRequired": "A payment method is required",
   "taxes": "Taxes",
   "newTax": "New Tax",
+  "addNewTax": "Add a new tax...",
   "taxName": "Tax Name",
   "month": "Month",
+  "year": "Year",
   "monthRegistered": "Month Registered",
   "amountOfMonth": "Amount of the Month",
   "noTaxes": "No taxes recorded yet. Add one to get started!",
   "taxNameRequired": "Tax name is required",
   "monthRequired": "Month is required",
+  "yearRequired": "Year is required",
+  "taxExistsError": "A tax with the same name, month, and year already exists.",
   "selectTax": "Select a tax...",
   "searchTax": "Search tax...",
   "noTaxFound": "No tax found.",
@@ -109,6 +112,9 @@
   "payTax": "Pay Tax",
   "paid": "Paid",
   "taxPayment": "Payment of tax",
+  "editTax": "Edit Tax",
+  "taxUpdatedSuccess": "Tax successfully updated.",
+  "paidTaxEditError": "Paid taxes cannot be edited.",
   "January": "January",
   "February": "February",
   "March": "March",
@@ -154,5 +160,14 @@
   "totalDebt": "Total Debt",
   "totalThisMonth": "Total for This Month",
   "pendingAmount": "Pending",
-  "total": "Total"
+  "total": "Total",
+  "supportProject": "Support the Project",
+  "supportMessage1": "FinanClan is a free and open-source project, made with ❤️ from Argentina.",
+  "supportMessage2": "If this app is useful to you, please consider sharing it with your friends and family. It helps a lot!",
+  "supportMessage3": "If you wish to contribute to its maintenance and future improvements, you can do so through the following links.",
+  "supportCafecito": "Invite me a 'Cafecito'",
+  "supportGithub": "View on GitHub",
+  "supportCopyLink": "Copy App Link",
+  "copied": "Copied!",
+  "supportVisitPortfolio": "Visit My Portfolio"
 }

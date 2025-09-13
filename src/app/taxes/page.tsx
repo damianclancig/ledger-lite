@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import type { Tax } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { getTaxes } from "@/app/actions";
+import { getTaxes, updateTax } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Landmark, PlusCircle, DollarSign, CheckCircle } from "lucide-react";
+import { Plus, Landmark, PlusCircle, DollarSign, CheckCircle, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -58,7 +58,7 @@ export default function TaxesPage() {
   }, [user]);
 
   const handlePayClick = (tax: Tax) => {
-    const description = `${translations.taxPayment} ${tax.name} - ${translateMonth(tax.month)}`;
+    const description = `${translations.taxPayment} ${tax.name} - ${translateMonth(tax.month)} ${tax.year}`;
     const params = new URLSearchParams({
       taxId: tax.id,
       description: description,
@@ -68,15 +68,21 @@ export default function TaxesPage() {
     });
     router.push(`/add-transaction?${params.toString()}`);
   }
+  
+  const handleEditClick = (taxId: string) => {
+    router.push(`/edit-tax/${taxId}`);
+  };
 
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
     const taxGroups = new Map<string, Tax[]>();
   
+    // Sort by year, then month, both descending.
     const sortedTaxes = [...taxes].sort((a, b) => {
-      // Assuming a year is not stored, this will group by name and sort by month
-      // If year becomes a factor, sorting logic will need to be updated.
-      return b.month - a.month;
-    });
+        if (a.year !== b.year) {
+          return b.year - a.year;
+        }
+        return b.month - a.month;
+      });
   
     sortedTaxes.forEach(tax => {
       const group = taxGroups.get(tax.name);
@@ -90,7 +96,7 @@ export default function TaxesPage() {
     const result: AggregatedTax[] = [];
   
     taxGroups.forEach((group) => {
-      // The group is already sorted by month descending. The first one is the latest.
+      // The group is already sorted by date descending. The first one is the latest.
       const latestRecord = group[0];
       const history = group.slice(1); // All records except the most recent one
   
@@ -127,22 +133,29 @@ export default function TaxesPage() {
           <table className="w-full text-center">
             <thead>
               <tr>
-                {history.sort((a, b) => a.month - b.month).map((rec) => (
-                  <th key={rec.id} className="px-1.5 py-1 font-normal text-muted-foreground text-base">{translateMonth(rec.month)}</th>
+                {history.map((rec) => (
+                  <th key={rec.id} className="px-1.5 py-1 font-normal text-muted-foreground text-base">{`${translateMonth(rec.month)} ${rec.year}`}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               <tr>
-                {history.sort((a, b) => a.month - b.month).map((rec) => (
+                {history.map((rec) => (
                   <td key={rec.id} className="px-1.5 py-1 font-semibold font-mono text-base">
-                    {rec.isPaid ? (
-                      <span className="text-green-500">{formatCurrency(rec.amount)}</span>
-                    ) : (
-                      <Button variant="link" className="h-auto p-0 text-red-500 hover:text-red-600 text-base" onClick={() => handlePayClick(rec)}>
-                        {formatCurrency(rec.amount)}
-                      </Button>
-                    )}
+                     <div className="flex items-center justify-center gap-1">
+                        {rec.isPaid ? (
+                        <span className="text-green-500">{formatCurrency(rec.amount)}</span>
+                        ) : (
+                        <Button variant="link" className="h-auto p-0 text-red-500 hover:text-red-600 text-base" onClick={() => handlePayClick(rec)}>
+                            {formatCurrency(rec.amount)}
+                        </Button>
+                        )}
+                        {!rec.isPaid && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditClick(rec.id)}>
+                              <Edit className="h-3 w-3" />
+                          </Button>
+                        )}
+                    </div>
                   </td>
                 ))}
               </tr>
@@ -189,7 +202,7 @@ export default function TaxesPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-base">{latestRecord.name}</span>
                   <div className="flex items-center">
-                    <span className="text-sm text-muted-foreground">{translateMonth(latestRecord.month)}</span>
+                    <span className="text-sm text-muted-foreground">{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
                     {history.length > 0 && historyPopover(history)}
                   </div>
                 </div>
@@ -207,10 +220,16 @@ export default function TaxesPage() {
                     <span className="font-semibold text-base">{translations.paid}</span>
                   </div>
                 ) : (
-                  <Button variant="ghost" className="flex-1 rounded-none text-base" onClick={() => handlePayClick(latestRecord)}>
-                    <DollarSign className="mr-2 h-6 w-6 text-red-500" />
-                    {translations.pay}
-                  </Button>
+                  <>
+                    <Button variant="ghost" className="flex-grow justify-center rounded-none text-base" onClick={() => handlePayClick(latestRecord)}>
+                      <DollarSign className="mr-2 h-6 w-6 text-red-500" />
+                      {translations.pay}
+                    </Button>
+                    <Separator orientation="vertical" className="h-full" />
+                    <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleEditClick(latestRecord.id)}>
+                      <Edit className="h-5 w-5" />
+                    </Button>
+                  </>
                 )}
               </CardFooter>
             </Card>
@@ -228,7 +247,7 @@ export default function TaxesPage() {
                 <TableHead>{translations.taxName}</TableHead>
                 <TableHead>{translations.monthRegistered}</TableHead>
                 <TableHead className="text-right">{translations.amountOfMonth}</TableHead>
-                <TableHead className="text-center">{translations.pay}</TableHead>
+                <TableHead className="text-center">{translations.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,13 +256,14 @@ export default function TaxesPage() {
                   <TableCell className="font-medium text-base">{latestRecord.name}</TableCell>
                   <TableCell className="text-base">
                     <div className="flex items-center">
-                      <span>{translateMonth(latestRecord.month)}</span>
+                      <span>{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
                       {history.length > 0 && historyPopover(history)}
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-base font-semibold font-mono">{formatCurrency(latestRecord.amount)}</TableCell>
                     <TableCell className="text-center">
                     {latestRecord.isPaid ? (
+                      <div className="flex items-center justify-center gap-2">
                         <Tooltip>
                           <TooltipTrigger>
                             <CheckCircle className="h-7 w-7 text-green-500" />
@@ -252,10 +272,18 @@ export default function TaxesPage() {
                             <p className="text-base">{translations.paid}</p>
                           </TooltipContent>
                         </Tooltip>
+                        {/* Placeholder to align with the edit button */}
+                        <div className="h-10 w-10" />
+                      </div>
                     ) : (
-                       <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
-                          <DollarSign className="h-7 w-7" strokeWidth={2.5} />
+                      <div className="flex items-center justify-center gap-2">
+                        <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
+                            <DollarSign className="h-7 w-7" strokeWidth={2.5} />
                         </Button>
+                        <Button variant="outline" size="icon" onClick={() => handleEditClick(latestRecord.id)} className="h-10 w-10" disabled={latestRecord.isPaid}>
+                            <Edit className="h-5 w-5" />
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>

@@ -4,24 +4,32 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addTax } from "@/app/actions";
+import { addTax, getUniqueTaxNames } from "@/app/actions";
 import { TaxForm, type TaxFormSubmitValues } from "@/components/taxes/TaxForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AddTaxPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
+  const [taxNames, setTaxNames] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (!user) return;
+    setIsLoading(true);
+    getUniqueTaxNames(user.uid)
+      .then(setTaxNames)
+      .finally(() => setIsLoading(false));
+  }, [user]);
 
   const handleFormSubmit = async (values: TaxFormSubmitValues) => {
     if (!user) {
@@ -29,7 +37,7 @@ export default function AddTaxPage() {
       return;
     }
 
-    const result = await addTax(values, user.uid);
+    const result = await addTax(values, user.uid, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -38,6 +46,28 @@ export default function AddTaxPage() {
       router.push("/taxes");
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Skeleton className="h-10 w-24 mb-4" />
+        <Card>
+          <CardHeader>
+             <Skeleton className="h-8 w-48" />
+          </CardHeader>
+          <CardContent>
+             <div className="space-y-6">
+                <Skeleton className="h-10 w-full" />
+                <div className="grid grid-cols-2 gap-6">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+             </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -57,11 +87,10 @@ export default function AddTaxPage() {
           <TaxForm
             onSubmit={handleFormSubmit}
             onClose={() => router.push("/taxes")}
+            existingTaxNames={taxNames}
           />
         </CardContent>
       </Card>
     </div>
   );
 }
-
-    

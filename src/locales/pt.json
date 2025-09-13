@@ -1,4 +1,3 @@
-
 {
   "appName": "FinanClan",
   "addTransaction": "Adicionar Transação",
@@ -93,13 +92,17 @@
   "paymentMethodRequired": "O método de pagamento é obrigatório",
   "taxes": "Impostos",
   "newTax": "Novo Imposto",
+  "addNewTax": "Adicionar novo imposto...",
   "taxName": "Nome do Imposto",
   "month": "Mês",
+  "year": "Ano",
   "monthRegistered": "Mês Registrado",
   "amountOfMonth": "Valor do Mês",
   "noTaxes": "Nenhum imposto registrado. Adicione um para começar!",
   "taxNameRequired": "O nome do imposto é obrigatório",
   "monthRequired": "O mês é obrigatório",
+  "yearRequired": "O ano é obrigatório.",
+  "taxExistsError": "Já existe um imposto com o mesmo nome, mês e ano.",
   "selectTax": "Selecione um imposto...",
   "searchTax": "Pesquisar imposto...",
   "noTaxFound": "Nenhum imposto encontrado.",
@@ -109,6 +112,9 @@
   "payTax": "Pagar Imposto",
   "paid": "Pago",
   "taxPayment": "Pagamento de imposto",
+  "editTax": "Editar Imposto",
+  "taxUpdatedSuccess": "Imposto atualizado com sucesso.",
+  "paidTaxEditError": "Impostos que já foram pagos não podem ser editados.",
   "January": "Janeiro",
   "February": "Fevereiro",
   "March": "Março",
@@ -154,5 +160,14 @@
   "totalDebt": "Dívida Total",
   "totalThisMonth": "Total deste Mês",
   "pendingAmount": "Pendente",
-  "total": "Total"
+  "total": "Total",
+  "supportProject": "Apoie o Projeto",
+  "supportMessage1": "O FinanClan é um projeto gratuito e de código aberto, feito com ❤️ da Argentina.",
+  "supportMessage2": "Se este aplicativo é útil para você, considere compartilhá-lo com seus amigos e familiares. Ajuda muito!",
+  "supportMessage3": "Se você deseja contribuir para sua manutenção e futuras melhorias, pode fazê-lo através dos seguintes links.",
+  "supportCafecito": "Pague-me um 'Cafecito'",
+  "supportGithub": "Ver no GitHub",
+  "supportCopyLink": "Copiar Link",
+  "copied": "Copiado!",
+  "supportVisitPortfolio": "Visitar meu Portfólio"
 }

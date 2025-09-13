@@ -1,7 +1,7 @@
 "use client";
 
-import { Github } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { SupportDialog } from "./SupportDialog";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -24,15 +24,7 @@ export function Footer() {
             </a>
           </p>
         </div>
-        <a
-          href="https://github.com/damianclancig/ledger-lite"
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium underline-offset-4"
-        >
-          <Github className="h-6 w-6 text-primary hover:text-accent transition-colors" />
-          <span className="sr-only">GitHub</span>
-        </a>
+        <SupportDialog />
       </div>
     </footer>
   );
