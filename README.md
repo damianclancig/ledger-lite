@@ -128,6 +128,7 @@ Estos valores se utilizan en el diálogo de soporte en el pie de página.
 NEXT_PUBLIC_CAFECITO_USER="tu_usuario_de_cafecito"
 NEXT_PUBLIC_PORTFOLIO_URL="https://tu_portfolio.com"
 NEXT_PUBLIC_GITHUB_REPO_URL="https://github.com/tu_usuario/tu_repositorio"
+NEXT_PUBLIC_PAYPAL_URL="https://paypal.me/tuUsuario"
 ```
 
 ### 4. Ejecutar la Aplicación

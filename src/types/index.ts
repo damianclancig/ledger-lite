@@ -1,3 +1,4 @@
+
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -276,6 +277,7 @@ export interface Translations {
   supportCopyLink: string;
   copied: string;
   supportVisitPortfolio: string;
+  supportPaypal: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

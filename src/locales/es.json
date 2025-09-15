@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Añadir Transacción",
@@ -169,5 +170,6 @@
   "supportGithub": "Ver en GitHub",
   "supportCopyLink": "Copiar Enlace",
   "copied": "¡Copiado!",
-  "supportVisitPortfolio": "Visitar mi Portfolio"
+  "supportVisitPortfolio": "Visitar mi Portfolio",
+  "supportPaypal": "Colaborar con PayPal"
 }
