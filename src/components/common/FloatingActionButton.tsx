@@ -24,7 +24,7 @@ export function FloatingActionButton({ onClick, label, icon: Icon }: FloatingAct
       )}
       aria-label={label}
     >
-      <Icon className="h-8 w-8 text-primary-foreground transition-transform duration-300 group-hover:rotate-90 group-hover:ml-4" strokeWidth={3} />
+      <Icon className="h-10 w-10 text-primary-foreground transition-transform duration-300 group-hover:rotate-90 group-hover:ml-3" strokeWidth={3.5} />
       <span className="w-0 overflow-hidden whitespace-nowrap text-lg font-semibold text-primary-foreground opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
         {label}
       </span>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { addTax, getUniqueTaxNames } from "@/app/actions";
@@ -11,25 +11,43 @@ import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AddTaxPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
   const [taxNames, setTaxNames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const initialData = useMemo(() => {
+    const name = searchParams.get('name');
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
+    const data: Partial<TaxFormSubmitValues> = {};
+    if (name) data.name = name;
+    if (month) data.month = parseInt(month, 10);
+    if (year) data.year = parseInt(year, 10);
+
+    return Object.keys(data).length > 0 ? data : undefined;
+  }, [searchParams]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!user) return;
     setIsLoading(true);
     getUniqueTaxNames(user.uid)
-      .then(setTaxNames)
+      .then(names => {
+        // Exclude the pre-filled name from suggestions if it exists
+        const filteredNames = initialData?.name ? names.filter(n => n !== initialData.name) : names;
+        setTaxNames(filteredNames);
+      })
       .finally(() => setIsLoading(false));
-  }, [user]);
+  }, [user, initialData]);
 
   const handleFormSubmit = async (values: TaxFormSubmitValues) => {
     if (!user) {
@@ -85,9 +103,11 @@ export default function AddTaxPage() {
         </CardHeader>
         <CardContent>
           <TaxForm
+            key={JSON.stringify(initialData)} // Re-mount form when initialData changes
             onSubmit={handleFormSubmit}
             onClose={() => router.push("/taxes")}
             existingTaxNames={taxNames}
+            initialData={initialData}
           />
         </CardContent>
       </Card>

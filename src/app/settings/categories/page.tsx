@@ -167,5 +167,3 @@ export default function ManageCategoriesPage() {
     </TooltipProvider>
   );
 }
-
-    

@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import type { Tax } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { getTaxes, updateTax } from "@/app/actions";
+import { getTaxes } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Landmark, PlusCircle, DollarSign, CheckCircle, Edit } from "lucide-react";
+import { Landmark, CalendarPlus, DollarSign, CheckCircle, Edit, Plus, PlusCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -58,7 +58,7 @@ export default function TaxesPage() {
   }, [user]);
 
   const handlePayClick = (tax: Tax) => {
-    const description = `${translations.taxPayment} ${tax.name} - ${translateMonth(tax.month)} ${tax.year}`;
+    const description = `${translations.taxPayment} ${tax.name}\n${translateMonth(tax.month)} ${tax.year}`;
     const params = new URLSearchParams({
       taxId: tax.id,
       description: description,
@@ -72,6 +72,22 @@ export default function TaxesPage() {
   const handleEditClick = (taxId: string) => {
     router.push(`/edit-tax/${taxId}`);
   };
+
+  const handleAddNewPeriodClick = (tax: Tax) => {
+    let nextMonth = tax.month + 1;
+    let nextYear = tax.year;
+    if (nextMonth > 11) {
+      nextMonth = 0;
+      nextYear++;
+    }
+    
+    const params = new URLSearchParams({
+      name: tax.name,
+      month: String(nextMonth),
+      year: String(nextYear),
+    });
+    router.push(`/add-tax?${params.toString()}`);
+  }
 
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
     const taxGroups = new Map<string, Tax[]>();
@@ -119,11 +135,18 @@ export default function TaxesPage() {
 
   const historyPopover = (history: Tax[]) => (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6 ml-2 group">
-          <PlusCircle className="h-4 w-4 text-primary/70 group-hover:text-accent-foreground" />
-        </Button>
-      </PopoverTrigger>
+       <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6 ml-2 group">
+              <PlusCircle className="h-4 w-4 text-primary/70 group-hover:text-accent-foreground" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-base">{translations.history}</p>
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent className="w-auto max-w-[90vw] p-0">
         <div className="overflow-x-auto p-2">
           <h4 className="font-semibold text-center mb-1 text-base">{translations.history}</h4>
@@ -200,11 +223,13 @@ export default function TaxesPage() {
             <Card key={latestRecord.id} className="shadow-lg border-2 border-primary/20 overflow-hidden flex flex-col">
               <CardContent className="p-4 flex-grow space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-base">{latestRecord.name}</span>
-                  <div className="flex items-center">
-                    <span className="text-sm text-muted-foreground">{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
-                    {history.length > 0 && historyPopover(history)}
-                  </div>
+                    <div className="flex items-center">
+                        <span className="font-medium text-base">{latestRecord.name}</span>
+                        {history.length > 0 && historyPopover(history)}
+                    </div>
+                    <div className="flex items-center">
+                        <span className="text-sm text-muted-foreground">{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
+                    </div>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-end text-xl font-semibold pt-2 font-mono">
@@ -215,15 +240,25 @@ export default function TaxesPage() {
               </CardContent>
               <CardFooter className="p-0 bg-muted/30 border-t flex">
                 {latestRecord.isPaid ? (
-                  <div className="flex-1 flex items-center justify-center p-3 text-green-600">
-                    <CheckCircle className="mr-2 h-6 w-6" />
-                    <span className="font-semibold text-base">{translations.paid}</span>
-                  </div>
+                  <>
+                    <div className="flex-1 flex items-center justify-center p-3 text-green-600">
+                      <CheckCircle className="mr-2 h-6 w-6" />
+                      <span className="font-semibold text-base">{translations.paid}</span>
+                    </div>
+                    <Separator orientation="vertical" className="h-full" />
+                    <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleAddNewPeriodClick(latestRecord)}>
+                       <CalendarPlus className="h-5 w-5" />
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="ghost" className="flex-grow justify-center rounded-none text-base" onClick={() => handlePayClick(latestRecord)}>
                       <DollarSign className="mr-2 h-6 w-6 text-red-500" />
                       {translations.pay}
+                    </Button>
+                    <Separator orientation="vertical" className="h-full" />
+                     <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleAddNewPeriodClick(latestRecord)}>
+                       <CalendarPlus className="h-5 w-5" />
                     </Button>
                     <Separator orientation="vertical" className="h-full" />
                     <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleEditClick(latestRecord.id)}>
@@ -247,7 +282,7 @@ export default function TaxesPage() {
                 <TableHead>{translations.taxName}</TableHead>
                 <TableHead>{translations.monthRegistered}</TableHead>
                 <TableHead className="text-right">{translations.amountOfMonth}</TableHead>
-                <TableHead className="text-center">{translations.actions}</TableHead>
+                <TableHead className="text-right">{translations.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -261,30 +296,52 @@ export default function TaxesPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-base font-semibold font-mono">{formatCurrency(latestRecord.amount)}</TableCell>
-                    <TableCell className="text-center">
-                    {latestRecord.isPaid ? (
-                      <div className="flex items-center justify-center gap-2">
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-2 text-right">
+                        <div className="w-10 h-10 flex items-center justify-center">
+                            {latestRecord.isPaid ? (
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                    <CheckCircle className="h-8 w-8 text-green-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                    <p className="text-base">{translations.paid}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
+                                        <DollarSign className="h-8 w-8" strokeWidth={2.5} />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-base">{translations.pay}</p>
+                                </TooltipContent>
+                                </Tooltip>
+                            )}
+                        </div>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <CheckCircle className="h-7 w-7 text-green-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-base">{translations.paid}</p>
-                          </TooltipContent>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => handleAddNewPeriodClick(latestRecord)} className="h-10 w-10">
+                                    <CalendarPlus className="h-8 w-8" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-base">{translations.newTax}</p>
+                            </TooltipContent>
                         </Tooltip>
-                        {/* Placeholder to align with the edit button */}
-                        <div className="h-10 w-10" />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
-                            <DollarSign className="h-7 w-7" strokeWidth={2.5} />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => handleEditClick(latestRecord.id)} className="h-10 w-10" disabled={latestRecord.isPaid}>
-                            <Edit className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    )}
+                        <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(latestRecord.id)} className="h-10 w-10" disabled={latestRecord.isPaid}>
+                                {!latestRecord.isPaid && <Edit className="h-8 w-8" />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p className="text-base">{translations.edit}</p>
+                        </TooltipContent>
+                        </Tooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

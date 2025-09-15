@@ -101,7 +101,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
             <CardContent className="p-0">
               {currentTransactions.map((transaction, index) => (
                 <React.Fragment key={transaction.id}>
-                  <div className="flex flex-col">
+                  <div id={`transaction-${transaction.id}`} className="flex flex-col">
                     <div className="p-4 flex-grow space-y-1">
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground">{formatDate(new Date(transaction.date))}</span>
@@ -191,7 +191,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
           </TableHeader>
           <TableBody>
             {currentTransactions.map((transaction) => (
-              <TableRow key={transaction.id} className="hover:bg-muted/50 transition-colors">
+              <TableRow key={transaction.id} id={`transaction-${transaction.id}`} className="hover:bg-muted/50 transition-colors">
                 <TableCell className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy")}</TableCell>
                 <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                 <TableCell>

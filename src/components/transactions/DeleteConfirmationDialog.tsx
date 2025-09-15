@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -45,12 +44,14 @@ export function DeleteConfirmationDialog({
               onConfirm();
               onClose();
             }}
-            asChild
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-base"
           >
-            <Button variant="destructive" className="text-base">{translations.delete}</Button>
+            {translations.delete}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
+
+    

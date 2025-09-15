@@ -27,6 +27,7 @@ import { DollarSign, Landmark, Calendar } from "lucide-react";
 import type { Tax, TaxFormValues, Translations } from "@/types";
 import { MONTHS } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
 
 export type TaxFormSubmitValues = z.infer<ReturnType<typeof getFormSchema>>;
 
@@ -56,7 +57,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const currentYear = new Date().getFullYear();
-  const years = [currentYear + 1, currentYear, currentYear - 1];
+  const years = [currentYear -1, currentYear, currentYear + 1];
 
   const form = useForm<TaxFormSubmitValues>({
     resolver: zodResolver(formSchema),
@@ -191,6 +192,35 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
           )}
         />
         
+        <FormField
+          control={form.control}
+          name="year"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel><Calendar className="inline-block mr-2 h-4 w-4" />{translations.year}</FormLabel>
+              <FormControl>
+                <div className="grid grid-cols-3 gap-2">
+                  {years.map(year => (
+                    <Button
+                      key={year}
+                      type="button"
+                      variant={field.value === year ? "default" : "outline"}
+                      onClick={() => field.onChange(year)}
+                      className={cn(
+                        "text-base transition-colors duration-200",
+                        field.value === year ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted/50 hover:bg-muted"
+                      )}
+                    >
+                      {year}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
         <FormField
             control={form.control}
@@ -219,32 +249,6 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
 
           <FormField
             control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel><Calendar className="inline-block mr-2 h-4 w-4" />{translations.year}</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={String(field.value)}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={translations.year} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={String(year)}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-            control={form.control}
             name="amount"
             render={({ field }) => (
               <FormItem>
@@ -271,6 +275,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
               </FormItem>
             )}
           />
+        </div>
 
         <div className="flex justify-end space-x-3 pt-2">
           <Button type="button" variant="outline" onClick={onClose} className="text-base">

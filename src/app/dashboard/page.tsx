@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
   const prevPageRef = useRef(currentPage);
+  const wasLoadingRef = useRef(true);
 
   const locales = {
     en: enUS,
@@ -68,6 +69,34 @@ export default function DashboardPage() {
     pt: pt,
   };
   const currentLocale = locales[language] || enUS;
+
+    useEffect(() => {
+        const pageFromStorage = sessionStorage.getItem('editedTransactionPage');
+        if (pageFromStorage) {
+            setCurrentPage(Number(pageFromStorage));
+        }
+    }, []);
+
+  useEffect(() => {
+    // This effect runs when isLoading transitions from true to false
+    if (wasLoadingRef.current && !isLoading) {
+      setTimeout(() => {
+        const editedTransactionId = sessionStorage.getItem('editedTransactionId');
+        if (editedTransactionId) {
+          const element = document.getElementById(`transaction-${editedTransactionId}`);
+          if (element) {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }
+          sessionStorage.removeItem('editedTransactionId');
+          sessionStorage.removeItem('editedTransactionPage');
+        }
+      }, 0);
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   useEffect(() => {
     async function loadData() {
@@ -98,6 +127,8 @@ export default function DashboardPage() {
   }, [user]);
 
   const handleEdit = (transaction: Transaction) => {
+    sessionStorage.setItem('editedTransactionId', transaction.id);
+    sessionStorage.setItem('editedTransactionPage', String(currentPage));
     router.push(`/edit-transaction/${transaction.id}`);
   };
 
@@ -142,7 +173,10 @@ export default function DashboardPage() {
   }, [transactions, searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    // Only reset to page 1 if not coming from an edit
+    if (!sessionStorage.getItem('editedTransactionId')) {
+        setCurrentPage(1);
+    }
   }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
 
   useEffect(() => {
@@ -435,5 +469,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     

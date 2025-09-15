@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Transaction, Category, PaymentMethod } from "@/types";
 import { Separator } from "@/components/ui/separator";
@@ -52,11 +51,11 @@ export default function EditTransactionPage() {
           setPaymentMethods(userPaymentMethods);
         } else {
           toast({ title: translations.errorTitle, description: "Transaction not found or you don't have permission to view it.", variant: "destructive" });
-          router.push("/dashboard");
+          router.back();
         }
       } catch (error) {
          toast({ title: translations.errorTitle, description: "Failed to load data.", variant: "destructive" });
-         router.push("/dashboard");
+         router.back();
       } finally {
         setIsLoading(false);
       }
@@ -78,7 +77,7 @@ export default function EditTransactionPage() {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.transactionUpdatedTitle, description: translations.transactionUpdatedDesc });
-      router.push("/dashboard");
+      router.back();
     }
   };
   
@@ -112,11 +111,9 @@ export default function EditTransactionPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-end mb-4">
-        <Button asChild variant="ghost" className="text-base">
-            <Link href="/dashboard">
+        <Button variant="ghost" className="text-base" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             {translations.back}
-            </Link>
         </Button>
        </div>
       <Card className="shadow-xl border-2 border-primary">
@@ -127,7 +124,7 @@ export default function EditTransactionPage() {
         <CardContent className="p-4">
           <TransactionForm
             onSubmit={handleFormSubmit}
-            onClose={() => router.push("/dashboard")}
+            onClose={() => router.back()}
             initialData={transaction}
             categories={categories}
             paymentMethods={paymentMethods}
@@ -137,3 +134,5 @@ export default function EditTransactionPage() {
     </div>
   );
 }
+
+    
