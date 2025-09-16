@@ -9,15 +9,15 @@ FinanClan es una aplicación web moderna y segura diseñada para ayudarte a llev
 - **Gestión de Categorías Personalizadas**: Añade, renombra y habilita o deshabilita tus propias categorías de gastos e ingresos para adaptar la aplicación a tu vida financiera.
 - **Gestión de Métodos de Pago Personalizados**: Define tus propios métodos de pago, como tarjetas de crédito de bancos específicos, billeteras virtuales o efectivo, para un seguimiento detallado.
 - **Gestión de Cuotas Pendientes**: Visualiza de forma centralizada todas tus compras realizadas en cuotas, el estado de cada una, el monto total adeudado y el total a pagar en el mes actual.
-- **Gestión de Impuestos**: Registra impuestos recurrentes, visualiza su historial y márcalos como pagados, generando automáticamente la transacción de gasto correspondiente.
-- **Seguridad Multiusuario**: Cada usuario tiene su propia cuenta segura. Tus registros financieros son privados y solo tú puedes acceder a ellos.
-- **Autenticación con Google**: Inicia sesión de forma segura y con un solo clic utilizando tu cuenta de Google, gracias a la integración con Firebase Authentication.
+- **Gestión de Impuestos**: Registra impuestos recurrentes, visualiza su historial, márcalos como pagados y registra fácilmente nuevos períodos. La interfaz incluye un selector de año optimizado y tooltips de ayuda en todas las acciones.
 - **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría, la comparativa de ingresos vs. gastos y una **proyección anual de tus cuotas pendientes** con gráficos dinámicos.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
-- **Experiencia de Usuario Moderna**: Disfruta de una interfaz pulida con un **encabezado fijo** para una navegación rápida, efectos visuales como "glassmorphism" en las tarjetas y un fondo animado que mejora la inmersión.
+- **Experiencia de Usuario Mejorada**: Disfruta de una interfaz pulida con un **encabezado fijo**, efectos visuales como "glassmorphism" y un fondo animado. La navegación se siente fluida gracias a la **restauración inteligente de la posición del scroll** al volver de editar una transacción, incluso entre diferentes páginas de la lista.
 - **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
 - **Soporte Multilenguaje**: La interfaz está disponible en Español, Inglés y Portugués.
 - **Temas Claro y Oscuro**: Cambia entre el tema claro y oscuro para adaptar la aplicación a tus preferencias visuales.
+- **Seguridad Multiusuario**: Cada usuario tiene su propia cuenta segura. Tus registros financieros son privados y solo tú puedes acceder a ellos.
+- **Autenticación con Google**: Inicia sesión de forma segura y con un solo clic utilizando tu cuenta de Google, gracias a la integración con Firebase Authentication.
 - **Optimización para SEO**: Configuración completa de metadatos (títulos dinámicos, descripciones, palabras clave) y etiquetas Open Graph para una excelente visualización al compartir en redes sociales. Incluye `robots.txt` y `sitemap.xml` para una indexación eficiente en motores de búsqueda.
 - **Analíticas y Rendimiento**: Integrado con Vercel Analytics y Speed Insights para monitorizar el tráfico y el rendimiento de la aplicación en tiempo real.
 
