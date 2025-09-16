@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { getCategories, updateCategory } from "@/app/actions";
+import { getCategories, updateCategory } from "@/app/actions/categoryActions";
 import type { Category } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export default function ManageCategoriesPage() {
   const { user } = useAuth();
-  const { translations, translateCategory, language } = useTranslations();
+  const { translations, translateCategory } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -68,28 +67,21 @@ export default function ManageCategoriesPage() {
     return <Skeleton className="h-96 w-full" />;
   }
   
-  const CategoryNameCell = ({ category }: { category: Category }) => {
-    let displayName = category.name;
-    if (category.name === "Taxes" && language !== "en") {
-      displayName = `Taxes (${translateCategory("Taxes")})`;
-    }
-
-    return (
-        <div className="flex items-center gap-2">
-        <span className="font-medium text-base">{displayName}</span>
-        {category.isSystem && (
-            <Tooltip>
-            <TooltipTrigger>
-                <Lock className="h-4 w-4 text-muted-foreground" />
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{translations.systemCategoryTooltip}</p>
-            </TooltipContent>
-            </Tooltip>
-        )}
-        </div>
-    );
-  };
+  const CategoryNameCell = ({ category }: { category: Category }) => (
+    <div className="flex items-center gap-2">
+      <span className="font-medium text-base">{translateCategory(category.name)}</span>
+      {category.isSystem && (
+        <Tooltip>
+          <TooltipTrigger>
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Esta categoría es del sistema y no puede ser modificada.</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  );
 
   const renderMobileView = () => (
     <div className="space-y-4">

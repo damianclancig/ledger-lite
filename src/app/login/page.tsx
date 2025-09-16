@@ -36,7 +36,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-
 export default function LoginPage() {
   const { user, signInWithGoogle, loading } = useAuth();
   const { translations } = useTranslations();
@@ -44,7 +43,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [user, loading, router]);
 
@@ -88,7 +87,7 @@ export default function LoginPage() {
             {translations.signInToContinue}
           </p>
         </CardHeader>
-        <CardContent className="p-8 pt-0">
+        <CardContent className="p-8 pt-0 space-y-4">
           <Button
             onClick={signInWithGoogle}
             className="w-full text-base py-6 bg-white/90 text-gray-800 hover:bg-white dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/80 border-2 border-transparent hover:border-accent transition-all duration-300 ease-in-out transform hover:scale-105"
@@ -101,4 +100,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

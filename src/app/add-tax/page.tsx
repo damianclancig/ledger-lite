@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addTax, getUniqueTaxNames } from "@/app/actions";
+import { addTax, getUniqueTaxNames } from "@/app/actions/taxActions";
 import { TaxForm, type TaxFormSubmitValues } from "@/components/taxes/TaxForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";

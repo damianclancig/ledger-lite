@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { getPaymentMethods, updatePaymentMethod } from "@/app/actions";
+import { getPaymentMethods, updatePaymentMethod } from "@/app/actions/paymentMethodActions";
 import type { PaymentMethod, PaymentMethodFormValues } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

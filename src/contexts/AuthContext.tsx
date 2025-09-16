@@ -37,25 +37,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
   
+  const handleAuthError = (error: AuthError) => {
+    if (error.code === 'auth/unauthorized-domain') {
+        toast({
+            title: translations.errorTitle,
+            description: translations.unauthorizedDomainError,
+            variant: "destructive",
+            duration: 15000,
+        });
+    } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+      console.error("Error during sign in", error);
+      toast({ title: translations.errorTitle, description: error.message, variant: "destructive" });
+    }
+  };
+
   const signInWithGoogle = useCallback(async () => {
     try {
       await signInWithPopup(auth, googleProvider);
       router.push('/dashboard');
     } catch (error) {
-      const authError = error as AuthError;
-      if (authError.code === 'auth/unauthorized-domain') {
-          toast({
-              title: "Error",
-              description: translations.unauthorizedDomainError,
-              variant: "destructive",
-              duration: 15000,
-          });
-      } else if (authError.code !== 'auth/cancelled-popup-request' && authError.code !== 'auth/popup-closed-by-user') {
-        console.error("Error signing in with Google", error);
-      }
+      handleAuthError(error as AuthError);
     }
   }, [router, toast, translations]);
-
+  
   const signOut = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
@@ -67,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
    useEffect(() => {
     if (!loading) {
-      const isPublicPage = pathname === '/';
+      const isPublicPage = ['/', '/goodbye'].includes(pathname);
       if (!user && !isPublicPage) {
         router.push('/');
       }

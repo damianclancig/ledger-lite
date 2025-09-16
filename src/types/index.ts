@@ -1,4 +1,3 @@
-
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -93,6 +92,7 @@ export type Month = (typeof MONTHS)[number];
 
 
 export interface Translations {
+  [key: string]: string; // Add index signature
   appName: string;
   addTransaction: string;
   editTransaction: string;
@@ -263,10 +263,16 @@ export interface Translations {
   installments: string;
   pendingInstallments: string;
   noInstallments: string;
+  noPendingInstallments: string;
   totalDebt: string;
   totalThisMonth: string;
   pendingAmount: string;
   total: string;
+  endsIn: string;
+  completedInstallments: string;
+  totalAmount: string;
+  purchaseDate: string;
+  completionDate: string;
   // Support Dialog
   supportProject: string;
   supportMessage1: string;
@@ -278,6 +284,23 @@ export interface Translations {
   copied: string;
   supportVisitPortfolio: string;
   supportPaypal: string;
+  // Account Deletion
+  account: string;
+  accountSettings: string;
+  dangerZone: string;
+  deleteAccount: string;
+  deleteAccountWarning: string;
+  deleteAccountConfirmation: string;
+  deleteAccountInputPrompt: string;
+  deleteAccountSuccess: string;
+  deleteAccountError: string;
+  // Goodbye Page
+  goodbyeTitle: string;
+  goodbyeMessage1: string;
+  goodbyeMessage2: string;
+  goodbyeMessage3: string;
+  goodbyeShare: string;
+  goodbyeBackHome: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;
@@ -291,6 +314,18 @@ export interface InstallmentDetail {
   totalInstallments: number;
   pendingAmount: number;
   paymentMethodName: string;
+  purchaseDate: Date;
+  lastInstallmentDate: Date;
+}
+
+export interface CompletedInstallmentDetail {
+  id: string;
+  description: string;
+  totalAmount: number;
+  totalInstallments: number;
+  paymentMethodName: string;
+  purchaseDate: Date;
+  lastInstallmentDate: Date;
 }
 
 export interface InstallmentProjection {

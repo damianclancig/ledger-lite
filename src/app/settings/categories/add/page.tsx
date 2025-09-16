@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addCategory } from "@/app/actions";
+import { addCategory } from "@/app/actions/categoryActions";
 import { CategoryForm } from "@/components/settings/CategoryForm";
 import type { CategoryFormValues } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

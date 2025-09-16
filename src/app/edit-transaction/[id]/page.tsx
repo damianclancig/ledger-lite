@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
@@ -6,7 +5,9 @@ import React, { useEffect, useState } from "react";
 import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getTransactionById, updateTransaction, getCategories, getPaymentMethods } from "@/app/actions";
+import { getTransactionById, updateTransaction } from "@/app/actions/transactionActions";
+import { getCategories } from "@/app/actions/categoryActions";
+import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
@@ -134,5 +135,3 @@ export default function EditTransactionPage() {
     </div>
   );
 }
-
-    

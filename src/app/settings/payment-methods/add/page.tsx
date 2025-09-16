@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addPaymentMethod } from "@/app/actions";
+import { addPaymentMethod } from "@/app/actions/paymentMethodActions";
 import { PaymentMethodForm } from "@/components/settings/PaymentMethodForm";
 import type { PaymentMethodFormValues } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,10 +1,10 @@
-
 "use client";
 
 import type { Transaction } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface TotalsDisplayProps {
   transactions: Transaction[];
@@ -22,13 +22,6 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpenses;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
-  };
 
   return (
     <div className="grid gap-6 md:grid-cols-1">

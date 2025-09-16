@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { useCallback } from "react";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { Settings, List, CreditCard, Plus } from "lucide-react";
+import { Settings, List, CreditCard, Plus, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +38,8 @@ export default function SettingsLayout({
     return translations.new;
   }
 
-  const showTabs = pathname === '/settings/categories' || pathname === '/settings/payment-methods';
+  const showTabs = ['/settings/account', '/settings/categories', '/settings/payment-methods'].includes(pathname);
+  const showFab = ['/settings/categories', '/settings/payment-methods'].includes(pathname);
 
   return (
     <>
@@ -51,6 +53,12 @@ export default function SettingsLayout({
           <Tabs value={pathname} className="w-full">
             <ScrollArea className="w-full whitespace-nowrap rounded-md">
                 <TabsList className="inline-flex h-auto w-max">
+                 <TabsTrigger value="/settings/account" asChild className="text-base flex-1">
+                    <Link href="/settings/account" className="flex items-center justify-center gap-2 py-2">
+                    <User className="h-5 w-5"/>
+                    <span>{translations.account}</span>
+                    </Link>
+                </TabsTrigger>
                 <TabsTrigger value="/settings/categories" asChild className="text-base flex-1">
                     <Link href="/settings/categories" className="flex items-center justify-center gap-2 py-2">
                     <List className="h-5 w-5"/>
@@ -74,7 +82,7 @@ export default function SettingsLayout({
         </div>
       </div>
 
-      {showTabs && (
+      {showFab && (
         <FloatingActionButton
           onClick={handleFabClick}
           label={getFabLabel()}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -20,6 +19,7 @@ import { es, pt, enUS } from 'date-fns/locale';
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
+import { formatCurrency } from '@/lib/utils';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -71,13 +71,6 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
       } catch (e) {
         return "Invalid Date";
       }
-    };
-    
-    const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(value);
     };
 
     const categoryMap = React.useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);

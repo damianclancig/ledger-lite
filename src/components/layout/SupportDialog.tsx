@@ -52,13 +52,13 @@ export function SupportDialog() {
           className="relative group"
           aria-label={translations.supportProject}
         >
-          <Heart className="h-8 w-8 text-red-500 fill-red-500 animate-[pulse-subtle_3s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
+          <Heart className="h-8 w-8 text-red-500 fill-red-500 animate-[pulse-subtle_1.5s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
         </button>
       </DialogTrigger>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl text-center">{translations.supportProject}</DialogTitle>
-          <DialogDescription className="text-center text-sm sm:text-base pt-2">
+          <DialogDescription className="text-center text-sm sm:text-base pt-2 text-foreground/80">
             {translations.supportMessage1}
           </DialogDescription>
         </DialogHeader>

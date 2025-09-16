@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getPaymentMethodById, updatePaymentMethod } from "@/app/actions";
+import { getPaymentMethodById, updatePaymentMethod } from "@/app/actions/paymentMethodActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";

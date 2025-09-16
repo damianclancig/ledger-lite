@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -26,7 +25,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format, isSameMonth, isSameYear, subMonths } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
-import { getTransactions, deleteTransaction, getCategories, getPaymentMethods, getInstallmentProjection } from "@/app/actions";
+import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
+import { getCategories } from "@/app/actions/categoryActions";
+import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { TransactionTypeToggle } from "@/components/transactions/TransactionTypeToggle";
@@ -191,10 +192,11 @@ export default function DashboardPage() {
   }, [currentPage]);
 
    const handleDateSelect = (range: DateRange | undefined) => {
-    if (range?.from && dateRange?.from && dateRange?.to) {
-        setDateRange({ from: range.from, to: undefined });
+    // If a complete range is already selected, the next click should reset and start a new range.
+    if (dateRange?.from && dateRange?.to && range?.from) {
+      setDateRange({ from: range.from, to: undefined });
     } else {
-        setDateRange(range);
+      setDateRange(range);
     }
   };
 
@@ -245,7 +247,7 @@ export default function DashboardPage() {
 
     const currentMonthDate = selectedMonth || new Date();
     const previousMonthDate = subMonths(currentMonthDate, 1);
-
+    
     const currentTotals = getTotalsForMonth(currentMonthDate);
     const previousTotals = getTotalsForMonth(previousMonthDate);
 
@@ -390,42 +392,44 @@ export default function DashboardPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal text-base h-10",
-                    !dateRange?.from && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                        {format(dateRange.to, "LLL dd, y")}
-                      </>
+            <div className="relative">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal text-base h-10 pl-10",
+                      !dateRange?.from && "text-muted-foreground"
+                    )}
+                  >
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "LLL dd, y")} -{" "}
+                          {format(dateRange.to, "LLL dd, y")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "LLL dd, y")
+                      )
                     ) : (
-                      format(dateRange.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>{translations.filterByDateRange}</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  month={selectedMonth || new Date()}
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={handleDateSelect}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
+                      <span>{translations.filterByDateRange}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    month={selectedMonth || new Date()}
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={handleDateSelect}
+                    numberOfMonths={1}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             {isMobile && isAnyFilterActive && (
                 <Button
                   variant="outline"
@@ -469,7 +473,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    

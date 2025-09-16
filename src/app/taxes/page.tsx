@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -6,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { Tax } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { getTaxes } from "@/app/actions";
+import { getTaxes } from "@/app/actions/taxActions";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
+import { formatCurrency } from "@/lib/utils";
 
 
 interface AggregatedTax {
@@ -125,13 +125,6 @@ export default function TaxesPage() {
     return result.sort((a, b) => a.latestRecord.name.localeCompare(b.latestRecord.name));
   }, [taxes]);
   
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
-  };
 
   const historyPopover = (history: Tax[]) => (
     <Popover>

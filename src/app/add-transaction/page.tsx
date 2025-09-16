@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -6,7 +5,9 @@ import React, { useState, useEffect } from "react";
 import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { addTransaction, markTaxAsPaid, getCategories, getPaymentMethods } from "@/app/actions";
+import { addTransaction, markTaxAsPaid } from "@/app/actions/transactionActions";
+import { getCategories } from "@/app/actions/categoryActions";
+import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
