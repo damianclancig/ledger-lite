@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 
 
-export type TransactionFormValues = z.infer<ReturnType<typeof getFormSchema>>;
+export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
 
 interface TransactionFormProps {
   onSubmit: (values: TransactionFormValues) => void;
@@ -84,7 +83,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
 
   const formSchema = getFormSchema(translations);
 
-  const form = useForm<TransactionFormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: initialData?.description || "",
@@ -132,11 +131,11 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   };
   const currentLocale = locales[language] || enUS;
 
-  const handleSubmit = (values: TransactionFormValues) => {
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit(values);
   };
   
-  const handleSaveAndAddAnother = (values: TransactionFormValues) => {
+  const handleSaveAndAddAnother = (values: z.infer<typeof formSchema>) => {
     if (onSaveAndAddAnother) {
       onSaveAndAddAnother(values);
     }
@@ -416,6 +415,3 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     </Form>
   );
 }
-
-    
-

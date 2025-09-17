@@ -11,6 +11,8 @@ export const CATEGORIES = [
   { key: "Health", isSystem: false },
   { key: "Education", isSystem: false },
   { key: "Gifts", isSystem: false },
+  { key: "Transfers", isSystem: false },
+  { key: "Savings", isSystem: true },
   { key: "Other", isSystem: false },
 ] as const;
 
@@ -57,9 +59,10 @@ export interface Transaction {
   type: TransactionType;
   paymentMethodId: string;
   installments?: number;
+  savingsFundId?: string;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId">;
 
 
 // Tax types
@@ -81,6 +84,19 @@ export interface TaxFormValues {
   year: number;
   amount: number;
 }
+
+// Savings Fund types
+export interface SavingsFund {
+  id: string;
+  userId: string;
+  name: string;
+  description: string;
+  targetAmount: number;
+  targetDate?: Date;
+  currentAmount: number; // This will be calculated on the fly
+}
+
+export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "currentAmount">;
 
 export type Language = "en" | "es" | "pt";
 
@@ -149,6 +165,8 @@ export interface Translations {
   Health: string;
   Education: string;
   Gifts: string;
+  Transfers: string;
+  Savings: string;
   Other: string;
   // Payment Type translations
   Cash: string;
@@ -213,7 +231,7 @@ export interface Translations {
   taxPayment: string;
   editTax: string;
   taxUpdatedSuccess: string;
-paidTaxEditError: string;
+  paidTaxEditError: string;
   // Months
   January: string;
   February: string;
@@ -293,8 +311,6 @@ paidTaxEditError: string;
   deleteAccountConfirmation: string;
   deleteAccountInputPrompt: string;
   deleteAccountConfirmationWord: string;
-  deleteAccountSuccess: string;
-  deleteAccountError: string;
   // Goodbye Page
   goodbyeTitle: string;
   goodbyeMessage1: string;
@@ -302,6 +318,51 @@ paidTaxEditError: string;
   goodbyeMessage3: string;
   goodbyeShare: string;
   goodbyeBackHome: string;
+  // Savings Funds
+  savingsFunds: string;
+  newSavingsFund: string;
+  editSavingsFund: string;
+  deleteSavingsFund: string;
+  areYouSureDeleteSavingsFund: string;
+  areYouSureDeleteFundWithBalance: string;
+  noSavingsFunds: string;
+  savingsFundName: string;
+  savingsFundDescription: string;
+  savingsFundTargetAmount: string;
+  savingsFundTargetDate: string;
+  savingsFundNameRequired: string;
+  savingsFundDescriptionRequired: string;
+  savingsFundTargetAmountRequired: string;
+  savingsFundTargetAmountPositive: string;
+  currentAmount: string;
+  target: string;
+  progress: string;
+  ofGoal: string;
+  noTargetDate: string;
+  savingsFundAddedSuccess: string;
+  savingsFundUpdatedSuccess: string;
+  savingsFundDeletedSuccess: string;
+  deposit: string;
+  withdraw: string;
+  transferTo: string;
+  withdrawFrom: string;
+  transfer: string;
+  transferSuccess: string;
+  transferError: string;
+  withdrawAmountError: string;
+  depositAmountError: string;
+  maxToReachGoal: string;
+  closeFund: string;
+  confirmCloseFundTitle: string;
+  confirmCloseFundDescription: string;
+  availableToWithdraw: string;
+  deleteFundErrorTransferCategory: string;
+  deleteFundErrorPaymentMethod: string;
+  deleteFundDescription: string;
+  selectPaymentMethodReceive: string;
+  processing: string;
+  savingsFundsProgress: string;
+  noSavingsFundsProgress: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

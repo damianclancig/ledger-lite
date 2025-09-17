@@ -43,7 +43,7 @@ export default function EditTransactionPage() {
         const [fetchedTransaction, userCategories, userPaymentMethods] = await Promise.all([
           getTransactionById(id, user.uid),
           getCategories(user.uid),
-          getPaymentMethods(user.uid)
+          getPaymentMethods(user.uid),
         ]);
         
         if (fetchedTransaction) {

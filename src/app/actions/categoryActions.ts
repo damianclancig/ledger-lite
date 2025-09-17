@@ -27,28 +27,39 @@ export async function getCategories(userId: string): Promise<Category[]> {
       await seedDefaultCategories(userId);
     } else {
       // One-time migration logic for existing users
-      const systemTaxesCategory = await categoriesCollection.findOne({ userId, name: "Taxes", isSystem: true });
-      if (!systemTaxesCategory) {
-        const legacyTaxesCategory = await categoriesCollection.findOne({
-          userId,
-          name: { $in: ["Taxes", "Impuestos", "Impostos"] }
-        });
+      const systemCategoryKeys = CATEGORIES.filter(c => c.isSystem).map(c => c.key);
+      const systemCategoriesInDb = await categoriesCollection.find({ userId, isSystem: true }).toArray();
 
-        if (legacyTaxesCategory) {
-          // Found a legacy tax category, update it
-          await categoriesCollection.updateOne(
-            { _id: legacyTaxesCategory._id },
-            { $set: { name: "Taxes", isSystem: true } }
-          );
-        } else {
-          // No legacy tax category found, create a new system one
-          const taxesCategoryData = CATEGORIES.find(c => c.key === "Taxes");
-          if (taxesCategoryData) {
+      // Demote categories that are no longer system categories
+      for (const dbCat of systemCategoriesInDb) {
+        if (!systemCategoryKeys.includes(dbCat.name)) {
+          await categoriesCollection.updateOne({ _id: dbCat._id }, { $unset: { isSystem: "" } });
+        }
+      }
+
+      // Promote or create system categories
+      for (const sysCatKey of systemCategoryKeys) {
+        const sysCatDef = CATEGORIES.find(c => c.key === sysCatKey)!;
+        const existingCategory = await categoriesCollection.findOne({ userId, name: sysCatKey, isSystem: true });
+        if (!existingCategory) {
+          // Try to find a legacy category to update
+          const legacyCategory = await categoriesCollection.findOne({
+            userId,
+            name: sysCatKey,
+            isSystem: { $ne: true }
+          });
+
+          if (legacyCategory) {
+            await categoriesCollection.updateOne(
+              { _id: legacyCategory._id },
+              { $set: { isSystem: true } }
+            );
+          } else {
             await categoriesCollection.insertOne({
-              name: taxesCategoryData.key,
+              name: sysCatDef.key,
               userId,
               isEnabled: true,
-              isSystem: taxesCategoryData.isSystem,
+              isSystem: sysCatDef.isSystem,
             });
           }
         }

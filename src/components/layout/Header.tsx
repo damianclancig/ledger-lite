@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { LogOut, Menu, Home, PlusCircle, Landmark, Settings, Layers } from "lucide-react";
+import { LogOut, Menu, Home, PlusCircle, Landmark, Settings, Layers, PiggyBank } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -52,6 +52,12 @@ export function Header() {
                   <span>{translations.installments}</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/savings-funds">
+                  <PiggyBank className="mr-2 h-4 w-4" />
+                  <span>{translations.savingsFunds}</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/add-transaction">
@@ -67,7 +73,7 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/settings/categories">
+                <Link href="/settings/account">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>{translations.options}</span>
                 </Link>
@@ -139,5 +145,3 @@ export function Header() {
     </header>
   );
 }
-
-    

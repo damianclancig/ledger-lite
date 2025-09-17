@@ -11,18 +11,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useTranslations } from "@/contexts/LanguageContext";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
+  confirmButtonText?: string;
+  confirmButtonVariant?: 'default' | 'destructive';
 }
 
 export function DeleteConfirmationDialog({
   isOpen,
   onClose,
   onConfirm,
+  title,
+  description,
+  confirmButtonText,
+  confirmButtonVariant = 'destructive',
 }: DeleteConfirmationDialogProps) {
   const { translations } = useTranslations();
 
@@ -32,9 +42,9 @@ export function DeleteConfirmationDialog({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{translations.confirmDelete}</AlertDialogTitle>
+          <AlertDialogTitle>{title || translations.confirmDelete}</AlertDialogTitle>
           <AlertDialogDescription className="text-base">
-            {translations.areYouSureDelete}
+            {description || translations.areYouSureDelete}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -44,14 +54,12 @@ export function DeleteConfirmationDialog({
               onConfirm();
               onClose();
             }}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-base"
+            className={cn(buttonVariants({ variant: confirmButtonVariant }), 'text-base')}
           >
-            {translations.delete}
+            {confirmButtonText || translations.delete}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
-
-    

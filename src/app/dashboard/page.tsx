@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from 'next/navigation';
-import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, InstallmentProjection } from "@/types";
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, InstallmentProjection, SavingsFund } from "@/types";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { TotalsDisplay } from "@/components/transactions/TotalsDisplay";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
@@ -18,7 +19,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart, LayoutDashboard, LineChart } from "lucide-react";
+import { Plus, Filter, CalendarIcon, Search, XCircle, PieChart, BarChart, LayoutDashboard, LineChart, PiggyBank } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
 import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
+import { getSavingsFunds } from "@/app/actions/savingsFundActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { TransactionTypeToggle } from "@/components/transactions/TransactionTypeToggle";
@@ -36,6 +38,7 @@ import { ExpensesChart } from "@/components/transactions/ExpensesChart";
 import { IncomeExpenseChart } from "@/components/transactions/IncomeExpenseChart";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { InstallmentProjectionChart } from "@/components/transactions/InstallmentProjectionChart";
+import { SavingsFundsProgressChart } from "@/components/transactions/SavingsFundsProgressChart";
 
 
 export default function DashboardPage() {
@@ -51,6 +54,7 @@ export default function DashboardPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
+  const [savingsFunds, setSavingsFunds] = useState<SavingsFund[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
@@ -108,11 +112,12 @@ export default function DashboardPage() {
         return;
       }
       setIsLoading(true);
-      const [initialTransactions, initialCategories, initialPaymentMethods, projectionData] = await Promise.all([
+      const [initialTransactions, initialCategories, initialPaymentMethods, projectionData, fundsData] = await Promise.all([
         getTransactions(user.uid),
         getCategories(user.uid),
         getPaymentMethods(user.uid),
         getInstallmentProjection(user.uid),
+        getSavingsFunds(user.uid),
       ]);
       const parsed = initialTransactions.map((t) => ({
         ...t,
@@ -122,6 +127,7 @@ export default function DashboardPage() {
       setCategories(initialCategories);
       setPaymentMethods(initialPaymentMethods);
       setInstallmentProjection(projectionData);
+      setSavingsFunds(fundsData);
       setIsLoading(false);
     }
     loadData();
@@ -152,6 +158,11 @@ export default function DashboardPage() {
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
+      // Exclude transactions belonging to a savings fund from the main dashboard
+      if (t.savingsFundId) {
+        return false;
+      }
+
       const transactionDate = new Date(t.date);
       const lowerSearchTerm = searchTerm.toLowerCase();
       
@@ -239,7 +250,7 @@ export default function DashboardPage() {
 
   const incomeExpenseChartData = useMemo(() => {
     const getTotalsForMonth = (monthDate: Date) => {
-        const monthlyTransactions = transactions.filter(t => isSameMonth(t.date, monthDate) && isSameYear(t.date, monthDate));
+        const monthlyTransactions = transactions.filter(t => isSameMonth(t.date, monthDate) && isSameYear(t.date, monthDate) && !t.savingsFundId);
         const income = monthlyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
         const expense = monthlyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
         return { income, expense };
@@ -297,33 +308,54 @@ export default function DashboardPage() {
        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 space-y-8">
             <TotalsDisplay transactions={filteredTransactions} />
-          </div>
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="shadow-xl border-2 border-primary h-full">
-            <CardHeader className="p-4">
-                <CardTitle className="flex items-center">
-                <PieChart className="h-5 w-5 mr-2 text-primary" />
-                {translations.expensesByCategory}
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <ExpensesChart transactions={expenseTransactions} categoryIdToNameMap={categoryIdToNameMap} />
-            </CardContent>
-            </Card>
-            <Card className="shadow-xl border-2 border-primary h-full">
-            <CardHeader className="p-4">
-                <CardTitle className="flex items-center">
-                <BarChart className="h-5 w-5 mr-2 text-primary" />
-                {translations.incomeVsExpense}
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <IncomeExpenseChart chartData={incomeExpenseChartData} />
-            </CardContent>
-            </Card>
-          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+                <Card className="shadow-xl border-2 border-primary h-full">
+                <CardHeader className="p-4">
+                    <CardTitle className="flex items-center">
+                    <PieChart className="h-5 w-5 mr-2 text-primary" />
+                    {translations.expensesByCategory}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                    <ExpensesChart transactions={expenseTransactions} categoryIdToNameMap={categoryIdToNameMap} />
+                </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-1">
+                <Card className="shadow-xl border-2 border-primary h-full">
+                <CardHeader className="p-4">
+                    <CardTitle className="flex items-center">
+                    <BarChart className="h-5 w-5 mr-2 text-primary" />
+                    {translations.incomeVsExpense}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                    <IncomeExpenseChart chartData={incomeExpenseChartData} />
+                </CardContent>
+                </Card>
+            </div>
+            {savingsFunds.length > 0 && (
+                <div className="lg:col-span-1">
+                    <Card className="shadow-xl border-2 border-primary h-full">
+                        <CardHeader className="p-4">
+                            <CardTitle className="flex items-center">
+                            <PiggyBank className="h-5 w-5 mr-2 text-primary" />
+                            {translations.savingsFundsProgress}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0 min-h-[100px]">
+                            <SavingsFundsProgressChart funds={savingsFunds} />
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+        </div>
+        
+        <div className="grid grid-cols-1 gap-8">
             <div className="lg:col-span-3">
                 <Card className="shadow-xl border-2 border-primary h-full">
                     <CardHeader className="p-4">

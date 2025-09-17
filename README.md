@@ -6,11 +6,12 @@ FinanClan es una aplicación web moderna y segura diseñada para ayudarte a llev
 ## ✨ Características Principales
 
 - **Gestión Completa de Transacciones**: Crea, visualiza, edita y elimina transacciones de ingresos y gastos de forma rápida.
+- **Gestión de Fondos de Ahorro**: Crea objetivos de ahorro personalizados (vacaciones, un nuevo gadget, etc.), deposita o retira dinero de ellos, y visualiza el progreso para alcanzar tus metas financieras.
 - **Gestión de Categorías Personalizadas**: Añade, renombra y habilita o deshabilita tus propias categorías de gastos e ingresos para adaptar la aplicación a tu vida financiera.
 - **Gestión de Métodos de Pago Personalizados**: Define tus propios métodos de pago, como tarjetas de crédito de bancos específicos, billeteras virtuales o efectivo, para un seguimiento detallado.
 - **Gestión de Cuotas Pendientes**: Visualiza de forma centralizada todas tus compras realizadas en cuotas, el estado de cada una, el monto total adeudado y el total a pagar en el mes actual.
 - **Gestión de Impuestos**: Registra impuestos recurrentes, visualiza su historial, márcalos como pagados y registra fácilmente nuevos períodos. La interfaz incluye un selector de año optimizado y tooltips de ayuda en todas las acciones.
-- **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría, la comparativa de ingresos vs. gastos y una **proyección anual de tus cuotas pendientes** con gráficos dinámicos.
+- **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría, la comparativa de ingresos vs. gastos, el **progreso de tus fondos de ahorro** y una **proyección anual de tus cuotas pendientes** con gráficos dinámicos.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
 - **Experiencia de Usuario Mejorada**: Disfruta de una interfaz pulida con un **encabezado fijo**, efectos visuales como "glassmorphism" y un fondo animado. La navegación se siente fluida gracias a la **restauración inteligente de la posición del scroll** al volver de editar una transacción, incluso entre diferentes páginas de la lista.
 - **Diseño Responsivo y Botón Flotante Inteligente**: Goza de una experiencia de usuario perfecta tanto en tu ordenador como en dispositivos móviles, con un botón de acción flotante (FAB) que se oculta al hacer scroll para no interrumpir la visualización.
@@ -140,3 +141,4 @@ npm run dev
 ```
 
 Abre tu navegador y visita [http://localhost:3000](http://localhost:3000) (o el puerto que se indique en la terminal). ¡Ya deberías poder ver la página de inicio de sesión y empezar a usar FinanClan!
+

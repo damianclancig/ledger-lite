@@ -60,6 +60,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     
     revalidateTag(`transactions_${userId}`);
     revalidateTag(`taxes_${userId}`);
+    revalidateTag(`savingsFunds_${userId}`);
 
     // For simplicity, we'll just return a success-like object.
     // Returning the first created transaction in an installment scenario.
@@ -86,11 +87,12 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
     const { transactionsCollection } = await getDb();
     // Installment logic is not applied on update for simplicity
     const { installments, ...transactionData } = data;
-    const documentToUpdate = { ...transactionData, date: new Date(transactionData.date) };
-
+    
+    const documentToUpdate: any = { ...transactionData, date: new Date(transactionData.date) };
+    
     const result = await transactionsCollection.updateOne(
-      { _id: new ObjectId(id), userId }, // Ensure user owns the doc
-      { $set: documentToUpdate }
+        { _id: new ObjectId(id), userId }, // Ensure user owns the doc
+        { $set: documentToUpdate }
     );
     
     if (result.matchedCount === 0) {
@@ -98,6 +100,7 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
     }
 
     revalidateTag(`transactions_${userId}`);
+    revalidateTag(`savingsFunds_${userId}`);
     const updatedTransaction = await transactionsCollection.findOne({ _id: new ObjectId(id) });
      if (!updatedTransaction) {
         throw new Error('Could not find the updated transaction.');
@@ -124,6 +127,7 @@ export async function deleteTransaction(id: string, userId: string): Promise<{ s
     }
 
     revalidateTag(`transactions_${userId}`);
+    revalidateTag(`savingsFunds_${userId}`);
     return { success: true };
   } catch (error) {
     console.error('Error deleting transaction:', error);

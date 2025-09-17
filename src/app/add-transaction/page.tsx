@@ -84,7 +84,7 @@ export default function AddTransactionPage() {
       }
       toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
       
-      const redirectPath = taxId ? '/taxes' : '/';
+      const redirectPath = taxId ? '/taxes' : '/dashboard';
       router.push(redirectPath);
     }
   };
@@ -108,7 +108,7 @@ export default function AddTransactionPage() {
   };
 
   const handleClose = () => {
-    const redirectPath = taxId ? '/taxes' : '/';
+    const redirectPath = taxId ? '/taxes' : '/dashboard';
     router.push(redirectPath);
   }
   
