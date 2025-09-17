@@ -213,7 +213,7 @@ export interface Translations {
   taxPayment: string;
   editTax: string;
   taxUpdatedSuccess: string;
-  paidTaxEditError: string;
+paidTaxEditError: string;
   // Months
   January: string;
   February: string;
@@ -292,6 +292,7 @@ export interface Translations {
   deleteAccountWarning: string;
   deleteAccountConfirmation: string;
   deleteAccountInputPrompt: string;
+  deleteAccountConfirmationWord: string;
   deleteAccountSuccess: string;
   deleteAccountError: string;
   // Goodbye Page

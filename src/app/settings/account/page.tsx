@@ -45,7 +45,7 @@ export default function AccountSettingsPage() {
     setIsDialogOpen(open);
   }
 
-  const isDeleteButtonDisabled = confirmationText !== "ELIMINAR" || isDeleting;
+  const isDeleteButtonDisabled = confirmationText !== translations.deleteAccountConfirmationWord || isDeleting;
 
   return (
     <>
@@ -98,7 +98,7 @@ export default function AccountSettingsPage() {
                           type="text"
                           value={confirmationText}
                           onChange={(e) => setConfirmationText(e.target.value)}
-                          placeholder="ELIMINAR"
+                          placeholder={translations.deleteAccountConfirmationWord}
                           className="border-destructive focus-visible:ring-destructive"
                           autoComplete="off"
                         />
