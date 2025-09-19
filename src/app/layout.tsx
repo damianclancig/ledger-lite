@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
-const APP_URL = 'https://caja.clancig.com.ar';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://caja.clancig.com.ar';
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
