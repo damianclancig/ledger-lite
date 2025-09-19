@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -89,7 +90,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
 
     if (isMobile) {
       return (
-        <div className="space-y-0" ref={ref}>
+        <div className="space-y-0">
           <Card className="shadow-xl border-2 border-primary overflow-hidden">
             <CardContent className="p-0">
               {currentTransactions.map((transaction, index) => (
@@ -139,7 +140,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
           </Card>
           
           {totalPages > 1 && (
-            <div className="flex items-center justify-end space-x-2 py-4">
+            <div ref={ref} className="flex items-center justify-end space-x-2 py-4 scroll-mt-24">
               <span className="text-sm text-muted-foreground">
                 {translations.page} {currentPage} {translations.of} {totalPages}
               </span>
@@ -168,7 +169,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
     }
 
     return (
-      <div className="space-y-4" ref={ref}>
+      <div className="space-y-4">
          <Card className="shadow-xl border-2 border-primary">
           <CardContent className="p-0">
         <Table>
@@ -217,7 +218,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
         </CardContent>
         </Card>
         {totalPages > 1 && (
-          <div className="flex items-center justify-end space-x-2 py-4">
+          <div ref={ref} className="flex items-center justify-end space-x-2 py-4 scroll-mt-24">
             <span className="text-sm text-muted-foreground">
               {translations.page} {currentPage} {translations.of} {totalPages}
             </span>

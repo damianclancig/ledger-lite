@@ -141,4 +141,3 @@ npm run dev
 ```
 
 Abre tu navegador y visita [http://localhost:3000](http://localhost:3000) (o el puerto que se indique en la terminal). ¡Ya deberías poder ver la página de inicio de sesión y empezar a usar FinanClan!
-

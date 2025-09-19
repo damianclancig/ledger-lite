@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { PiggyBank, Calendar, Plus, Edit, Trash2, MoreVertical, ArrowDownLeft, ArrowUpRight, CheckCircle2, XCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { formatCurrency, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
@@ -22,6 +21,7 @@ import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TransferDialog } from "@/components/savings-funds/TransferDialog";
+import { SavingsFundProgress } from "@/components/savings-funds/SavingsFundProgress";
 
 export default function SavingsFundsPage() {
   const { user } = useAuth();
@@ -153,7 +153,7 @@ export default function SavingsFundsPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {funds.map(fund => {
                     const isCompleted = fund.targetAmount > 0 && fund.currentAmount >= fund.targetAmount;
-                    const progressPercentage = fund.targetAmount > 0 ? (fund.currentAmount / fund.targetAmount) * 100 : 0;
+                    
                     return (
                         <Card key={fund.id} className="shadow-xl border-2 border-primary/20 flex flex-col">
                             <CardHeader>
@@ -186,17 +186,15 @@ export default function SavingsFundsPage() {
                             </CardHeader>
                             <CardContent className="p-4 flex flex-col flex-grow">
                                 <div className="mt-auto space-y-4">
-                                  <div>
-                                      <div className="flex justify-between items-end mb-1">
-                                          <span className="text-sm font-medium text-muted-foreground">{translations.progress}</span>
-                                          <span className="text-sm font-medium text-muted-foreground">{Math.min(100, Math.round(progressPercentage))}% {translations.ofGoal}</span>
-                                      </div>
-                                      <Progress value={progressPercentage} className={cn("h-4", isCompleted && "[&>div]:bg-green-600")} />
-                                      <div className="flex justify-between items-start mt-1">
-                                          <span className="text-xs font-mono">{formatCurrency(fund.currentAmount)}</span>
-                                          <span className="text-xs font-mono">{translations.target}: {formatCurrency(fund.targetAmount)}</span>
-                                      </div>
-                                  </div>
+                                  {fund.targetAmount > 0 ? (
+                                    <SavingsFundProgress fund={fund} />
+                                  ) : (
+                                    <div>
+                                      <p className="text-sm font-medium text-muted-foreground">{translations.currentAmount}</p>
+                                      <p className="text-2xl font-bold font-mono">{formatCurrency(fund.currentAmount)}</p>
+                                    </div>
+                                  )}
+
                                   <div className="flex items-center text-sm text-muted-foreground">
                                       <Calendar className="h-4 w-4 mr-2" />
                                       <span>{fund.targetDate ? format(new Date(fund.targetDate), "PP") : translations.noTargetDate}</span>

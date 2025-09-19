@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Añadir Transacción",
@@ -184,7 +185,7 @@
   "dangerZone": "Zona de Peligro",
   "deleteAccount": "Eliminar Cuenta",
   "deleteAccountWarning": "Esta acción es irreversible. Todos tus datos, incluyendo transacciones, categorías e impuestos, serán eliminados permanentemente. Esta acción no se puede deshacer.",
-  "deleteAccountConfirmation": "¿Estás absolutely seguro de que quieres eliminar tu cuenta?",
+  "deleteAccountConfirmation": "Estás absolutamente seguro de que quieres eliminar tu cuenta?",
   "deleteAccountInputPrompt": "Para confirmar, por favor escribe la palabra de confirmación a continuación.",
   "deleteAccountConfirmationWord": "ELIMINAR",
   "goodbyeTitle": "¡Te extrañaremos!",
@@ -235,6 +236,25 @@
   "deleteFundDescription": "Cierre de fondo de ahorro: {fundName}",
   "selectPaymentMethodReceive": "Selecciona el método de pago que recibirá los fondos",
   "processing": "Procesando",
-  "savingsFundsProgress": "Progreso de Fondos de Ahorro",
-  "noSavingsFundsProgress": "Aún no has creado fondos de ahorro con un monto objetivo."
+  "savingsFundsProgress": "Fondos de Ahorro",
+  "noSavingsFundsProgress": "Aún no has creado fondos de ahorro con un monto objetivo.",
+  "completed": "Completado",
+  "termsAndConditions": "Términos y Condiciones",
+  "termsLastUpdated": "Última actualización: 19 de septiembre de 2025",
+  "termsAcceptance": "Aceptación de los Términos",
+  "termsAcceptanceText": "Al acceder o utilizar FinanClan (el 'Servicio'), usted acepta estar sujeto a estos Términos y Condiciones. Estos términos se aplican a todos los visitantes, usuarios y otras personas que accedan o utilicen el Servicio. Si no está de acuerdo con alguna parte de los términos, debe dejar de utilizar el Servicio.",
+  "termsServiceDescription": "Descripción del Servicio",
+  "termsServiceDescriptionText": "FinanClan es una aplicación de gestión de finanzas personales diseñada para ayudar a los usuarios a realizar un seguimiento de sus ingresos y gastos. El Servicio se proporciona 'tal cual' solo para uso personal. No pretende proporcionar asesoramiento financiero, legal o fiscal. El usuario es el único responsable de los datos financieros introducidos y de las decisiones tomadas en función de la información proporcionada por el Servicio.",
+  "termsPrivacyAndData": "Privacidad y Datos",
+  "termsPrivacyAndDataText1": "La autenticación del usuario se gestiona de forma segura a través de Google mediante Firebase Authentication. No almacenamos sus contraseñas.",
+  "termsPrivacyAndDataText2": "Todos los datos financieros que introduce en la aplicación (transacciones, categorías, etc.) son privados y están asociados exclusivamente a su cuenta de usuario. Estos datos se almacenan en una base de datos segura.",
+  "termsPrivacyAndDataText3": "Nos comprometemos a proteger su privacidad. No venderemos, alquilaremos, compartiremos ni utilizaremos sus datos personales o financieros con fines comerciales, publicitarios o cualquier otro propósito que no sea proporcionar y mejorar el Servicio.",
+  "termsLimitationOfLiability": "Limitación de Responsabilidad",
+  "termsLimitationOfLiabilityText": "Usted entiende y acepta expresamente que el creador de FinanClan no será responsable de ningún daño directo, indirecto, incidental, especial, consecuente o ejemplar, incluidos, entre otros, los daños por pérdida de beneficios, fondo de comercio, uso, datos u otras pérdidas intangibles resultantes del uso o la imposibilidad de usar el Servicio. El Servicio es una herramienta y usted es el único responsable de sus decisiones financieras.",
+  "termsIntellectualProperty": "Propiedad Intelectual y Código Abierto",
+  "termsIntellectualPropertyText": "El código fuente de esta aplicación se distribuye bajo la licencia MIT, lo que permite su libre uso, modificación y distribución. Sin embargo, el nombre 'FinanClan', los logotipos y otros elementos de marca son propiedad exclusiva del creador y no pueden ser utilizados para identificar trabajos derivados sin un consentimiento previo por escrito.",
+  "termsChangesAndTermination": "Cambios y Terminación",
+  "termsChangesAndTerminationText": "Nos reservamos el derecho, a nuestra entera discreción, de modificar o reemplazar estos Términos en cualquier momento. También nos reservamos el derecho de suspender o cancelar el acceso a nuestro Servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo. Usted puede terminar su acuerdo con estos términos en cualquier momento eliminando su cuenta desde la sección 'Opciones', en la solapa 'Cuenta'. Esta acción es irreversible y resultará en la eliminación permanente de todos sus datos asociados."
 }
+
+    

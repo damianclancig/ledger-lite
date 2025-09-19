@@ -363,6 +363,24 @@ export interface Translations {
   processing: string;
   savingsFundsProgress: string;
   noSavingsFundsProgress: string;
+  completed: string;
+  // Terms & Conditions
+  termsAndConditions: string;
+  termsLastUpdated: string;
+  termsAcceptance: string;
+  termsAcceptanceText: string;
+  termsServiceDescription: string;
+  termsServiceDescriptionText: string;
+  termsPrivacyAndData: string;
+  termsPrivacyAndDataText1: string;
+  termsPrivacyAndDataText2: string;
+  termsPrivacyAndDataText3: string;
+  termsLimitationOfLiability: string;
+  termsLimitationOfLiabilityText: string;
+  termsIntellectualProperty: string;
+  termsIntellectualPropertyText: string;
+  termsChangesAndTermination: string;
+  termsChangesAndTerminationText: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

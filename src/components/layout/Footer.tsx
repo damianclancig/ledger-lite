@@ -1,5 +1,7 @@
+
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { SupportDialog } from "./SupportDialog";
 
@@ -23,6 +25,11 @@ export function Footer() {
                 clancig.com.ar
             </a>
           </p>
+        </div>
+        <div className="text-sm text-muted-foreground text-center">
+             <Link href="/terms" className="font-medium underline underline-offset-4 hover:text-primary">
+                {translations.termsAndConditions}
+             </Link>
         </div>
         <SupportDialog />
       </div>

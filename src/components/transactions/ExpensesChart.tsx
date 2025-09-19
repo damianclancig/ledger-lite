@@ -106,8 +106,8 @@ export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesCha
             nameKey="category"
             cx="50%"
             cy="50%"
-            outerRadius={100}
-            innerRadius={60}
+            outerRadius="80%"
+            innerRadius="60%"
             paddingAngle={5}
             labelLine={false}
             label={({

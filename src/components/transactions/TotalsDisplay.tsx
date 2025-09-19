@@ -25,7 +25,7 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
   const balance = totalIncome - totalExpenses;
 
   return (
-    <>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="font-medium">{translations.totalIncome}</CardTitle>
@@ -59,6 +59,6 @@ export function TotalsDisplay({ transactions }: TotalsDisplayProps) {
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

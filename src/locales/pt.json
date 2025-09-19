@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Adicionar Transação",
@@ -235,6 +236,25 @@
   "deleteFundDescription": "Encerramento do fundo de poupança: {fundName}",
   "selectPaymentMethodReceive": "Selecione o método de pagamento para receber os fundos",
   "processing": "Processando",
-  "savingsFundsProgress": "Progresso dos Fundos de Poupança",
-  "noSavingsFundsProgress": "Ainda não foram criados fundos de poupança com um valor alvo."
+  "savingsFundsProgress": "Fundos de Poupança",
+  "noSavingsFundsProgress": "Ainda não foram criados fundos de poupança com um valor alvo.",
+  "completed": "Concluído",
+  "termsAndConditions": "Termos e Condições",
+  "termsLastUpdated": "Última atualização: 19 de setembro de 2025",
+  "termsAcceptance": "Aceitação dos Termos",
+  "termsAcceptanceText": "Ao acessar ou usar o FinanClan (o 'Serviço'), você concorda em ficar vinculado a estes Termos e Condições. Estes termos se aplicam a todos os visitantes, usuários e outras pessoas que acessam ou usam o Serviço. Se você não concorda com qualquer parte dos termos, deve interromper o uso do Serviço.",
+  "termsServiceDescription": "Descrição do Serviço",
+  "termsServiceDescriptionText": "FinanClan é um aplicativo de gerenciamento de finanças pessoais projetado para ajudar os usuários a rastrear suas receitas e despesas. O Serviço é fornecido 'como está' apenas para uso pessoal. Não se destina a fornecer aconselhamento financeiro, legal ou fiscal. O usuário é o único responsável pelos dados financeiros inseridos e pelas decisões tomadas com base nas informações fornecidas pelo Serviço.",
+  "termsPrivacyAndData": "Privacidade e Dados",
+  "termsPrivacyAndDataText1": "A autenticação do usuário é tratada de forma segura através do Google via Firebase Authentication. Não armazenamos suas senhas.",
+  "termsPrivacyAndDataText2": "Todos os dados financeiros que você insere no aplicativo (transações, categorias, etc.) são privados e associados exclusivamente à sua conta de usuário. Esses dados são armazenados em um banco de dados seguro.",
+  "termsPrivacyAndDataText3": "Estamos comprometidos em proteger sua privacidade. Não venderemos, alugaremos, compartilharemos ou usaremos seus dados pessoais ou financeiros para fins comerciais, publicitários ou qualquer outro propósito que não seja fornecer e melhorar o Serviço.",
+  "termsLimitationOfLiability": "Limitação de Responsabilidade",
+  "termsLimitationOfLiabilityText": "Você entende e concorda expressamente que o criador do FinanClan não será responsável por quaisquer danos diretos, indiretos, incidentais, especiais, consequenciais ou exemplares, incluindo, mas não se limitando a, danos por lucros cessantes, boa vontade, uso, dados ou outras perdas intangíveis resultantes do uso ou da incapacidade de usar o Serviço. O Serviço é uma ferramenta, e você é o único responsável por suas decisões financeiras.",
+  "termsIntellectualProperty": "Propriedade Intelectual e Código Aberto",
+  "termsIntellectualPropertyText": "O código-fonte desta aplicação é distribuído sob a licença MIT, que permite o uso, modificação e distribuição gratuitos. No entanto, o nome 'FinanClan', logotipos e outros elementos de marca são propriedade exclusiva do criador e não podem ser usados para identificar trabalhos derivados sem consentimento prévio por escrito.",
+  "termsChangesAndTermination": "Alterações e Rescisão",
+  "termsChangesAndTerminationText": "Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Também nos reservamos o direito de suspender ou rescindir o acesso ao nosso Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo. Você pode rescindir seu acordo com estes termos a qualquer momento, excluindo sua conta na seção 'Opções', na aba 'Conta'. Esta ação é irreversível e resultará na exclusão permanente de todos os seus dados associados."
 }
+
+    

@@ -4,9 +4,8 @@
 import * as React from "react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import type { SavingsFund } from "@/types";
-import { formatCurrency, cn } from "@/lib/utils";
 import { PiggyBank } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { SavingsFundProgress } from "@/components/savings-funds/SavingsFundProgress";
 
 interface SavingsFundsProgressChartProps {
   funds: SavingsFund[];
@@ -18,17 +17,11 @@ export function SavingsFundsProgressChart({ funds }: SavingsFundsProgressChartPr
   const chartData = React.useMemo(() => {
     return funds
       .filter(fund => fund.targetAmount > 0)
-      .map(fund => {
-        const progress = (fund.currentAmount / fund.targetAmount) * 100;
-        return {
-          name: fund.name,
-          progress: Math.min(100, progress),
-          currentAmount: fund.currentAmount,
-          targetAmount: fund.targetAmount,
-          isCompleted: fund.currentAmount >= fund.targetAmount,
-        };
-      })
-      .sort((a, b) => b.progress - a.progress);
+      .sort((a, b) => {
+          const progressA = (a.currentAmount / a.targetAmount);
+          const progressB = (b.currentAmount / b.targetAmount);
+          return progressB - progressA;
+      });
   }, [funds]);
 
   if (chartData.length === 0) {
@@ -43,20 +36,8 @@ export function SavingsFundsProgressChart({ funds }: SavingsFundsProgressChartPr
   return (
     <div className="space-y-4">
       {chartData.map((fund) => (
-        <div key={fund.name}>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-base font-medium truncate pr-2">{fund.name}</span>
-            <span className="text-sm font-medium text-muted-foreground">{fund.progress.toFixed(0)}%</span>
-          </div>
-          <Progress value={fund.progress} className={cn("h-3", fund.isCompleted && "[&>div]:bg-green-600")} />
-          <div className="flex justify-between items-start mt-1 text-xs font-mono">
-            <span>{formatCurrency(fund.currentAmount)}</span>
-            <span className="text-muted-foreground">{translations.target}: {formatCurrency(fund.targetAmount)}</span>
-          </div>
-        </div>
+         <SavingsFundProgress key={fund.id} fund={fund} size="sm" />
       ))}
     </div>
   );
 }
-
-    
