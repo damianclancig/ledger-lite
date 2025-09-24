@@ -236,9 +236,12 @@
   "deleteFundDescription": "Encerramento do fundo de poupança: {fundName}",
   "selectPaymentMethodReceive": "Selecione o método de pagamento para receber os fundos",
   "processing": "Processando",
-  "savingsFundsProgress": "Fundos de Poupança",
-  "noSavingsFundsProgress": "Ainda não foram criados fundos de poupança com um valor alvo.",
+  "savingsFundsProgress": "Progresso dos Fundos de Poupança",
+  "noSavingsFundsProgressTitle": "Acompanhe Suas Metas de Poupança",
+  "noSavingsFundsProgressDesc": "Para começar, abra o menu principal (canto superior esquerdo) e selecione 'Fundos de Poupança' para criar sua primeira meta.",
   "completed": "Concluído",
+  "noInstallmentsTitle": "Projete suas Compras Parceladas",
+  "noInstallmentsDesc": "Este gráfico mostra seus pagamentos mensais futuros. Para gerá-lo, adicione uma 'Despesa' com 'Cartão de Crédito' e selecione mais de uma parcela.",
   "termsAndConditions": "Termos e Condições",
   "termsLastUpdated": "Última atualização: 19 de setembro de 2025",
   "termsAcceptance": "Aceitação dos Termos",
@@ -256,5 +259,3 @@
   "termsChangesAndTermination": "Alterações e Rescisão",
   "termsChangesAndTerminationText": "Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Também nos reservamos o direito de suspender ou rescindir o acesso ao nosso Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo. Você pode rescindir seu acordo com estes termos a qualquer momento, excluindo sua conta na seção 'Opções', na aba 'Conta'. Esta ação é irreversível e resultará na exclusão permanente de todos os seus dados associados."
 }
-
-    

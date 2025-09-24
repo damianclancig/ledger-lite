@@ -2,10 +2,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useRouter } from 'next/navigation';
-import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, InstallmentProjection, SavingsFund } from "@/types";
+import { useRouter, usePathname } from 'next/navigation';
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
-import { Plus, LayoutDashboard } from "lucide-react";
+import { Plus, LayoutDashboard, PiggyBank } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { isSameMonth, isSameYear, subMonths } from "date-fns";
@@ -24,6 +24,7 @@ import { ExpensesChartCard } from "@/components/dashboard/cards/ExpensesChartCar
 import { IncomeExpenseChartCard } from "@/components/dashboard/cards/IncomeExpenseChartCard";
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { translations, language } = useTranslations();
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
+  const [installmentProjection, setInstallmentProjection] = useState<any[]>([]);
   const [savingsFunds, setSavingsFunds] = useState<SavingsFund[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
@@ -256,9 +257,7 @@ export default function DashboardPage() {
              categories={categories}
            />
            <IncomeExpenseChartCard chartData={incomeExpenseChartData} />
-           {savingsFunds.length > 0 && (
-             <SavingsFundsCard funds={savingsFunds} />
-           )}
+           <SavingsFundsCard funds={savingsFunds} />
         </div>
         
         <div className="grid grid-cols-1 gap-8">

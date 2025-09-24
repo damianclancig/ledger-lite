@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -106,7 +107,7 @@ export default function AccountSettingsPage() {
                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className="gap-y-2 sm:gap-y-0">
                 <AlertDialogCancel>{translations.cancel}</AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive hover:bg-destructive/90"

@@ -1,22 +1,33 @@
-'use server';
+import admin from 'firebase-admin';
 
-import * as admin from 'firebase-admin';
+// Helper function to safely parse the service account JSON from the environment variable
+function getServiceAccount() {
+    const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!serviceAccountEnv) {
+        console.error("Firebase Admin SDK Error: FIREBASE_SERVICE_ACCOUNT environment variable is not set.");
+        return null;
+    }
+    try {
+        return JSON.parse(serviceAccountEnv);
+    } catch (e) {
+        console.error("Firebase Admin SDK Error: Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable.", e);
+        return null;
+    }
+}
 
-export async function initAdminApp() {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!serviceAccount) {
-    throw new Error('Missing FIREBASE_SERVICE_ACCOUNT environment variable.');
-  }
+export function initAdminApp() {
+    // Check if the app is already initialized to prevent errors
+    if (admin.apps.length > 0) {
+        return admin.app();
+    }
 
-  if (admin.apps.length > 0) {
-    return;
-  }
+    const serviceAccount = getServiceAccount();
+    if (!serviceAccount) {
+        throw new Error('Firebase Admin SDK credentials are not configured correctly. Check environment variables.');
+    }
 
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+    // Initialize the Firebase Admin SDK
+    return admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
     });
-  } catch (error: any) {
-    console.error('Firebase admin initialization error', error.stack);
-  }
 }

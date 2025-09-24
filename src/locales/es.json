@@ -236,9 +236,12 @@
   "deleteFundDescription": "Cierre de fondo de ahorro: {fundName}",
   "selectPaymentMethodReceive": "Selecciona el método de pago que recibirá los fondos",
   "processing": "Procesando",
-  "savingsFundsProgress": "Fondos de Ahorro",
-  "noSavingsFundsProgress": "Aún no has creado fondos de ahorro con un monto objetivo.",
+  "savingsFundsProgress": "Progreso de Fondos de Ahorro",
+  "noSavingsFundsProgressTitle": "Seguí tus Metas de Ahorro",
+  "noSavingsFundsProgressDesc": "Para empezar, desplegá el menú principal (arriba a la izquierda) y seleccioná 'Fondos de Ahorro' para crear tu primer objetivo.",
   "completed": "Completado",
+  "noInstallmentsTitle": "Proyecta tus Compras en Cuotas",
+  "noInstallmentsDesc": "Este gráfico muestra tus pagos mensuales futuros. Para generarlo, añade un 'Gasto' con 'Tarjeta de Crédito' y selecciona más de una cuota.",
   "termsAndConditions": "Términos y Condiciones",
   "termsLastUpdated": "Última actualización: 19 de septiembre de 2025",
   "termsAcceptance": "Aceptación de los Términos",
@@ -256,5 +259,3 @@
   "termsChangesAndTermination": "Cambios y Terminación",
   "termsChangesAndTerminationText": "Nos reservamos el derecho, a nuestra entera discreción, de modificar o reemplazar estos Términos en cualquier momento. También nos reservamos el derecho de suspender o cancelar el acceso a nuestro Servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo. Usted puede terminar su acuerdo con estos términos en cualquier momento eliminando su cuenta desde la sección 'Opciones', en la solapa 'Cuenta'. Esta acción es irreversible y resultará en la eliminación permanente de todos sus datos asociados."
 }
-
-    

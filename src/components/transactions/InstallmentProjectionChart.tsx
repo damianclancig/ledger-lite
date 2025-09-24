@@ -4,7 +4,7 @@
 import * as React from "react";
 import { Line, LineChart, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer, Dot } from "recharts";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { ListTree } from "lucide-react";
+import { ListTree, MousePointerClick } from "lucide-react";
 import type { InstallmentProjection } from "@/types";
 import { format, parse, isSameMonth } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
@@ -77,10 +77,11 @@ export function InstallmentProjectionChart({ data }: InstallmentProjectionChartP
 
   if (noData) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-muted-foreground text-center">
-        <ListTree className="w-10 h-10 mb-2" />
-        <p className="text-base">{translations.noInstallments}</p>
-      </div>
+        <div className="flex h-full flex-col items-center justify-center text-muted-foreground text-center p-4 min-h-[200px]">
+            <MousePointerClick className="w-10 h-10 mb-4" />
+            <p className="text-base font-semibold mb-2">{translations.noInstallmentsTitle}</p>
+            <p className="text-sm">{translations.noInstallmentsDesc}</p>
+        </div>
     );
   }
   

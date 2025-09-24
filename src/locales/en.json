@@ -236,9 +236,12 @@
   "deleteFundDescription": "Closing of savings fund: {fundName}",
   "selectPaymentMethodReceive": "Select payment method to receive funds",
   "processing": "Processing",
-  "savingsFundsProgress": "Savings Funds",
-  "noSavingsFundsProgress": "No savings funds with a target amount have been created yet.",
+  "savingsFundsProgress": "Savings Funds Progress",
+  "noSavingsFundsProgressTitle": "Track Your Savings Goals",
+  "noSavingsFundsProgressDesc": "To get started, open the main menu (top left) and select 'Savings Funds' to create your first goal.",
   "completed": "Completed",
+  "noInstallmentsTitle": "Track your Installment Purchases",
+  "noInstallmentsDesc": "This chart shows your future monthly payments. To generate it, add an 'Expense' with a 'Credit Card' and select more than one installment.",
   "termsAndConditions": "Terms and Conditions",
   "termsLastUpdated": "Last Updated: September 19, 2025",
   "termsAcceptance": "Acceptance of Terms",
@@ -256,5 +259,3 @@
   "termsChangesAndTermination": "Changes and Termination",
   "termsChangesAndTerminationText": "We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We also reserve the right to suspend or terminate access to our Service immediately, without prior notice or liability, for any reason whatsoever. You may terminate your agreement to these terms at any time by deleting your account from the 'Settings' section, under the 'Account' tab. This action is irreversible and will result in the permanent deletion of all your associated data."
 }
-
-    

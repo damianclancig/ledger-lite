@@ -4,7 +4,6 @@
 import * as React from "react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import type { SavingsFund } from "@/types";
-import { PiggyBank } from "lucide-react";
 import { SavingsFundProgress } from "@/components/savings-funds/SavingsFundProgress";
 
 interface SavingsFundsProgressChartProps {
@@ -24,13 +23,10 @@ export function SavingsFundsProgressChart({ funds }: SavingsFundsProgressChartPr
       });
   }, [funds]);
 
+  // This component will now only render the progress bars if there are funds.
+  // The empty state is handled by the parent component (dashboard page).
   if (chartData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[100px] text-muted-foreground text-center">
-        <PiggyBank className="w-10 h-10 mb-2" />
-        <p className="text-base">{translations.noSavingsFundsProgress}</p>
-      </div>
-    );
+    return null; 
   }
 
   return (

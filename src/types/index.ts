@@ -362,8 +362,14 @@ export interface Translations {
   selectPaymentMethodReceive: string;
   processing: string;
   savingsFundsProgress: string;
-  noSavingsFundsProgress: string;
+  noSavingsFundsProgressTitle: string;
+  noSavingsFundsProgressDesc1: string;
+  noSavingsFundsProgressDesc2: string;
+  noSavingsFundsProgressDesc3: string;
   completed: string;
+  // Empty states
+  noInstallmentsTitle: string;
+  noInstallmentsDesc: string;
   // Terms & Conditions
   termsAndConditions: string;
   termsLastUpdated: string;
