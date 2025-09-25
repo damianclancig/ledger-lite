@@ -11,7 +11,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { deleteUserAccount } from "@/app/actions/userActions";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 
@@ -19,7 +18,6 @@ export default function AccountSettingsPage() {
   const { user, signOut } = useAuth();
   const { translations } = useTranslations();
   const { toast } = useToast();
-  const router = useRouter();
   
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,8 +28,9 @@ export default function AccountSettingsPage() {
     setIsDeleting(true);
     const result = await deleteUserAccount(user.uid);
     if (result.success) {
-      await signOut(); // This clears the client-side session
-      router.push('/goodbye'); // Redirect to the new farewell page
+      // The signOut function now handles redirection.
+      // It will clear the client-side session and then navigate.
+      await signOut('/goodbye');
     } else {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
       setIsDeleting(false);

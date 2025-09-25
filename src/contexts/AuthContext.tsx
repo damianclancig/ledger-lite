@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (redirectPath?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,10 +60,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [router, toast, translations]);
   
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (redirectPath: string = '/') => {
     try {
       await firebaseSignOut(auth);
-      router.push('/');
+      router.push(redirectPath);
     } catch (error) {
       console.error("Error signing out", error);
     }
@@ -71,11 +71,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
    useEffect(() => {
     if (!loading) {
-      const isPublicPage = ['/', '/goodbye'].includes(pathname);
+      const isPublicPage = ['/', '/goodbye', '/terms'].includes(pathname);
       if (!user && !isPublicPage) {
         router.push('/');
       }
-      if (user && isPublicPage) {
+      if (user && isPublicPage && pathname !== '/goodbye') {
         router.push('/dashboard');
       }
     }
