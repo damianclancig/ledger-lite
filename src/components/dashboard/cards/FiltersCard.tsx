@@ -68,11 +68,10 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   };
   
   const getCategoryDisplay = (cat: Category) => {
-    const translatedName = translateCategory(cat.name);
-    if (cat.name === "Taxes" && language !== "en") {
-      return `Taxes (${translatedName})`;
+    if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
+      return `Taxes (${translateCategory(cat)})`;
     }
-    return translatedName;
+    return translateCategory(cat);
   };
 
   return (

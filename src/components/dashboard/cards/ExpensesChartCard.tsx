@@ -16,11 +16,11 @@ interface ExpensesChartCardProps {
 export function ExpensesChartCard({ transactions, categories }: ExpensesChartCardProps) {
     const { translations } = useTranslations();
     
-    const categoryIdToNameMap = useMemo(() => {
+    const categoryIdToCategoryMap = useMemo(() => {
         return categories.reduce((acc, cat) => {
-            acc[cat.id] = cat.name;
+            acc[cat.id] = cat;
             return acc;
-        }, {} as Record<string, string>);
+        }, {} as Record<string, Category>);
     }, [categories]);
 
     return (
@@ -33,7 +33,7 @@ export function ExpensesChartCard({ transactions, categories }: ExpensesChartCar
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-                <ExpensesChart transactions={transactions} categoryIdToNameMap={categoryIdToNameMap} />
+                <ExpensesChart transactions={transactions} categoryIdToCategoryMap={categoryIdToCategoryMap} />
             </CardContent>
             </Card>
         </div>

@@ -9,12 +9,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useTranslations } from "@/contexts/LanguageContext";
-import type { Transaction } from "@/types";
+import type { Transaction, Category } from "@/types";
 import { ListTree } from "lucide-react";
 
 interface ExpensesChartProps {
   transactions: Transaction[];
-  categoryIdToNameMap: Record<string, string>;
+  categoryIdToCategoryMap: Record<string, Category>;
 }
 
 const COLORS = [
@@ -29,15 +29,17 @@ const COLORS = [
   "#F43F5E", // A strong rose
 ];
 
-export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesChartProps) {
+export function ExpensesChart({ transactions, categoryIdToCategoryMap }: ExpensesChartProps) {
   const { translations, translateCategory } = useTranslations();
 
   const chartData = React.useMemo(() => {
     const expenses = transactions.filter((t) => t.type === "expense");
     const categoryTotals = expenses.reduce((acc, transaction) => {
-      const categoryKey = categoryIdToNameMap[transaction.categoryId] || "Unknown";
-      const translatedCategory = translateCategory(categoryKey);
-      acc[translatedCategory] = (acc[translatedCategory] || 0) + transaction.amount;
+      const category = categoryIdToCategoryMap[transaction.categoryId];
+      if (!category) return acc;
+      
+      const translatedCategoryName = translateCategory(category);
+      acc[translatedCategoryName] = (acc[translatedCategoryName] || 0) + transaction.amount;
       return acc;
     }, {} as Record<string, number>);
 
@@ -48,7 +50,7 @@ export function ExpensesChart({ transactions, categoryIdToNameMap }: ExpensesCha
         fill: COLORS[Math.floor(Math.random() * COLORS.length)]
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [transactions, categoryIdToNameMap, translateCategory]);
+  }, [transactions, categoryIdToCategoryMap, translateCategory]);
   
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};

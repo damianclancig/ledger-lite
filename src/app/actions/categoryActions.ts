@@ -33,40 +33,40 @@ export async function getCategories(userId: string): Promise<Category[]> {
       // Demote categories that are no longer system categories
       for (const dbCat of systemCategoriesInDb) {
         if (!systemCategoryKeys.includes(dbCat.name)) {
-          await categoriesCollection.updateOne({ _id: dbCat._id }, { $unset: { isSystem: "" } });
+          await categoriesCollection.updateOne({ _id: dbCat._id }, { $set: { isSystem: false } });
         }
       }
 
       // Promote or create system categories
       for (const sysCatKey of systemCategoryKeys) {
         const sysCatDef = CATEGORIES.find(c => c.key === sysCatKey)!;
-        const existingCategory = await categoriesCollection.findOne({ userId, name: sysCatKey, isSystem: true });
-        if (!existingCategory) {
-          // Try to find a legacy category to update
-          const legacyCategory = await categoriesCollection.findOne({
-            userId,
-            name: sysCatKey,
-            isSystem: { $ne: true }
-          });
+        const existingCategory = await categoriesCollection.findOne({ userId, name: sysCatKey });
 
-          if (legacyCategory) {
-            await categoriesCollection.updateOne(
-              { _id: legacyCategory._id },
-              { $set: { isSystem: true } }
-            );
-          } else {
-            await categoriesCollection.insertOne({
+        if (existingCategory) {
+           if (existingCategory.isSystem !== true) {
+             await categoriesCollection.updateOne(
+                { _id: existingCategory._id },
+                { $set: { isSystem: true } }
+             );
+           }
+        } else {
+           await categoriesCollection.insertOne({
               name: sysCatDef.key,
               userId,
               isEnabled: true,
-              isSystem: sysCatDef.isSystem,
-            });
-          }
+              isSystem: true,
+           });
         }
       }
+
+      // Ensure all other non-system categories have isSystem: false
+      await categoriesCollection.updateMany(
+        { userId, name: { $nin: systemCategoryKeys }, isSystem: { $ne: false } },
+        { $set: { isSystem: false } }
+      );
     }
 
-    const categories = await categoriesCollection.find({ userId }).sort({ name: 1 }).toArray();
+    const categories = await categoriesCollection.find({ userId }).sort({ isSystem: -1, name: 1 }).toArray();
     return categories.map(mapMongoDocumentCategory);
   } catch (error) {
     console.error('Error fetching categories:', error);

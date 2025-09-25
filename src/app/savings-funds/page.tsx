@@ -22,6 +22,7 @@ import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TransferDialog } from "@/components/savings-funds/TransferDialog";
 import { SavingsFundProgress } from "@/components/savings-funds/SavingsFundProgress";
+import { IntroAccordion } from "@/components/common/IntroAccordion";
 
 export default function SavingsFundsPage() {
   const { user } = useAuth();
@@ -141,6 +142,12 @@ export default function SavingsFundsPage() {
           <PiggyBank className="h-8 w-8 mr-3 text-primary" />
           <h1 className="text-3xl font-bold">{translations.savingsFunds}</h1>
         </div>
+
+        <IntroAccordion
+          titleKey="savingsFundsIntroTitle"
+          contentKeys={["savingsFundsIntroText1", "savingsFundsIntroText2", "savingsFundsIntroText3"]}
+          storageKey="savingsFundsIntroVisible"
+        />
 
         {funds.length === 0 ? (
             <Card className="shadow-xl border-2 border-primary text-center">

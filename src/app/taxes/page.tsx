@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -6,7 +7,7 @@ import type { Tax } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getTaxes } from "@/app/actions/taxActions";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { formatCurrency } from "@/lib/utils";
+import { IntroAccordion } from "@/components/common/IntroAccordion";
 
 
 interface AggregatedTax {
@@ -37,7 +39,7 @@ export default function TaxesPage() {
   
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
     async function loadTaxes() {
       if (!user) {
@@ -352,6 +354,13 @@ export default function TaxesPage() {
             <Landmark className="h-8 w-8 mr-3 text-primary" />
             <h1 className="text-3xl font-bold">{translations.taxes}</h1>
         </div>
+        
+        <IntroAccordion 
+          titleKey="taxesIntroTitle"
+          contentKeys={["taxesIntroText1", "taxesIntroText2", "taxesIntroText3"]}
+          storageKey="taxesIntroVisible"
+        />
+        
         {renderContent()}
       </div>
 

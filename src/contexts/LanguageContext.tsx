@@ -14,7 +14,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   translations: Translations;
-  translateCategory: (categoryName: string) => string;
+  translateCategory: (category: Category) => string;
   translatePaymentType: (paymentType: PaymentMethodType) => string;
   translateMonth: (monthIndex: number) => string;
 }
@@ -57,9 +57,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const translateCategory = useCallback((categoryName: string): string => {
-    const key = categoryName;
-    return translations[key as keyof Translations] || categoryName;
+  const translateCategory = useCallback((category: Category): string => {
+    if (category.isSystem) {
+      return translations[category.name as keyof Translations] || category.name;
+    }
+    return category.name;
   }, [translations]);
 
   const translatePaymentType = useCallback((paymentType: PaymentMethodType): string => {

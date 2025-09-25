@@ -1,3 +1,4 @@
+
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -5,13 +6,9 @@ export type TransactionType = "income" | "expense";
 export const CATEGORIES = [
   { key: "Salary", isSystem: false },
   { key: "Groceries", isSystem: false },
-  { key: "Transport", isSystem: false },
+  { key: "Food", isSystem: false },
+  { key: "Clothing", isSystem: false },
   { key: "Taxes", isSystem: true },
-  { key: "Entertainment", isSystem: false },
-  { key: "Health", isSystem: false },
-  { key: "Education", isSystem: false },
-  { key: "Gifts", isSystem: false },
-  { key: "Transfers", isSystem: false },
   { key: "Savings", isSystem: true },
   { key: "Other", isSystem: false },
 ] as const;
@@ -43,7 +40,7 @@ export interface Category {
   userId: string;
   name: string;
   isEnabled: boolean;
-  isSystem?: boolean;
+  isSystem: boolean;
 }
 
 export type CategoryFormValues = Omit<Category, "id" | "userId" | "isSystem">;
@@ -78,7 +75,7 @@ export interface Tax {
   transactionId?: string; // ID of the transaction that paid this tax
 }
 
-export interface TaxFormValues {
+export type TaxFormValues = {
   name: string;
   month: number;
   year: number;
@@ -157,17 +154,8 @@ export interface Translations {
   dark: string;
   system: string;
   // Category translations
-  Salary: string;
-  Groceries: string;
-  Transport: string;
   Taxes: string;
-  Entertainment: string;
-  Health: string;
-  Education: string;
-  Gifts: string;
-  Transfers: string;
   Savings: string;
-  Other: string;
   // Payment Type translations
   Cash: string;
   CreditCard: string;
@@ -232,6 +220,10 @@ export interface Translations {
   editTax: string;
   taxUpdatedSuccess: string;
   paidTaxEditError: string;
+  taxesIntroTitle: string;
+  taxesIntroText1: string;
+  taxesIntroText2: string;
+  taxesIntroText3: string;
   // Months
   January: string;
   February: string;
@@ -279,6 +271,7 @@ export interface Translations {
   paymentMethodInUseError: string;
   // Installments
   installments: string;
+  manualInstallments: string;
   pendingInstallments: string;
   noInstallments: string;
   noPendingInstallments: string;
@@ -291,6 +284,10 @@ export interface Translations {
   totalAmount: string;
   purchaseDate: string;
   completionDate: string;
+  installmentsIntroTitle: string;
+  installmentsIntroText1: string;
+  installmentsIntroText2: string;
+  installmentsIntroText3: string;
   // Support Dialog
   supportProject: string;
   supportMessage1: string;
@@ -363,9 +360,7 @@ export interface Translations {
   processing: string;
   savingsFundsProgress: string;
   noSavingsFundsProgressTitle: string;
-  noSavingsFundsProgressDesc1: string;
-  noSavingsFundsProgressDesc2: string;
-  noSavingsFundsProgressDesc3: string;
+  noSavingsFundsProgressDesc: string;
   completed: string;
   // Empty states
   noInstallmentsTitle: string;
@@ -387,6 +382,11 @@ export interface Translations {
   termsIntellectualPropertyText: string;
   termsChangesAndTermination: string;
   termsChangesAndTerminationText: string;
+  // Intro Accordions
+  savingsFundsIntroTitle: string;
+  savingsFundsIntroText1: string;
+  savingsFundsIntroText2: string;
+  savingsFundsIntroText3: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

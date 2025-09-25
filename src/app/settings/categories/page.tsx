@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -69,14 +70,14 @@ export default function ManageCategoriesPage() {
   
   const CategoryNameCell = ({ category }: { category: Category }) => (
     <div className="flex items-center gap-2">
-      <span className="font-medium text-base">{translateCategory(category.name)}</span>
+      <span className="font-medium text-base">{translateCategory(category)}</span>
       {category.isSystem && (
         <Tooltip>
           <TooltipTrigger>
             <Lock className="h-4 w-4 text-muted-foreground" />
           </TooltipTrigger>
           <TooltipContent>
-            <p>Esta categoría es del sistema y no puede ser modificada.</p>
+            <p>{translations.systemCategoryTooltip}</p>
           </TooltipContent>
         </Tooltip>
       )}
@@ -91,15 +92,20 @@ export default function ManageCategoriesPage() {
               <CategoryNameCell category={category} />
               <Separator />
               <div className="flex items-center justify-between pt-1">
-                <Switch
-                  checked={category.isEnabled}
-                  onCheckedChange={() => handleToggleEnabled(category)}
-                  aria-label={`Toggle category ${category.name}`}
-                  disabled={category.isSystem}
-                />
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(category)} disabled={category.isSystem}>
-                    <Edit className="h-5 w-5" />
-                 </Button>
+                <div className="w-12 h-6">
+                    {!category.isSystem && (
+                        <Switch
+                        checked={category.isEnabled}
+                        onCheckedChange={() => handleToggleEnabled(category)}
+                        aria-label={`Toggle category ${category.name}`}
+                        />
+                    )}
+                </div>
+                 {!category.isSystem && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(category)}>
+                        <Edit className="h-5 w-5" />
+                    </Button>
+                 )}
               </div>
             </CardContent>
         </Card>
@@ -123,17 +129,20 @@ export default function ManageCategoriesPage() {
               <CategoryNameCell category={category} />
             </TableCell>
             <TableCell className="text-center">
-              <Switch
-                checked={category.isEnabled}
-                onCheckedChange={() => handleToggleEnabled(category)}
-                aria-label={`Toggle category ${category.name}`}
-                disabled={category.isSystem}
-              />
+              {!category.isSystem && (
+                <Switch
+                    checked={category.isEnabled}
+                    onCheckedChange={() => handleToggleEnabled(category)}
+                    aria-label={`Toggle category ${category.name}`}
+                />
+              )}
             </TableCell>
             <TableCell className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleEditClick(category)} disabled={category.isSystem}>
-                <Edit className="h-4 w-4" />
-              </Button>
+              {!category.isSystem && (
+                <Button variant="ghost" size="icon" onClick={() => handleEditClick(category)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
             </TableCell>
           </TableRow>
         ))}

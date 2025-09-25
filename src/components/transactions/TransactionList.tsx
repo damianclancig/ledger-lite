@@ -74,7 +74,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
       }
     };
 
-    const categoryMap = React.useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+    const categoryMap = React.useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
     const paymentMethodMap = React.useMemo(() => new Map(paymentMethods.map(p => [p.id, p.name])), [paymentMethods]);
     
     if (transactions.length === 0) {
@@ -93,7 +93,9 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
         <div className="space-y-0">
           <Card className="shadow-xl border-2 border-primary overflow-hidden">
             <CardContent className="p-0">
-              {currentTransactions.map((transaction, index) => (
+              {currentTransactions.map((transaction, index) => {
+                const category = categoryMap.get(transaction.categoryId);
+                return (
                 <React.Fragment key={transaction.id}>
                   <div id={`transaction-${transaction.id}`} className="flex flex-col">
                     <div className="p-4 flex-grow space-y-1">
@@ -107,7 +109,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div className="flex items-center">
                           <Tag className="mr-3 h-4 w-4" />
-                          <span className="text-base">{translateCategory(categoryMap.get(transaction.categoryId) || transaction.categoryId)}</span>
+                          <span className="text-base">{category ? translateCategory(category) : 'N/A'}</span>
                         </div>
                         <div className="flex items-center">
                           <CreditCard className="mr-3 h-4 w-4" />
@@ -135,7 +137,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                   </div>
                   {index < currentTransactions.length - 1 && <Separator />}
                 </React.Fragment>
-              ))}
+              )})}
             </CardContent>
           </Card>
           
@@ -184,12 +186,14 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentTransactions.map((transaction) => (
+            {currentTransactions.map((transaction) => {
+              const category = categoryMap.get(transaction.categoryId);
+              return (
               <TableRow key={transaction.id} id={`transaction-${transaction.id}`} className="hover:bg-muted/50 transition-colors">
                 <TableCell className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy")}</TableCell>
                 <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="text-base">{translateCategory(categoryMap.get(transaction.categoryId) || 'N/A')}</Badge>
+                  <Badge variant="outline" className="text-base">{category ? translateCategory(category) : 'N/A'}</Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   {transaction.type === "income" ? (
@@ -212,7 +216,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            )})}
           </TableBody>
         </Table>
         </CardContent>

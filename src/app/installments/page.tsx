@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import type { InstallmentDetail, CompletedInstallmentDetail } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Layers, Wallet, CalendarDays, TrendingDown, Banknote, Building, Hash, CheckCircle, ShoppingBag, Receipt } from "lucide-react";
+import { Layers, Wallet, CalendarDays, TrendingDown, Banknote, Building, Hash, CheckCircle, ShoppingBag, Receipt, Info, Forward } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ import { formatCurrency } from "@/lib/utils";
 import { format } from 'date-fns';
 import { es, pt, enUS } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { IntroAccordion } from "@/components/common/IntroAccordion";
 
 export default function InstallmentsPage() {
   const { user } = useAuth();
@@ -27,7 +29,7 @@ export default function InstallmentsPage() {
   const [totalPending, setTotalPending] = useState(0);
   const [totalForCurrentMonth, setTotalForCurrentMonth] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   const locales = {
     en: enUS,
     es: es,
@@ -87,6 +89,11 @@ export default function InstallmentsPage() {
               <Layers className="h-8 w-8 mr-3 text-primary" />
               <h1 className="text-3xl font-bold">{translations.pendingInstallments}</h1>
             </div>
+            <IntroAccordion
+                titleKey="installmentsIntroTitle"
+                contentKeys={["installmentsIntroText1", "installmentsIntroText2", "installmentsIntroText3"]}
+                storageKey="installmentsIntroVisible"
+            />
             <Card className="shadow-xl border-2 border-primary">
             <CardContent>
                 <div className="text-center py-10 px-6 text-muted-foreground">
@@ -225,9 +232,15 @@ export default function InstallmentsPage() {
     <div className="space-y-8">
         <div>
             <div className="flex items-center mb-4">
-            <Layers className="h-8 w-8 mr-3 text-primary" />
-            <h1 className="text-3xl font-bold">{translations.pendingInstallments}</h1>
+              <Layers className="h-8 w-8 mr-3 text-primary" />
+              <h1 className="text-3xl font-bold">{translations.pendingInstallments}</h1>
             </div>
+            
+            <IntroAccordion
+                titleKey="installmentsIntroTitle"
+                contentKeys={["installmentsIntroText1", "installmentsIntroText2", "installmentsIntroText3"]}
+                storageKey="installmentsIntroVisible"
+            />
 
             {pendingDetails.length > 0 ? (
                 <>
@@ -259,3 +272,5 @@ export default function InstallmentsPage() {
     </div>
   );
 }
+
+    

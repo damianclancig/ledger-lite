@@ -61,7 +61,7 @@ const getFormSchema = (translations: Translations) => z.object({
   categoryId: z.string({ required_error: translations.categoryRequired }),
   type: z.enum(["income", "expense"], { required_error: translations.typeRequired }),
   paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
-  installments: z.number().optional(),
+  installments: z.number().min(1).max(120).optional(),
 });
 
 const formatNumberWithCommas = (numStr: string): string => {
@@ -80,6 +80,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   const [displayAmount, setDisplayAmount] = useState<string>('');
   const [showInstallments, setShowInstallments] = useState(false);
   const [installments, setInstallments] = useState(initialData?.installments || 1);
+  const [isManualInstallments, setIsManualInstallments] = useState(false);
 
   const formSchema = getFormSchema(translations);
 
@@ -100,6 +101,13 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     if (initialData?.amount) {
       setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
     }
+    const initialInstallments = initialData?.installments || 1;
+    setInstallments(initialInstallments);
+    if (initialInstallments > 24) {
+      setIsManualInstallments(true);
+    } else {
+      setIsManualInstallments(false);
+    }
     form.reset({
       description: initialData?.description || "",
       amount: initialData?.amount,
@@ -107,7 +115,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       categoryId: initialData?.categoryId || undefined,
       type: initialData?.type || undefined,
       paymentMethodId: initialData?.paymentMethodId || undefined,
-      installments: initialData?.installments || 1,
+      installments: initialInstallments,
     });
   }, [initialData, form]);
 
@@ -121,6 +129,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       setShowInstallments(false);
       setInstallments(1);
       form.setValue('installments', 1);
+      setIsManualInstallments(false);
     }
   }, [selectedPaymentMethodId, paymentMethods, form]);
   
@@ -164,15 +173,39 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   };
   
   const handleInstallmentsChange = (value: number[]) => {
-    setInstallments(value[0]);
-    form.setValue('installments', value[0]);
+    const newInstallmentValue = value[0];
+    if (newInstallmentValue >= 25) {
+      setIsManualInstallments(true);
+      // When entering manual mode, we can keep the last valid number or reset.
+      // Let's keep it if it's over 24, otherwise prompt for a new one.
+      if (installments < 25) {
+        form.setValue('installments', undefined); // Clear to force user input
+      }
+    } else {
+      setIsManualInstallments(false);
+      setInstallments(newInstallmentValue);
+      form.setValue('installments', newInstallmentValue);
+    }
   };
 
-  const getCategoryDisplay = (cat: Category) => {
-    if (cat.name === "Taxes" && language !== "en") {
-      return `Taxes (${translateCategory("Taxes")})`;
+  const handleManualInstallmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numValue = parseInt(value, 10);
+    
+    if (value === '') {
+      form.setValue('installments', undefined);
+      setInstallments(25);
+    } else if (!isNaN(numValue) && numValue >= 2 && numValue <= 120) {
+      form.setValue('installments', numValue);
+      setInstallments(numValue);
+    } else if (value.length <= 3) { // Allow typing
+      form.setValue('installments', undefined, { shouldValidate: true });
     }
-    return cat.name;
+  };
+
+
+  const getCategoryDisplay = (cat: Category) => {
+    return translateCategory(cat);
   };
 
   return (
@@ -370,25 +403,49 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
           />
         </div>
         
-        {showInstallments && (
-          <FormField
-            control={form.control}
-            name="installments"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center"><Layers className="inline-block mr-2 h-4 w-4" />Cuotas: {installments}</FormLabel>
-                <FormControl>
-                  <Slider
-                    defaultValue={[1]}
-                    min={1}
-                    max={24}
-                    step={1}
-                    onValueChange={handleInstallmentsChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        {showInstallments && !initialData?.id && (
+          <div className="space-y-4 rounded-lg border p-4 shadow-sm">
+             <FormField
+                control={form.control}
+                name="installments"
+                render={({ field }) => (
+                <FormItem>
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4 md:items-center">
+                        <FormLabel className="flex items-center mb-2 md:mb-0">
+                            <Layers className="inline-block mr-2 h-4 w-4" />
+                            {translations.installments}: {isManualInstallments ? (form.getValues('installments') || '...') : installments}
+                        </FormLabel>
+                        <FormControl>
+                        <Slider
+                            value={[isManualInstallments ? 25 : installments]}
+                            min={1}
+                            max={25}
+                            step={1}
+                            onValueChange={handleInstallmentsChange}
+                            className="md:col-start-2"
+                        />
+                        </FormControl>
+                    </div>
+                    {isManualInstallments && (
+                    <div className="pt-2 md:grid md:grid-cols-2 md:gap-4 md:items-start">
+                         <FormLabel className="md:text-right md:pt-2 md:pr-4">{translations.manualInstallments}</FormLabel>
+                         <div>
+                            <Input
+                                type="number"
+                                placeholder="2-120"
+                                min="2"
+                                max="120"
+                                onChange={handleManualInstallmentChange}
+                                defaultValue={installments > 24 ? installments : ''}
+                            />
+                            <FormMessage className="mt-2">{form.formState.errors.installments?.message}</FormMessage>
+                        </div>
+                    </div>
+                    )}
+                </FormItem>
+                )}
+            />
+          </div>
         )}
 
         <div className="pt-2 flex flex-col md:flex-row md:justify-end gap-3">
