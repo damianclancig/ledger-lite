@@ -8,9 +8,9 @@ export const CATEGORIES = [
   { key: "Groceries", isSystem: false },
   { key: "Food", isSystem: false },
   { key: "Clothing", isSystem: false },
+  { key: "Other", isSystem: false },
   { key: "Taxes", isSystem: true },
   { key: "Savings", isSystem: true },
-  { key: "Other", isSystem: false },
 ] as const;
 
 
@@ -19,7 +19,7 @@ export const PAYMENT_METHOD_TYPES = [
   "Credit Card",
   "Debit Card",
   "Bank Transfer",
-  "Virtual Wallet",
+  "VirtualWallet",
   "Other",
 ] as const;
 export type PaymentMethodType = (typeof PAYMENT_METHOD_TYPES)[number];
@@ -56,10 +56,11 @@ export interface Transaction {
   type: TransactionType;
   paymentMethodId: string;
   installments?: number;
+  groupId?: string;
   savingsFundId?: string;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId">;
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId">;
 
 
 // Tax types
@@ -124,6 +125,9 @@ export interface Translations {
   edit: string;
   confirmDelete: string;
   areYouSureDelete: string;
+  areYouSureDeleteInstallment: string;
+  deleteAllInstallments: string;
+  deleteThisInstallment: string;
   totalIncome: string;
   totalExpenses: string;
   transactions: string;
@@ -255,6 +259,7 @@ export interface Translations {
   expensesByCategory: string;
   incomeVsExpense: string;
   installmentProjection: string;
+  seeDetails: string;
   // Payment Methods
   managePaymentMethods: string;
   newPaymentMethod: string;

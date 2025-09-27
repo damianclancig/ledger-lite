@@ -19,6 +19,9 @@
   "edit": "Editar",
   "confirmDelete": "Confirmar Exclusão",
   "areYouSureDelete": "Tem certeza de que deseja excluir esta transação? Esta ação não pode ser desfeita.",
+  "areYouSureDeleteInstallment": "Esta é uma compra parcelada. Deseja excluir apenas esta parcela ou a compra inteira?",
+  "deleteAllInstallments": "Excluir Todas as Parcelas",
+  "deleteThisInstallment": "Excluir Apenas Esta Parcela",
   "totalIncome": "Receita Total",
   "totalExpenses": "Despesas Totais",
   "transactions": "Transações",
@@ -139,6 +142,7 @@
   "expensesByCategory": "Despesas por Categoria",
   "incomeVsExpense": "Receitas vs. Despesas",
   "installmentProjection": "Projeção de Parcelas",
+  "seeDetails": "Ver Detalhes",
   "managePaymentMethods": "Métodos de Pagamento",
   "newPaymentMethod": "Novo Método de Pagamento",
   "editPaymentMethod": "Editar Método de Pagamento",
@@ -257,11 +261,9 @@
   "termsIntellectualProperty": "Propriedade Intelectual e Código Aberto",
   "termsIntellectualPropertyText": "O código-fonte desta aplicação é distribuído sob a licença MIT, que permite o uso, modificação e distribuição gratuitos. No entanto, o nome 'FinanClan', logotipos e outros elementos de marca são propriedade exclusiva do criador e não podem ser usados para identificar trabalhos derivados sem consentimento prévio por escrito.",
   "termsChangesAndTermination": "Alterações e Rescisão",
-  "termsChangesAndTerminationText": "Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Também nos reservamos o direito de suspender ou rescindir o acesso ao nosso Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo. Você pode rescindir seu acordo com estes termos a qualquer momento, excluindo sua conta na seção 'Opções', na aba 'Conta'. Esta ação é irreversível e resultará na exclusão permanente de todos os seus dados associados.",
+  "termsChangesAndTerminationText": "Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Também nos reservamos o direito de suspender ou rescindir o acesso ao nosso Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo. Você pode rescindir seu acordo com estes termos a qualquer momento, excluindo sua conta na seção 'Configurações', na aba 'Conta'. Esta ação é irreversível e resultará na exclusão permanente de todos os seus dados associados.",
   "savingsFundsIntroTitle": "Como funcionam os Fundos de Poupança:",
   "savingsFundsIntroText1": "Crie fundos para seus objetivos específicos (ex: 'Férias na praia', 'Novo Console').",
   "savingsFundsIntroText2": "Use os botões 'Depositar' e 'Retirar' para mover dinheiro entre seu saldo principal e seus fundos.",
-  "savingsFundsIntroText3": "Assim que atingir seu objetivo (ou apenas quiser fechá-lo), use as opções do menu para transferir o saldo de volta e excluir o fundo.",
-  "Food": "Refeições",
-  "Clothing": "Roupas"
+  "savingsFundsIntroText3": "Assim que atingir seu objetivo (ou apenas quiser fechá-lo), use as opções do menu para transferir o saldo de volta e excluir o fundo."
 }

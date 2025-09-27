@@ -19,6 +19,8 @@ interface DeleteConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onConfirmAll?: () => void;
+  showInstallmentOptions?: boolean;
   title?: string;
   description?: string;
   confirmButtonText?: string;
@@ -29,6 +31,8 @@ export function DeleteConfirmationDialog({
   isOpen,
   onClose,
   onConfirm,
+  onConfirmAll,
+  showInstallmentOptions = false,
   title,
   description,
   confirmButtonText,
@@ -49,15 +53,38 @@ export function DeleteConfirmationDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose} className="text-base">{translations.cancel}</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            className={cn(buttonVariants({ variant: confirmButtonVariant }), 'text-base')}
-          >
-            {confirmButtonText || translations.delete}
-          </AlertDialogAction>
+          {showInstallmentOptions && onConfirmAll ? (
+            <>
+              <AlertDialogAction
+                onClick={() => {
+                  onConfirm();
+                  onClose();
+                }}
+                className={cn(buttonVariants({ variant: 'secondary' }), 'text-base')}
+              >
+                {translations.deleteThisInstallment}
+              </AlertDialogAction>
+              <AlertDialogAction
+                onClick={() => {
+                  onConfirmAll();
+                  onClose();
+                }}
+                className={cn(buttonVariants({ variant: confirmButtonVariant }), 'text-base')}
+              >
+                {translations.deleteAllInstallments}
+              </AlertDialogAction>
+            </>
+          ) : (
+            <AlertDialogAction
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+              className={cn(buttonVariants({ variant: confirmButtonVariant }), 'text-base')}
+            >
+              {confirmButtonText || translations.delete}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

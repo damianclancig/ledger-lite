@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidateTag } from 'next/cache';
@@ -42,6 +43,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
       const installmentAmount = transactionData.amount / installments;
       const originalDate = new Date(transactionData.date);
       const transactionsToInsert = [];
+      const groupId = new ObjectId(); // Create a unique ID for this group of installments
 
       for (let i = 0; i < installments; i++) {
         transactionsToInsert.push({
@@ -50,6 +52,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
           date: addMonths(originalDate, i),
           description: `${transactionData.description} (Cuota ${i + 1}/${installments})`,
           userId,
+          groupId: groupId.toString(),
         });
       }
       await transactionsCollection.insertMany(transactionsToInsert);
@@ -113,28 +116,41 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
   }
 }
 
-export async function deleteTransaction(id: string, userId: string): Promise<{ success: boolean; error?: string }> {
-  if (!ObjectId.isValid(id)) {
-    return { success: false, error: 'Invalid transaction ID.' };
-  }
-  if (!userId) return { success: false, error: 'User not authenticated.' };
-  try {
-    const { transactionsCollection } = await getDb();
-    const result = await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId }); // Ensure user owns the doc
-    
-    if (result.deletedCount === 0) {
-      return { success: false, error: 'Transaction not found or you do not have permission to delete it.' };
+export async function deleteTransaction(id: string, userId: string, deleteAllInstallments: boolean = false): Promise<{ success: boolean; error?: string }> {
+    if (!ObjectId.isValid(id)) {
+      return { success: false, error: 'Invalid transaction ID.' };
     }
-
-    revalidateTag(`transactions_${userId}`);
-    revalidateTag(`savingsFunds_${userId}`);
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting transaction:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { success: false, error: `Failed to delete transaction. ${errorMessage}` };
+    if (!userId) return { success: false, error: 'User not authenticated.' };
+    
+    try {
+      const { transactionsCollection } = await getDb();
+      const transactionToDelete = await transactionsCollection.findOne({ _id: new ObjectId(id), userId });
+  
+      if (!transactionToDelete) {
+        return { success: false, error: 'Transaction not found or you do not have permission to delete it.' };
+      }
+  
+      if (deleteAllInstallments && transactionToDelete.groupId) {
+        // Delete all transactions with the same groupId
+        const result = await transactionsCollection.deleteMany({ userId, groupId: transactionToDelete.groupId });
+        if (result.deletedCount === 0) {
+            // Fallback to deleting just the one if group deletion somehow fails
+            await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId });
+        }
+      } else {
+        // Delete only the single transaction
+        await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId });
+      }
+  
+      revalidateTag(`transactions_${userId}`);
+      revalidateTag(`savingsFunds_${userId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting transaction(s):', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return { success: false, error: `Failed to delete transaction. ${errorMessage}` };
+    }
   }
-}
 
 async function getPaymentMethodsForInstallments(userId: string): Promise<PaymentMethod[]> {
   if (!userId) return [];
@@ -159,7 +175,7 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
     const installmentTransactions = await transactionsCollection.find({
       userId,
       type: 'expense',
-      description: { $regex: "\\(Cuota \\d+\\/\\d+\\)" }
+      groupId: { $exists: true }
     }).sort({ date: 1 }).toArray();
 
     if (installmentTransactions.length === 0) {
@@ -167,19 +183,13 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
     }
 
     const groupedInstallments = new Map<string, Transaction[]>();
-    const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
 
     for (const trans of installmentTransactions) {
-      const match = trans.description.match(installmentRegex);
-      if (match) {
-        const baseDescription = match[1].trim();
-        const key = `${baseDescription}-${trans.paymentMethodId}`;
-        
-        if (!groupedInstallments.has(key)) {
-          groupedInstallments.set(key, []);
-        }
-        groupedInstallments.get(key)!.push(mapMongoDocument(trans));
+      const key = trans.groupId;
+      if (!groupedInstallments.has(key)) {
+        groupedInstallments.set(key, []);
       }
+      groupedInstallments.get(key)!.push(mapMongoDocument(trans));
     }
     
     const pendingDetails: InstallmentDetail[] = [];
@@ -189,12 +199,16 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
     const now = new Date();
     const currentMonthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
 
+    const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+
     groupedInstallments.forEach((group) => {
+      group.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       const firstInstallment = group[0];
       const lastInstallment = group[group.length - 1];
       const totalInstallments = group.length;
       const purchaseAmount = group.reduce((sum, item) => sum + item.amount, 0);
-      const baseDescription = firstInstallment.description.match(installmentRegex)![1].trim();
+      const baseDescriptionMatch = firstInstallment.description.match(installmentRegex);
+      const baseDescription = baseDescriptionMatch ? baseDescriptionMatch[1].trim() : firstInstallment.description;
       const paymentMethod = paymentMethodMap.get(firstInstallment.paymentMethodId);
       const paymentMethodName = paymentMethod ? `${paymentMethod.name} ${paymentMethod.bank ? `(${paymentMethod.bank})` : ''}`.trim() : 'Unknown';
 
@@ -266,7 +280,7 @@ export async function getInstallmentProjection(userId: string): Promise<{ month:
         $match: {
           userId: userId,
           type: 'expense',
-          description: { $regex: "\\(Cuota \\d+\\/\\d+\\)" },
+          groupId: { $exists: true },
           date: {
             $gte: yearStart,
             $lte: yearEnd

@@ -75,12 +75,12 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   };
 
   return (
-    <div ref={ref} className="scroll-mt-24">
+    <div ref={ref} className="scroll-mt-24" data-testid="filters-card">
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader className="p-4">
           <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between">
             <CardTitle className="flex items-center mb-2 md:mb-0">
-              <Filter className="h-5 w-5 mr-2 text-primary" />
+              <Filter className="h-5 w-5 mr-2 text-primary dark:text-accent" />
               {translations.transactions}
             </CardTitle>
             <Button

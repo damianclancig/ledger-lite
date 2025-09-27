@@ -19,6 +19,9 @@
   "edit": "Editar",
   "confirmDelete": "Confirmar Eliminación",
   "areYouSureDelete": "¿Estás seguro de que quieres eliminar esta transacción? Esta acción no se puede deshacer.",
+  "areYouSureDeleteInstallment": "Esta es una compra en cuotas. ¿Deseas eliminar solo esta cuota o la compra completa?",
+  "deleteAllInstallments": "Eliminar Todas las Cuotas",
+  "deleteThisInstallment": "Eliminar Solo Esta Cuota",
   "totalIncome": "Ingresos Totales",
   "totalExpenses": "Gastos Totales",
   "transactions": "Transacciones",
@@ -139,6 +142,7 @@
   "expensesByCategory": "Gastos por Categoría",
   "incomeVsExpense": "Ingresos vs Gastos",
   "installmentProjection": "Proyección de Cuotas",
+  "seeDetails": "Ver Detalle",
   "managePaymentMethods": "Métodos de Pago",
   "newPaymentMethod": "Nuevo Método de Pago",
   "editPaymentMethod": "Editar Método de Pago",
@@ -257,11 +261,9 @@
   "termsIntellectualProperty": "Propiedad Intelectual y Código Abierto",
   "termsIntellectualPropertyText": "El código fuente de esta aplicación se distribuye bajo la Licencia MIT, que permite el uso, modificación y distribución gratuitos. Sin embargo, el nombre 'FinanClan', los logotipos y otros elementos de marca son propiedad exclusiva del creador y no pueden ser utilizados para identificar trabajos derivados sin consentimiento previo por escrito.",
   "termsChangesAndTermination": "Cambios y Terminación",
-  "termsChangesAndTerminationText": "Nos reservamos el derecho, a nuestra entera discreción, de modificar o reemplazar estos Términos en cualquier momento. También nos reservamos el derecho de suspender o terminar el acceso a nuestro Servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo. Usted puede terminar su acuerdo con estos términos en cualquier momento eliminando su cuenta desde la sección 'Opciones', en la pestaña 'Cuenta'. Esta acción es irreversible y resultará en la eliminación permanente de todos sus datos asociados.",
+  "termsChangesAndTerminationText": "Nos reservamos el derecho, a nuestra entera discreción, de modificar o reemplazar estos Términos en cualquier momento. También nos reservamos el derecho de suspender o terminar el acceso a nuestro Servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo. Usted puede terminar su acuerdo con estos términos en cualquier momento eliminando su cuenta desde la sección 'Configuración', en la pestaña 'Cuenta'. Esta acción es irreversible y resultará en la eliminación permanente de todos sus datos asociados.",
   "savingsFundsIntroTitle": "Cómo funcionan los Fondos de Ahorro:",
   "savingsFundsIntroText1": "Crea fondos para tus objetivos específicos (ej: 'Vacaciones en la playa', 'Nueva Consola').",
   "savingsFundsIntroText2": "Usa los botones 'Depositar' y 'Retirar' para mover dinero entre tu balance principal y tus fondos.",
-  "savingsFundsIntroText3": "Una vez que alcances tu objetivo (o simplemente quieras cerrar el fondo), usa las opciones del menú para transferir el saldo de vuelta y eliminar el fondo.",
-  "Food": "Comidas",
-  "Clothing": "Ropa"
+  "savingsFundsIntroText3": "Una vez que alcances tu objetivo (o simplemente quieras cerrar el fondo), usa las opciones del menú para transferir el saldo de vuelta y eliminar el fondo."
 }

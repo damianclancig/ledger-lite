@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const [installmentProjection, setInstallmentProjection] = useState<any[]>([]);
   const [savingsFunds, setSavingsFunds] = useState<SavingsFund[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -128,20 +128,24 @@ export default function DashboardPage() {
     router.push(`/edit-transaction/${transaction.id}`);
   };
 
-  const handleDelete = (id: string) => {
-    setDeletingTransactionId(id);
+  const handleDelete = (transaction: Transaction) => {
+    setDeletingTransaction(transaction);
   };
 
-  const confirmDelete = async () => {
-    if (deletingTransactionId && user) {
-      const result = await deleteTransaction(deletingTransactionId, user.uid);
+  const confirmDelete = async (deleteAllInstallments: boolean = false) => {
+    if (deletingTransaction && user) {
+      const result = await deleteTransaction(deletingTransaction.id, user.uid, deleteAllInstallments);
       if (result.success) {
-        setTransactions(transactions.filter((t) => t.id !== deletingTransactionId));
+        if (deleteAllInstallments && deletingTransaction.groupId) {
+          setTransactions(transactions.filter(t => t.groupId !== deletingTransaction.groupId));
+        } else {
+          setTransactions(transactions.filter((t) => t.id !== deletingTransaction.id));
+        }
         toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });
       } else {
         toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
       }
-      setDeletingTransactionId(null);
+      setDeletingTransaction(null);
     }
   };
 
@@ -239,6 +243,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+  
+  const isInstallment = !!deletingTransaction?.groupId;
 
   return (
     <>
@@ -249,7 +255,10 @@ export default function DashboardPage() {
       </div>
        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
-        <TotalsDisplay transactions={filteredTransactions} />
+        <TotalsDisplay 
+          transactions={filteredTransactions} 
+          onSetSelectedType={setSelectedType}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <ExpensesChartCard 
@@ -296,9 +305,12 @@ export default function DashboardPage() {
       </div>
 
       <DeleteConfirmationDialog
-        isOpen={!!deletingTransactionId}
-        onClose={() => setDeletingTransactionId(null)}
-        onConfirm={confirmDelete}
+        isOpen={!!deletingTransaction}
+        onClose={() => setDeletingTransaction(null)}
+        onConfirm={() => confirmDelete(false)}
+        onConfirmAll={() => confirmDelete(true)}
+        showInstallmentOptions={isInstallment}
+        description={isInstallment ? translations.areYouSureDeleteInstallment : translations.areYouSureDelete}
       />
     </div>
 

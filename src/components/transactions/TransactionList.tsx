@@ -27,7 +27,7 @@ interface TransactionListProps {
   categories: Category[];
   paymentMethods: PaymentMethod[];
   onEdit: (transaction: Transaction) => void;
-  onDelete: (id: string) => void;
+  onDelete: (transaction: Transaction) => void;
   itemsPerPage?: number;
   currentPage: number;
   onNextPage: () => void;
@@ -129,7 +129,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                           {translations.edit}
                         </Button>
                         <Separator orientation="vertical" className="h-full" />
-                        <Button variant="ghost" className="flex-1 rounded-none text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => onDelete(transaction.id)}>
+                        <Button variant="ghost" className="flex-1 rounded-none text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => onDelete(transaction)}>
                           <Trash2 className="mr-2 h-4 w-4" />
                           {translations.delete}
                         </Button>
@@ -210,7 +210,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                     <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)} aria-label={translations.editTransaction} className="text-primary hover:text-accent-foreground">
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)} aria-label={translations.deleteTransaction} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(transaction)} aria-label={translations.deleteTransaction} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

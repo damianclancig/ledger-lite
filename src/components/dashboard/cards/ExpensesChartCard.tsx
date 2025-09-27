@@ -28,7 +28,7 @@ export function ExpensesChartCard({ transactions, categories }: ExpensesChartCar
             <Card className="shadow-xl border-2 border-primary h-full">
             <CardHeader className="p-4">
                 <CardTitle className="flex items-center">
-                <PieChart className="h-5 w-5 mr-2 text-primary" />
+                <PieChart className="h-5 w-5 mr-2 text-primary dark:text-accent" />
                 {translations.expensesByCategory}
                 </CardTitle>
             </CardHeader>
