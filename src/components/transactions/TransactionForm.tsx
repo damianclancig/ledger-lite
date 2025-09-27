@@ -176,10 +176,8 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     const newInstallmentValue = value[0];
     if (newInstallmentValue >= 25) {
       setIsManualInstallments(true);
-      // When entering manual mode, we can keep the last valid number or reset.
-      // Let's keep it if it's over 24, otherwise prompt for a new one.
       if (installments < 25) {
-        form.setValue('installments', undefined); // Clear to force user input
+        form.setValue('installments', undefined); 
       }
     } else {
       setIsManualInstallments(false);
@@ -198,7 +196,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     } else if (!isNaN(numValue) && numValue >= 2 && numValue <= 120) {
       form.setValue('installments', numValue);
       setInstallments(numValue);
-    } else if (value.length <= 3) { // Allow typing
+    } else if (value.length <= 3) { 
       form.setValue('installments', undefined, { shouldValidate: true });
     }
   };
@@ -404,16 +402,16 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
         </div>
         
         {showInstallments && !initialData?.id && (
-          <div className="space-y-4 rounded-lg border p-4 shadow-sm">
-             <FormField
+            <div className="space-y-4 rounded-lg border p-4 shadow-sm">
+                <FormField
                 control={form.control}
                 name="installments"
                 render={({ field }) => (
-                <FormItem>
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4 md:items-center">
-                        <FormLabel className="flex items-center mb-2 md:mb-0">
-                            <Layers className="inline-block mr-2 h-4 w-4" />
-                            {translations.installments}: {isManualInstallments ? (form.getValues('installments') || '...') : installments}
+                    <FormItem>
+                    <div className="grid grid-cols-1">
+                        <FormLabel className="flex items-center mb-2">
+                        <Layers className="inline-block mr-2 h-4 w-4" />
+                        {translations.installments}: {isManualInstallments ? (form.getValues('installments') || '...') : installments}
                         </FormLabel>
                         <FormControl>
                         <Slider
@@ -422,14 +420,14 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                             max={25}
                             step={1}
                             onValueChange={handleInstallmentsChange}
-                            className="md:col-start-2"
+                            className="w-full"
                         />
                         </FormControl>
                     </div>
                     {isManualInstallments && (
-                    <div className="pt-2 md:grid md:grid-cols-2 md:gap-4 md:items-start">
-                         <FormLabel className="md:text-right md:pt-2 md:pr-4">{translations.manualInstallments}</FormLabel>
-                         <div>
+                        <div className="pt-2 md:grid md:grid-cols-2 md:gap-4 md:items-start">
+                        <div className="md:col-start-2">
+                            <FormLabel>{translations.manualInstallments}</FormLabel>
                             <Input
                                 type="number"
                                 placeholder="2-120"
@@ -438,14 +436,14 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                                 onChange={handleManualInstallmentChange}
                                 defaultValue={installments > 24 ? installments : ''}
                             />
-                            <FormMessage className="mt-2">{form.formState.errors.installments?.message}</FormMessage>
+                            <FormMessage className="mt-2" />
                         </div>
-                    </div>
+                        </div>
                     )}
-                </FormItem>
+                    </FormItem>
                 )}
-            />
-          </div>
+                />
+            </div>
         )}
 
         <div className="pt-2 flex flex-col md:flex-row md:justify-end gap-3">
