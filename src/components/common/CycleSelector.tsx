@@ -41,7 +41,6 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     return `${start} - ${end}`;
   };
 
-
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
@@ -112,8 +111,5 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     </div>
   );
 }
-
-// Rename component in file to avoid breaking changes
-export { CycleSelector as MonthSelector };
 
     

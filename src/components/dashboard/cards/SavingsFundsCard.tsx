@@ -2,14 +2,12 @@
 "use client";
 
 import React from 'react';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PiggyBank, Search } from 'lucide-react';
+import { PiggyBank } from 'lucide-react';
 import { useTranslations } from '@/contexts/LanguageContext';
 import type { SavingsFund } from '@/types';
 import { SavingsFundsProgressChart } from '@/components/transactions/SavingsFundsProgressChart';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { SeeDetailsButton } from '@/components/common/SeeDetailsButton';
 
 interface SavingsFundsCardProps {
     funds: SavingsFund[];
@@ -27,20 +25,7 @@ export function SavingsFundsCard({ funds }: SavingsFundsCardProps) {
                         <PiggyBank className="h-5 w-5 mr-2 text-primary dark:text-accent" />
                         {translations.savingsFunds}
                     </CardTitle>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-primary dark:text-accent">
-                                    <Link href="/savings-funds">
-                                        <Search className="h-5 w-5" />
-                                    </Link>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{translations.seeDetails}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <SeeDetailsButton href="/savings-funds" />
                  </div>
             </CardHeader>
             <CardContent className="p-4 pt-0 h-full">

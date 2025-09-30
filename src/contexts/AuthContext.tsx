@@ -8,6 +8,7 @@ import { app, googleProvider } from "@/lib/firebase";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "./LanguageContext";
+import { getBillingCycles } from "@/app/actions/billingCycleActions";
 
 interface AuthContextType {
   user: User | null;
@@ -53,8 +54,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = useCallback(async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, googleProvider);
+      const loggedInUser = result.user;
+      if (loggedInUser) {
+        // After successful login, check for billing cycles
+        const cycles = await getBillingCycles(loggedInUser.uid);
+        if (cycles.length === 0) {
+          router.push('/welcome');
+        } else {
+          router.push('/dashboard');
+        }
+      }
     } catch (error) {
       handleAuthError(error as AuthError);
     }
@@ -71,11 +81,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
    useEffect(() => {
     if (!loading) {
-      const isPublicPage = ['/', '/goodbye', '/terms'].includes(pathname);
-      if (!user && !isPublicPage) {
+      const protectedRoutes = [
+          '/dashboard', 
+          '/add-transaction', '/edit-transaction', 
+          '/taxes', '/add-tax', '/edit-tax',
+          '/installments',
+          '/savings-funds', '/savings-funds/add', '/savings-funds/edit',
+          '/settings'
+      ];
+      
+      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+      if (!user && isProtectedRoute) {
         router.push('/');
       }
-      if (user && isPublicPage && pathname !== '/goodbye') {
+      
+      if (user && pathname === '/') {
         router.push('/dashboard');
       }
     }

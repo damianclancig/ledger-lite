@@ -19,9 +19,7 @@
   "edit": "Editar",
   "confirmDelete": "Confirmar Exclusão",
   "areYouSureDelete": "Tem certeza de que deseja excluir esta transação? Esta ação não pode ser desfeita.",
-  "areYouSureDeleteInstallment": "Esta é uma compra parcelada. Deseja excluir apenas esta parcela ou a compra inteira?",
-  "deleteAllInstallments": "Excluir Todas as Parcelas",
-  "deleteThisInstallment": "Excluir Apenas Esta Parcela",
+  "areYouSureDeleteInstallment": "Esta ação excluirá a compra inteira e todas as suas parcelas associadas. Esta ação não pode ser desfeita.",
   "totalIncome": "Receita Total",
   "totalExpenses": "Despesas Totais",
   "transactions": "Transações",
@@ -265,5 +263,19 @@
   "savingsFundsIntroTitle": "Como funcionam os Fundos de Poupança:",
   "savingsFundsIntroText1": "Crie fundos para seus objetivos específicos (ex: 'Férias na praia', 'Novo Console').",
   "savingsFundsIntroText2": "Use os botões 'Depositar' e 'Retirar' para mover dinheiro entre seu saldo principal e seus fundos.",
-  "savingsFundsIntroText3": "Assim que atingir seu objetivo (ou apenas quiser fechá-lo), use as opções do menu para transferir o saldo de volta e excluir o fundo."
+  "savingsFundsIntroText3": "Assim que atingir seu objetivo (ou apenas quiser fechá-lo), use as opções do menu para transferir o saldo de volta e excluir o fundo.",
+  "welcomeTitle": "Bem-vindo ao FinanClan!",
+  "welcomeSubtitle": "Você está a um passo de assumir o controle de suas finanças.",
+  "welcomeDesc": "Para começar, você precisa definir quando começa o seu 'mês financeiro'. Isso é chamado de ciclo de faturamento. Normalmente, é o dia em que você recebe seu salário. Selecione a data de início abaixo.",
+  "selectStartDate": "Selecione uma data de início",
+  "startFirstCycle": "Iniciar Meu Primeiro Ciclo",
+  "starting": "Iniciando...",
+  "startNewCycle": "Iniciar Novo Ciclo",
+  "confirmNewCycleTitle": "Confirmar Novo Ciclo",
+  "confirmNewCycleDesc": "Selecione uma data de início para o novo ciclo. O ciclo anterior será fechado automaticamente no dia anterior.",
+  "confirmAndStart": "Confirmar e Iniciar",
+  "newCycleStartedTitle": "Novo ciclo iniciado",
+  "newCycleStartedDesc": "Seu novo ciclo de faturamento começou."
 }
+
+    

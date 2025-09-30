@@ -10,7 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransactionTypeToggle } from '@/components/transactions/TransactionTypeToggle';
 import { Filter, CalendarIcon, Search, XCircle } from 'lucide-react';
-import { format, isSameMonth } from 'date-fns';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslations } from '@/contexts/LanguageContext';
@@ -22,13 +22,13 @@ interface FiltersCardProps {
   searchTerm: string;
   selectedCategory: string | 'all';
   selectedType: TransactionType | 'all';
-  selectedMonth: Date | null;
   onDateChange: (range: DateRange | undefined) => void;
   onSearchTermChange: (term: string) => void;
   onSelectedCategoryChange: (category: string | 'all') => void;
   onSelectedTypeChange: (type: TransactionType | 'all') => void;
-  onSetSelectedMonth: (month: Date | null) => void;
-  onCurrentPageChange: (page: number) => void;
+  onClearFilters: () => void;
+  isAnyFilterActive: boolean;
+  currentCycleStartDate: Date;
 }
 
 export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
@@ -37,35 +37,16 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   searchTerm,
   selectedCategory,
   selectedType,
-  selectedMonth,
   onDateChange,
   onSearchTermChange,
   onSelectedCategoryChange,
   onSelectedTypeChange,
-  onSetSelectedMonth,
-  onCurrentPageChange,
+  onClearFilters,
+  isAnyFilterActive,
+  currentCycleStartDate,
 }, ref) => {
   const { translations, language, translateCategory } = useTranslations();
   const isMobile = useIsMobile();
-  
-  const isAnyFilterActive = useMemo(() => {
-    return (
-      searchTerm !== "" ||
-      selectedType !== "all" ||
-      selectedCategory !== "all" ||
-      dateRange?.from !== undefined ||
-      (selectedMonth !== null && !isSameMonth(selectedMonth, new Date()))
-    );
-  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
-
-  const clearFilters = () => {
-    onSearchTermChange("");
-    onSelectedTypeChange("all");
-    onSelectedCategoryChange("all");
-    onDateChange(undefined);
-    onSetSelectedMonth(new Date());
-    onCurrentPageChange(1);
-  };
   
   const getCategoryDisplay = (cat: Category) => {
     if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
@@ -85,7 +66,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             </CardTitle>
             <Button
               variant="link"
-              onClick={clearFilters}
+              onClick={onClearFilters}
               className={cn(
                 "hidden md:flex text-base text-muted-foreground hover:text-primary p-0 h-auto justify-start transition-opacity duration-300",
                 isAnyFilterActive ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -157,7 +138,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                 <Calendar
                   initialFocus
                   mode="range"
-                  month={selectedMonth || new Date()}
+                  month={currentCycleStartDate}
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={onDateChange}
@@ -169,7 +150,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
           {isMobile && isAnyFilterActive && (
               <Button
                 variant="outline"
-                onClick={clearFilters}
+                onClick={onClearFilters}
                 className="w-full md:hidden"
               >
                 <XCircle className="mr-2 h-4 w-4" />
@@ -183,3 +164,5 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
 });
 
 FiltersCard.displayName = "FiltersCard";
+
+    

@@ -19,9 +19,7 @@
   "edit": "Edit",
   "confirmDelete": "Confirm Delete",
   "areYouSureDelete": "Are you sure you want to delete this transaction? This action cannot be undone.",
-  "areYouSureDeleteInstallment": "This is an installment purchase. Do you want to delete only this installment or the entire purchase?",
-  "deleteAllInstallments": "Delete All Installments",
-  "deleteThisInstallment": "Delete This Installment Only",
+  "areYouSureDeleteInstallment": "This action will delete the entire purchase and all its associated installments. This action cannot be undone.",
   "totalIncome": "Total Income",
   "totalExpenses": "Total Expenses",
   "transactions": "Transactions",
@@ -265,5 +263,19 @@
   "savingsFundsIntroTitle": "How Savings Funds Work:",
   "savingsFundsIntroText1": "Create funds for your specific goals (e.g., 'Vacation to the beach', 'New Console').",
   "savingsFundsIntroText2": "Use the 'Deposit' and 'Withdraw' buttons to move money between your main balance and your funds.",
-  "savingsFundsIntroText3": "Once you reach your goal (or just want to close the fund), use the options in the menu to transfer the balance back and delete the fund."
+  "savingsFundsIntroText3": "Once you reach your goal (or just want to close the fund), use the options in the menu to transfer the balance back and delete the fund.",
+  "welcomeTitle": "Welcome to FinanClan!",
+  "welcomeSubtitle": "You are one step away from taking control of your finances.",
+  "welcomeDesc": "To get started, you need to define when your 'financial month' begins. This is called a billing cycle. Usually, it's the day you receive your salary. Select the start date below.",
+  "selectStartDate": "Select a start date",
+  "startFirstCycle": "Start My First Cycle",
+  "starting": "Starting...",
+  "startNewCycle": "Start New Cycle",
+  "confirmNewCycleTitle": "Confirm New Cycle",
+  "confirmNewCycleDesc": "Select a start date for the new cycle. The previous cycle will automatically close on the day before.",
+  "confirmAndStart": "Confirm and Start",
+  "newCycleStartedTitle": "New cycle started",
+  "newCycleStartedDesc": "Your new billing cycle has begun."
 }
+
+    

@@ -19,9 +19,7 @@
   "edit": "Editar",
   "confirmDelete": "Confirmar Eliminación",
   "areYouSureDelete": "¿Estás seguro de que quieres eliminar esta transacción? Esta acción no se puede deshacer.",
-  "areYouSureDeleteInstallment": "Esta es una compra en cuotas. ¿Deseas eliminar solo esta cuota o la compra completa?",
-  "deleteAllInstallments": "Eliminar Todas las Cuotas",
-  "deleteThisInstallment": "Eliminar Solo Esta Cuota",
+  "areYouSureDeleteInstallment": "Esta acción eliminará la compra completa y todas sus cuotas asociadas. Esta acción no se puede deshacer.",
   "totalIncome": "Ingresos Totales",
   "totalExpenses": "Gastos Totales",
   "transactions": "Transacciones",
@@ -131,7 +129,7 @@
   "footerRights": "© {currentYear} FinanClan. Todos los derechos reservados.",
   "footerAuthor": "Diseño y desarrollo web por",
   "transactionAddedTitle": "Transacción añadida",
-  "transactionAddedDesc": "La nueva transacción se ha registrado con éxito.",
+  "transactionAddedDesc": "La nueva transaccón se ha registrado con éxito.",
   "transactionUpdatedTitle": "Transacción actualizada",
   "transactionUpdatedDesc": "Tu transacción ha sido actualizada correctamente.",
   "transactionDeletedTitle": "Transacción eliminada",
@@ -265,5 +263,19 @@
   "savingsFundsIntroTitle": "Cómo funcionan los Fondos de Ahorro:",
   "savingsFundsIntroText1": "Crea fondos para tus objetivos específicos (ej: 'Vacaciones en la playa', 'Nueva Consola').",
   "savingsFundsIntroText2": "Usa los botones 'Depositar' y 'Retirar' para mover dinero entre tu balance principal y tus fondos.",
-  "savingsFundsIntroText3": "Una vez que alcances tu objetivo (o simplemente quieras cerrar el fondo), usa las opciones del menú para transferir el saldo de vuelta y eliminar el fondo."
+  "savingsFundsIntroText3": "Una vez que alcances tu objetivo (o simplemente quieras cerrar el fondo), usa las opciones del menú para transferir el saldo de vuelta y eliminar el fondo.",
+  "welcomeTitle": "¡Bienvenido/a a FinanClan!",
+  "welcomeSubtitle": "Estás a un paso de tomar el control de tus finanzas.",
+  "welcomeDesc": "Para empezar, necesitas definir cuándo comienza tu 'mes financiero'. Esto se llama un ciclo de facturación. Normalmente, es el día que recibes tu sueldo. Selecciona la fecha de inicio a continuación.",
+  "selectStartDate": "Selecciona una fecha de inicio",
+  "startFirstCycle": "Iniciar Mi Primer Ciclo",
+  "starting": "Iniciando...",
+  "startNewCycle": "Iniciar Nuevo Ciclo",
+  "confirmNewCycleTitle": "Confirmar Nuevo Ciclo",
+  "confirmNewCycleDesc": "Selecciona una fecha de inicio para el nuevo ciclo. El ciclo anterior se cerrará automáticamente el día anterior.",
+  "confirmAndStart": "Confirmar e Iniciar",
+  "newCycleStartedTitle": "Nuevo ciclo iniciado",
+  "newCycleStartedDesc": "Tu nuevo ciclo de facturación ha comenzado."
 }
+
+    
