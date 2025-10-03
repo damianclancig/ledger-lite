@@ -3,7 +3,7 @@
 import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentCategory } from '@/lib/actions-helpers';
-import type { Category, CategoryFormValues } from '@/types';
+import type { Category, CategoryFormValues, Translations } from '@/types';
 import { CATEGORIES } from "@/types";
 
 async function seedDefaultCategories(userId: string) {
@@ -88,10 +88,21 @@ export async function getCategoryById(id: string, userId: string): Promise<Categ
   }
 }
 
-export async function addCategory(data: CategoryFormValues, userId: string): Promise<Category | { error: string }> {
+export async function addCategory(data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { categoriesCollection } = await getDb();
+    
+    // Check for duplicates (case-insensitive)
+    const existingCategory = await categoriesCollection.findOne({
+        userId,
+        name: { $regex: `^${data.name}$`, $options: 'i' }
+    });
+
+    if (existingCategory) {
+        return { error: translations.categoryExistsError };
+    }
+
     const documentToInsert = { ...data, userId, isSystem: false }; // User-added categories are not system categories
     const result = await categoriesCollection.insertOne(documentToInsert);
     
@@ -112,7 +123,7 @@ export async function addCategory(data: CategoryFormValues, userId: string): Pro
   }
 }
 
-export async function updateCategory(id: string, data: CategoryFormValues, userId: string): Promise<Category | { error: string }> {
+export async function updateCategory(id: string, data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
   if (!ObjectId.isValid(id)) {
     return { error: 'Invalid category ID.' };
   }
@@ -126,6 +137,19 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
       return { error: 'System categories cannot be modified.' };
     }
     
+    // Check for duplicates on name change (case-insensitive)
+    if (data.name.toLowerCase() !== categoryToUpdate?.name.toLowerCase()) {
+      const existingCategory = await categoriesCollection.findOne({
+          userId,
+          name: { $regex: `^${data.name}$`, $options: 'i' },
+          _id: { $ne: new ObjectId(id) } // Exclude the current document
+      });
+
+      if (existingCategory) {
+          return { error: translations.categoryExistsError };
+      }
+    }
+
     const result = await categoriesCollection.updateOne(
       { _id: new ObjectId(id), userId },
       { $set: data }
@@ -145,5 +169,59 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
     console.error('Error updating category:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return { error: `Failed to update category. ${errorMessage}` };
+  }
+}
+
+export async function isCategoryInUse(categoryId: string, userId: string): Promise<boolean> {
+  if (!ObjectId.isValid(categoryId) || !userId) {
+    return false;
+  }
+  try {
+    const { transactionsCollection } = await getDb();
+    const count = await transactionsCollection.countDocuments({ categoryId, userId });
+    return count > 0;
+  } catch (error) {
+    console.error('Error checking if category is in use:', error);
+    return true; // Fail safe
+  }
+}
+
+export async function deleteCategory(id: string, userId: string, translations: Translations): Promise<{ success: boolean; error?: string }> {
+  if (!ObjectId.isValid(id)) {
+    return { success: false, error: 'Invalid category ID.' };
+  }
+  if (!userId) {
+    return { success: false, error: 'User not authenticated.' };
+  }
+  try {
+    const { categoriesCollection } = await getDb();
+
+    const categoryToDelete = await categoriesCollection.findOne({ _id: new ObjectId(id), userId });
+    if (!categoryToDelete) {
+      return { success: false, error: 'Category not found or you do not have permission to delete it.' };
+    }
+
+    if (categoryToDelete.isSystem) {
+      return { success: false, error: 'System categories cannot be deleted.' };
+    }
+
+    const inUse = await isCategoryInUse(id, userId);
+    if (inUse) {
+      return { success: false, error: translations.categoryInUseError };
+    }
+    
+    const result = await categoriesCollection.deleteOne({ _id: new ObjectId(id), userId });
+
+    if (result.deletedCount === 0) {
+      return { success: false, error: 'Category not found during deletion.' };
+    }
+    
+    revalidateTag(`categories_${userId}`);
+    return { success: true };
+
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: `Failed to delete category. ${errorMessage}` };
   }
 }

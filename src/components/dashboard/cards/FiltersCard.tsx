@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TransactionTypeToggle } from '@/components/transactions/TransactionTypeToggle';
 import { Filter, CalendarIcon, Search, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { es, pt, enUS } from "date-fns/locale";
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslations } from '@/contexts/LanguageContext';
@@ -28,7 +29,7 @@ interface FiltersCardProps {
   onSelectedTypeChange: (type: TransactionType | 'all') => void;
   onClearFilters: () => void;
   isAnyFilterActive: boolean;
-  currentCycleStartDate: Date;
+  currentCycleStartDate?: Date;
 }
 
 export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
@@ -47,6 +48,9 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
 }, ref) => {
   const { translations, language, translateCategory } = useTranslations();
   const isMobile = useIsMobile();
+  
+  const locales = { en: enUS, es, pt };
+  const currentLocale = locales[language] || enUS;
   
   const getCategoryDisplay = (cat: Category) => {
     if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
@@ -98,7 +102,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             onValueChange={(value: string) => onSelectedCategoryChange(value as string | "all")}
           >
             <SelectTrigger className="text-base">
-              <SelectValue placeholder={translations.filterByCategory} />
+              <SelectValue placeholder={translations.category} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{translations.allCategories}</SelectItem>
@@ -122,14 +126,14 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                   {dateRange?.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                        {format(dateRange.to, "LLL dd, y")}
+                        {format(dateRange.from, "PP", { locale: currentLocale })} -{" "}
+                        {format(dateRange.to, "PP", { locale: currentLocale })}
                       </>
                     ) : (
-                      format(dateRange.from, "LLL dd, y")
+                      format(dateRange.from, "PP", { locale: currentLocale })
                     )
                   ) : (
-                    <span>{translations.filterByDateRange}</span>
+                    <span>{translations.dateRange}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -138,11 +142,12 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                 <Calendar
                   initialFocus
                   mode="range"
+                  locale={currentLocale}
                   month={currentCycleStartDate}
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={onDateChange}
-                  numberOfMonths={1}
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
@@ -164,5 +169,3 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
 });
 
 FiltersCard.displayName = "FiltersCard";
-
-    

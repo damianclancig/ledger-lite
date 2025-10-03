@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getCategoryById, updateCategory } from "@/app/actions/categoryActions";
+import { getCategoryById, updateCategory, isCategoryInUse, deleteCategory } from "@/app/actions/categoryActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
@@ -23,6 +23,7 @@ export default function EditCategoryPage() {
   const { translations } = useTranslations();
   
   const [category, setCategory] = useState<Category | null>(null);
+  const [isDeletable, setIsDeletable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const id = params.id as string;
@@ -37,7 +38,10 @@ export default function EditCategoryPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const fetchedCategory = await getCategoryById(id, user.uid);
+        const [fetchedCategory, inUse] = await Promise.all([
+          getCategoryById(id, user.uid),
+          isCategoryInUse(id, user.uid),
+        ]);
         
         if (fetchedCategory) {
           if (fetchedCategory.isSystem) {
@@ -46,6 +50,7 @@ export default function EditCategoryPage() {
             return;
           }
           setCategory(fetchedCategory);
+          setIsDeletable(!inUse);
         } else {
           toast({ title: translations.errorTitle, description: "Category not found or you don't have permission to view it.", variant: "destructive" });
           router.push("/settings/categories");
@@ -63,7 +68,7 @@ export default function EditCategoryPage() {
   const handleFormSubmit = async (values: CategoryFormValues) => {
     if (!user || !category) return;
 
-    const result = await updateCategory(category.id, values, user.uid);
+    const result = await updateCategory(category.id, values, user.uid, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -72,6 +77,18 @@ export default function EditCategoryPage() {
       router.push("/settings/categories");
     }
   };
+
+  const handleDelete = async () => {
+    if (!user || !category || !isDeletable) return;
+
+    const result = await deleteCategory(category.id, user.uid, translations);
+    if (result.success) {
+      toast({ title: translations.categoryDeletedSuccess, variant: 'destructive' });
+      router.push("/settings/categories");
+    } else {
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+    }
+  }
   
   if (isLoading || !category) {
     return (
@@ -112,6 +129,9 @@ export default function EditCategoryPage() {
             onSubmit={handleFormSubmit}
             onClose={() => router.push("/settings/categories")}
             initialData={category}
+            onDelete={handleDelete}
+            isDeletable={isDeletable}
+            inUseMessage={translations.categoryInUseError}
           />
         </CardContent>
       </Card>

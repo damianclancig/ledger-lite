@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -53,7 +52,7 @@ export default function ManageCategoriesPage() {
 
   const handleToggleEnabled = async (category: Category) => {
     if (!user || category.isSystem) return;
-    const result = await updateCategory(category.id, { name: category.name, isEnabled: !category.isEnabled }, user.uid);
+    const result = await updateCategory(category.id, { name: category.name, isEnabled: !category.isEnabled }, user.uid, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

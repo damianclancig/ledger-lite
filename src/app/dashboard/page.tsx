@@ -40,6 +40,8 @@ import { subDays, startOfDay, format } from "date-fns";
 import { es, pt, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
+const ALL_CYCLES_ID = "all";
+
 export default function DashboardPage() {
   const { translations, language } = useTranslations();
   const { toast } = useToast();
@@ -214,7 +216,7 @@ export default function DashboardPage() {
   };
   
   const cycleDateRange = useMemo(() => {
-    if (!selectedCycle) return { start: new Date(0), end: new Date() };
+    if (!selectedCycle || selectedCycle.id === ALL_CYCLES_ID) return null;
     return {
       start: new Date(selectedCycle.startDate),
       end: selectedCycle.endDate ? new Date(selectedCycle.endDate) : new Date(),
@@ -222,8 +224,11 @@ export default function DashboardPage() {
   }, [selectedCycle]);
 
   const transactionsForCycle = useMemo(() => {
-    return transactions.filter(t => {
-      if (t.savingsFundId) return false;
+    const baseTransactions = transactions.filter(t => !t.savingsFundId);
+    if (!cycleDateRange) {
+        return baseTransactions; // All cycles are selected
+    }
+    return baseTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate >= cycleDateRange.start && transactionDate <= cycleDateRange.end;
     });
@@ -249,11 +254,7 @@ export default function DashboardPage() {
   }, [searchTerm, selectedType, selectedCategory, dateRange, selectedCycle]);
 
    const handleDateSelect = (range: DateRange | undefined) => {
-    if (dateRange?.from && dateRange?.to && range?.from) {
-      setDateRange({ from: range.from, to: undefined });
-    } else {
-      setDateRange(range);
-    }
+    setDateRange(range);
   };
 
   const incomeExpenseChartData = useMemo(() => {
@@ -264,7 +265,7 @@ export default function DashboardPage() {
     }, { income: 0, expense: 0 });
     
     let previousCycle;
-    if (selectedCycle) {
+    if (selectedCycle && selectedCycle.id !== ALL_CYCLES_ID) {
       const selectedCycleIndex = billingCycles.findIndex(c => c.id === selectedCycle.id);
       if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
           previousCycle = billingCycles[selectedCycleIndex + 1];
@@ -289,6 +290,14 @@ export default function DashboardPage() {
     ];
   }, [transactionsForCycle, billingCycles, selectedCycle, translations, transactions]);
 
+  const allCyclesWithVirtualOption: BillingCycle[] = useMemo(() => {
+    const allCyclesOption: BillingCycle = {
+      id: ALL_CYCLES_ID,
+      userId: user?.uid || '',
+      startDate: new Date(0), // Doesn't really matter
+    };
+    return [allCyclesOption, ...billingCycles];
+  }, [billingCycles, user]);
 
   if (isLoading) {
     return (
@@ -369,7 +378,7 @@ export default function DashboardPage() {
         </div>
 
        <CycleSelector 
-         cycles={billingCycles}
+         cycles={allCyclesWithVirtualOption}
          selectedCycle={selectedCycle}
          onSelectCycle={setSelectedCycle}
        />
@@ -399,7 +408,7 @@ export default function DashboardPage() {
         searchTerm={searchTerm}
         selectedCategory={selectedCategory}
         selectedType={selectedType}
-        onDateChange={setDateRange}
+        onDateChange={handleDateSelect}
         onSearchTermChange={setSearchTerm}
         onSelectedCategoryChange={setSelectedCategory}
         onSelectedTypeChange={setSelectedType}
@@ -411,7 +420,7 @@ export default function DashboardPage() {
           setCurrentPage(1);
         }}
         isAnyFilterActive={searchTerm !== "" || selectedType !== "all" || selectedCategory !== "all" || dateRange?.from !== undefined}
-        currentCycleStartDate={cycleDateRange.start}
+        currentCycleStartDate={cycleDateRange?.start}
       />
       
       <div>

@@ -1,4 +1,3 @@
-
 {
   "appName": "FinanClan",
   "addTransaction": "Add Transaction",
@@ -26,12 +25,12 @@
   "noTransactions": "No transactions yet. Add one to get started!",
   "noTransactionsForFilters": "No transactions found for the applied filters.",
   "filterByType": "Filter by type",
-  "filterByCategory": "Filter by category",
-  "filterByDateRange": "Filter by date range",
+  "filterByDateRange": "Date Range",
   "clearFilters": "Clear Filters",
   "startDate": "Start Date",
   "endDate": "End Date",
   "allCategories": "All Categories",
+  "allCycles": "All Cycles",
   "allMonths": "All Months",
   "currentMonth": "Current Month",
   "previousMonth": "Previous Month",
@@ -40,7 +39,7 @@
   "page": "Page",
   "of": "of",
   "next": "Next",
-  "previous": "Previous",
+  "previous": "Anterior",
   "selectLanguage": "Select Language",
   "english": "English",
   "spanish": "Spanish",
@@ -75,7 +74,7 @@
   "disabled": "Disabled",
   "categoryAddedSuccess": "Category successfully added.",
   "categoryUpdatedSuccess": "Category successfully updated.",
-  "categoryInUseError": "Cannot rename a category that is currently in use in transactions.",
+  "categoryExistsError": "A category with this name already exists.",
   "systemCategoryTooltip": "This is a system category and cannot be modified.",
   "descriptionRequired": "Description is required",
   "descriptionMaxLength": "Description cannot exceed 100 characters",
@@ -275,7 +274,11 @@
   "confirmNewCycleDesc": "Select a start date for the new cycle. The previous cycle will automatically close on the day before.",
   "confirmAndStart": "Confirm and Start",
   "newCycleStartedTitle": "New cycle started",
-  "newCycleStartedDesc": "Your new billing cycle has begun."
+  "newCycleStartedDesc": "Your new billing cycle has begun.",
+  "deleteCategory": "Delete Category",
+  "areYouSureDeleteCategory": "Are you sure you want to delete this category? This action cannot be undone.",
+  "deleteCategoryWarning": "This category has no associated transactions. You can delete it safely.",
+  "cannotDeleteCategoryTitle": "Cannot Delete Category",
+  "categoryInUseError": "This category cannot be deleted because it is being used by one or more transactions.",
+  "categoryDeletedSuccess": "Category successfully deleted."
 }
-
-    

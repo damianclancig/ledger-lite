@@ -30,7 +30,7 @@ export default function AddCategoryPage() {
       return;
     }
 
-    const result = await addCategory(values, user.uid);
+    const result = await addCategory(values, user.uid, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

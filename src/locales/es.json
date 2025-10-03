@@ -1,4 +1,3 @@
-
 {
   "appName": "FinanClan",
   "addTransaction": "Añadir Transacción",
@@ -26,12 +25,12 @@
   "noTransactions": "Aún no hay transacciones. ¡Añade una para empezar!",
   "noTransactionsForFilters": "No se encontraron transacciones para los filtros aplicados.",
   "filterByType": "Filtrar por tipo",
-  "filterByCategory": "Filtrar por categoría",
-  "filterByDateRange": "Filtrar por rango de fechas",
+  "filterByDateRange": "Rango de Fechas",
   "clearFilters": "Limpiar Filtros",
   "startDate": "Fecha de Inicio",
   "endDate": "Fecha de Fin",
   "allCategories": "Todas las Categorías",
+  "allCycles": "Todos los Ciclos",
   "allMonths": "Todos los Meses",
   "currentMonth": "Mes Actual",
   "previousMonth": "Mes Anterior",
@@ -75,7 +74,7 @@
   "disabled": "Deshabilitada",
   "categoryAddedSuccess": "Categoría añadida con éxito.",
   "categoryUpdatedSuccess": "Categoría actualizada con éxito.",
-  "categoryInUseError": "No se puede renombrar una categoría que está actualmente en uso en transacciones.",
+  "categoryExistsError": "Ya existe una categoría con este nombre.",
   "systemCategoryTooltip": "Esta categoría es del sistema y no puede ser modificada.",
   "descriptionRequired": "La descripción es obligatoria",
   "descriptionMaxLength": "La descripción no puede superar los 100 caracteres",
@@ -275,7 +274,11 @@
   "confirmNewCycleDesc": "Selecciona una fecha de inicio para el nuevo ciclo. El ciclo anterior se cerrará automáticamente el día anterior.",
   "confirmAndStart": "Confirmar e Iniciar",
   "newCycleStartedTitle": "Nuevo ciclo iniciado",
-  "newCycleStartedDesc": "Tu nuevo ciclo de facturación ha comenzado."
+  "newCycleStartedDesc": "Tu nuevo ciclo de facturación ha comenzado.",
+  "deleteCategory": "Eliminar Categoría",
+  "areYouSureDeleteCategory": "¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer.",
+  "deleteCategoryWarning": "Esta categoría no tiene transacciones asociadas. Puedes eliminarla de forma segura.",
+  "cannotDeleteCategoryTitle": "No se puede eliminar la categoría",
+  "categoryInUseError": "Esta categoría no se puede eliminar porque está siendo utilizada por una o más transacciones.",
+  "categoryDeletedSuccess": "Categoría eliminada con éxito."
 }
-
-    

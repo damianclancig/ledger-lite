@@ -1,5 +1,3 @@
-
-
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -144,12 +142,12 @@ export interface Translations {
   noTransactions: string;
   noTransactionsForFilters: string;
   filterByType: string;
-  filterByCategory: string;
   filterByDateRange: string;
   clearFilters: string;
   startDate: string;
   endDate: string;
   allCategories: string;
+  allCycles: string;
   allMonths: string;
   currentMonth: string;
   previousMonth: string;
@@ -197,7 +195,7 @@ export interface Translations {
   disabled: string;
   categoryAddedSuccess: string;
   categoryUpdatedSuccess: string;
-  categoryInUseError: string;
+  categoryExistsError: string;
   systemCategoryTooltip: string;
   // Validation messages
   descriptionRequired: string;
@@ -446,5 +444,3 @@ export interface InstallmentProjection {
   month: string; // YYYY-MM
   total: number;
 }
-
-    
