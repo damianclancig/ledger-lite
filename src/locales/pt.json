@@ -272,6 +272,7 @@
   "startNewCycle": "Iniciar Novo Ciclo",
   "confirmNewCycleTitle": "Confirmar Novo Ciclo",
   "confirmNewCycleDesc": "Selecione uma data de início para o novo ciclo. O ciclo anterior será fechado automaticamente no dia anterior.",
+  "currentCycleStartsOn": "Seu ciclo atual começou em",
   "confirmAndStart": "Confirmar e Iniciar",
   "newCycleStartedTitle": "Novo ciclo iniciado",
   "newCycleStartedDesc": "Seu novo ciclo de faturamento começou.",

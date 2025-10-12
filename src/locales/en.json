@@ -275,6 +275,7 @@
   "confirmAndStart": "Confirm and Start",
   "newCycleStartedTitle": "New cycle started",
   "newCycleStartedDesc": "Your new billing cycle has begun.",
+  "currentCycleStartsOn": "Your current cycle started on",
   "deleteCategory": "Delete Category",
   "areYouSureDeleteCategory": "Are you sure you want to delete this category? This action cannot be undone.",
   "deleteCategoryWarning": "This category has no associated transactions. You can delete it safely.",

@@ -5,14 +5,14 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter } from 'next/navigation';
 import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund, BillingCycle } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
-import { Plus, LayoutDashboard, Rocket, Sparkles, Calendar as CalendarIcon } from "lucide-react";
+import { LayoutDashboard, Rocket, Plus } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
 import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { getSavingsFunds } from "@/app/actions/savingsFundActions";
-import { getCurrentBillingCycle, startNewCycle, getBillingCycles } from "@/app/actions/billingCycleActions";
+import { getCurrentBillingCycle, getBillingCycles } from "@/app/actions/billingCycleActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { CycleSelector } from "@/components/common/CycleSelector";
@@ -24,21 +24,8 @@ import { ExpensesChartCard } from "@/components/dashboard/cards/ExpensesChartCar
 import { IncomeExpenseChartCard } from "@/components/dashboard/cards/IncomeExpenseChartCard";
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { subDays, startOfDay, format } from "date-fns";
-import { es, pt, enUS } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
+import { format } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -61,13 +48,7 @@ export default function DashboardPage() {
   // Billing Cycles
   const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
-  const [isStartingNewCycle, setIsStartingNewCycle] = useState(false);
-  const [newCycleStartDate, setNewCycleStartDate] = useState<Date | undefined>(new Date());
-  const [isNewCycleDialogOpen, setIsNewCycleDialogOpen] = useState(false);
-
-  const locales = { en: enUS, es, pt };
-  const currentLocale = locales[language] || enUS;
-
+  
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
@@ -196,24 +177,6 @@ export default function DashboardPage() {
       setDeletingTransaction(null);
     }
   };
-
-  const handleStartNewCycle = async () => {
-    if (!user || !newCycleStartDate) {
-      toast({ title: translations.errorTitle, description: translations.dateRequired, variant: "destructive" });
-      return;
-    };
-    setIsStartingNewCycle(true);
-    const result = await startNewCycle(user.uid, startOfDay(newCycleStartDate));
-    if ('error' in result) {
-      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
-    } else {
-      toast({ title: translations.newCycleStartedTitle, description: translations.newCycleStartedDesc });
-      await loadAllData();
-    }
-    setIsStartingNewCycle(false);
-    setIsNewCycleDialogOpen(false);
-    setNewCycleStartDate(new Date());
-  };
   
   const cycleDateRange = useMemo(() => {
     if (!selectedCycle || selectedCycle.id === ALL_CYCLES_ID) return null;
@@ -327,54 +290,10 @@ export default function DashboardPage() {
                 <LayoutDashboard className="h-8 w-8 mr-3 text-primary" />
                 <h1 className="text-3xl font-bold">Dashboard</h1>
             </div>
-            <Dialog open={isNewCycleDialogOpen} onOpenChange={setIsNewCycleDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline" className="border-primary border-2 h-10 px-2 sm:px-4">
-                        <Rocket className="h-5 w-5 sm:mr-2" />
-                        <span className="hidden sm:inline">{translations.startNewCycle}</span>
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{translations.confirmNewCycleTitle}</DialogTitle>
-                    <DialogDescription className="text-base">
-                    {translations.confirmNewCycleDesc}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-2">
-                     <p className="font-semibold">{translations.selectStartDate}</p>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-full justify-start text-left font-normal h-11 text-base",
-                                !newCycleStartDate && "text-muted-foreground"
-                            )}
-                            >
-                            <CalendarIcon className="mr-2 h-5 w-5" />
-                            {newCycleStartDate ? format(newCycleStartDate, "PP", { locale: currentLocale }) : <span>{translations.date}</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={newCycleStartDate}
-                                onSelect={setNewCycleStartDate}
-                                disabled={(date) => date > new Date() || date < subDays(new Date(), 30)}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsNewCycleDialogOpen(false)}>{translations.cancel}</Button>
-                    <Button onClick={handleStartNewCycle} disabled={isStartingNewCycle || !newCycleStartDate}>
-                    {isStartingNewCycle ? translations.starting : translations.confirmAndStart}
-                    </Button>
-                </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <NewCycleDialog 
+              selectedCycle={selectedCycle}
+              onCycleStarted={loadAllData}
+            />
         </div>
 
        <CycleSelector 
