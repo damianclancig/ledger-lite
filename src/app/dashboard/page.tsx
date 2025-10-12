@@ -2,20 +2,20 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useRouter, usePathname } from 'next/navigation';
-import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund } from "@/types";
+import { useRouter } from 'next/navigation';
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund, BillingCycle } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
-import { Plus, LayoutDashboard, PiggyBank } from "lucide-react";
+import { Plus, LayoutDashboard, Rocket, Sparkles, Calendar as CalendarIcon } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { isSameMonth, isSameYear, subMonths } from "date-fns";
 import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
 import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { getSavingsFunds } from "@/app/actions/savingsFundActions";
+import { getCurrentBillingCycle, startNewCycle, getBillingCycles } from "@/app/actions/billingCycleActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { MonthSelector } from "@/components/common/MonthSelector";
+import { CycleSelector } from "@/components/common/CycleSelector";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { TotalsDisplay } from "@/components/transactions/TotalsDisplay";
@@ -24,7 +24,23 @@ import { ExpensesChartCard } from "@/components/dashboard/cards/ExpensesChartCar
 import { IncomeExpenseChartCard } from "@/components/dashboard/cards/IncomeExpenseChartCard";
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { subDays, startOfDay, format } from "date-fns";
+import { es, pt, enUS } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+const ALL_CYCLES_ID = "all";
 
 export default function DashboardPage() {
   const { translations, language } = useTranslations();
@@ -42,12 +58,21 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
+  // Billing Cycles
+  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
+  const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
+  const [isStartingNewCycle, setIsStartingNewCycle] = useState(false);
+  const [newCycleStartDate, setNewCycleStartDate] = useState<Date | undefined>(new Date());
+  const [isNewCycleDialogOpen, setIsNewCycleDialogOpen] = useState(false);
+
+  const locales = { en: enUS, es, pt };
+  const currentLocale = locales[language] || enUS;
+
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
   const wasLoadingRef = useRef(true);
   const prevPageRef = useRef(currentPage);
@@ -60,7 +85,6 @@ export default function DashboardPage() {
     }, []);
 
   useEffect(() => {
-    // This effect runs when isLoading transitions from true to false
     if (wasLoadingRef.current && !isLoading) {
       setTimeout(() => {
         const editedTransactionId = sessionStorage.getItem('editedTransactionId');
@@ -80,43 +104,61 @@ export default function DashboardPage() {
     wasLoadingRef.current = isLoading;
   }, [isLoading]);
 
-  useEffect(() => {
-    async function loadData() {
-      if (!user) {
-        setTransactions([]);
-        setCategories([]);
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      const [initialTransactions, initialCategories, initialPaymentMethods, projectionData, fundsData] = await Promise.all([
+  const loadAllData = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const [
+        initialTransactions, 
+        initialCategories, 
+        initialPaymentMethods, 
+        projectionData, 
+        fundsData,
+        currentCycle,
+        allCycles
+      ] = await Promise.all([
         getTransactions(user.uid),
         getCategories(user.uid),
         getPaymentMethods(user.uid),
         getInstallmentProjection(user.uid),
         getSavingsFunds(user.uid),
+        getCurrentBillingCycle(user.uid),
+        getBillingCycles(user.uid)
       ]);
-      const parsed = initialTransactions.map((t) => ({
-        ...t,
-        date: new Date(t.date),
-      }));
+
+      if (!currentCycle) {
+        router.push('/welcome');
+        return;
+      }
+
+      const parsed = initialTransactions.map((t) => ({ ...t, date: new Date(t.date) }));
       setTransactions(parsed);
       setCategories(initialCategories);
       setPaymentMethods(initialPaymentMethods);
       setInstallmentProjection(projectionData);
       setSavingsFunds(fundsData);
+      setBillingCycles(allCycles);
+      setSelectedCycle(currentCycle);
+    } catch (error) {
+      console.error("Failed to load dashboard data:", error);
+      toast({ title: translations.errorTitle, description: "Could not load dashboard data.", variant: "destructive" });
+    } finally {
       setIsLoading(false);
     }
-    loadData();
-  }, [user]);
+  }, [user, router, toast, translations]);
+
 
   useEffect(() => {
-    // We don't want to scroll on the initial render.
+    loadAllData();
+  }, [loadAllData]);
+
+
+  useEffect(() => {
     if (prevPageRef.current === currentPage) return;
   
-    if (currentPage > prevPageRef.current) { // Navigated forward
+    if (currentPage > prevPageRef.current) {
       filterCardRef.current?.scrollIntoView({ behavior: 'smooth' });
-    } else if (currentPage < prevPageRef.current) { // Navigated backward
+    } else if (currentPage < prevPageRef.current) {
       paginationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
     prevPageRef.current = currentPage;
@@ -125,22 +167,28 @@ export default function DashboardPage() {
   const handleEdit = (transaction: Transaction) => {
     sessionStorage.setItem('editedTransactionId', transaction.id);
     sessionStorage.setItem('editedTransactionPage', String(currentPage));
-    router.push(`/edit-transaction/${transaction.id}`);
+    
+    if (transaction.groupId) {
+      router.push(`/edit-installment-purchase/${transaction.groupId}`);
+    } else {
+      router.push(`/edit-transaction/${transaction.id}`);
+    }
   };
 
   const handleDelete = (transaction: Transaction) => {
     setDeletingTransaction(transaction);
   };
 
-  const confirmDelete = async (deleteAllInstallments: boolean = false) => {
+  const confirmDelete = async () => {
     if (deletingTransaction && user) {
-      const result = await deleteTransaction(deletingTransaction.id, user.uid, deleteAllInstallments);
+      const result = await deleteTransaction(deletingTransaction.id, user.uid);
       if (result.success) {
-        if (deleteAllInstallments && deletingTransaction.groupId) {
-          setTransactions(transactions.filter(t => t.groupId !== deletingTransaction.groupId));
-        } else {
-          setTransactions(transactions.filter((t) => t.id !== deletingTransaction.id));
-        }
+        setTransactions(prev => {
+          if (result.deletedGroupId) {
+            return prev.filter(t => t.groupId !== result.deletedGroupId);
+          }
+          return prev.filter((t) => t.id !== deletingTransaction.id);
+        });
         toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });
       } else {
         toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -149,85 +197,107 @@ export default function DashboardPage() {
     }
   };
 
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((t) => {
-      // Exclude transactions belonging to a savings fund from the main dashboard
-      if (t.savingsFundId) {
-        return false;
-      }
+  const handleStartNewCycle = async () => {
+    if (!user || !newCycleStartDate) {
+      toast({ title: translations.errorTitle, description: translations.dateRequired, variant: "destructive" });
+      return;
+    };
+    setIsStartingNewCycle(true);
+    const result = await startNewCycle(user.uid, startOfDay(newCycleStartDate));
+    if ('error' in result) {
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: translations.newCycleStartedTitle, description: translations.newCycleStartedDesc });
+      await loadAllData();
+    }
+    setIsStartingNewCycle(false);
+    setIsNewCycleDialogOpen(false);
+    setNewCycleStartDate(new Date());
+  };
+  
+  const cycleDateRange = useMemo(() => {
+    if (!selectedCycle || selectedCycle.id === ALL_CYCLES_ID) return null;
+    return {
+      start: new Date(selectedCycle.startDate),
+      end: selectedCycle.endDate ? new Date(selectedCycle.endDate) : new Date(),
+    };
+  }, [selectedCycle]);
 
+  const transactionsForCycle = useMemo(() => {
+    const baseTransactions = transactions.filter(t => !t.savingsFundId);
+    if (!cycleDateRange) {
+        return baseTransactions; // All cycles are selected
+    }
+    return baseTransactions.filter(t => {
       const transactionDate = new Date(t.date);
+      return transactionDate >= cycleDateRange.start && transactionDate <= cycleDateRange.end;
+    });
+  }, [transactions, cycleDateRange]);
+
+  const filteredTransactionsForList = useMemo(() => {
+    return transactionsForCycle.filter((t) => {
       const lowerSearchTerm = searchTerm.toLowerCase();
-      
       const matchesSearch = t.description.toLowerCase().includes(lowerSearchTerm);
       const matchesType = selectedType === "all" || t.type === selectedType;
       const matchesCategory = selectedCategory === "all" || t.categoryId === selectedCategory;
-      
-      const matchesDateRange =
-        !dateRange?.from || transactionDate >= dateRange.from;
-
-      const matchesDateRangeEnd = 
-        !dateRange?.to || transactionDate <= dateRange.to;
-
-      const matchesMonth = 
-        !selectedMonth || 
-        (isSameMonth(transactionDate, selectedMonth) && isSameYear(transactionDate, selectedMonth));
-
-      return matchesSearch && matchesType && matchesCategory && matchesDateRange && matchesDateRangeEnd && matchesMonth;
+      const transactionDate = new Date(t.date);
+      const matchesDateRange = !dateRange?.from || transactionDate >= dateRange.from;
+      const matchesDateRangeEnd = !dateRange?.to || transactionDate <= dateRange.to;
+      return matchesSearch && matchesType && matchesCategory && matchesDateRange && matchesDateRangeEnd;
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
+  }, [transactionsForCycle, searchTerm, selectedType, selectedCategory, dateRange]);
 
   useEffect(() => {
-    // Only reset to page 1 if not coming from an edit
     if (!sessionStorage.getItem('editedTransactionId')) {
         setCurrentPage(1);
     }
-  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
+  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedCycle]);
 
    const handleDateSelect = (range: DateRange | undefined) => {
-    // If a complete range is already selected, the next click should reset and start a new range.
-    if (dateRange?.from && dateRange?.to && range?.from) {
-      setDateRange({ from: range.from, to: undefined });
-    } else {
-      setDateRange(range);
-    }
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => prev + 1);
-  };
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => prev - 1);
+    setDateRange(range);
   };
 
   const incomeExpenseChartData = useMemo(() => {
-    const getTotalsForMonth = (monthDate: Date) => {
-        const monthlyTransactions = transactions.filter(t => isSameMonth(t.date, monthDate) && isSameYear(t.date, monthDate) && !t.savingsFundId);
-        const income = monthlyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-        const expense = monthlyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-        return { income, expense };
-    };
-
-    const currentMonthDate = selectedMonth || new Date();
-    const previousMonthDate = subMonths(currentMonthDate, 1);
+    const currentTotals = transactionsForCycle.reduce((acc, t) => {
+      if (t.type === 'income') acc.income += t.amount;
+      if (t.type === 'expense') acc.expense += t.amount;
+      return acc;
+    }, { income: 0, expense: 0 });
     
-    const currentTotals = getTotalsForMonth(currentMonthDate);
-    const previousTotals = getTotalsForMonth(previousMonthDate);
+    let previousCycle;
+    if (selectedCycle && selectedCycle.id !== ALL_CYCLES_ID) {
+      const selectedCycleIndex = billingCycles.findIndex(c => c.id === selectedCycle.id);
+      if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
+          previousCycle = billingCycles[selectedCycleIndex + 1];
+      }
+    }
+    
+    let previousTotals = { income: 0, expense: 0 };
+    if (previousCycle) {
+      const prevCycleStart = new Date(previousCycle.startDate);
+      const prevCycleEnd = new Date(previousCycle.endDate!);
+      previousTotals = transactions.filter(t => !t.savingsFundId && new Date(t.date) >= prevCycleStart && new Date(t.date) <= prevCycleEnd)
+        .reduce((acc, t) => {
+          if (t.type === 'income') acc.income += t.amount;
+          if (t.type === 'expense') acc.expense += t.amount;
+          return acc;
+        }, { income: 0, expense: 0 });
+    }
 
     return [
-        {
-            name: translations.income,
-            current: currentTotals.income,
-            previous: previousTotals.income,
-        },
-        {
-            name: translations.expense,
-            current: currentTotals.expense,
-            previous: previousTotals.expense,
-        },
+        { name: translations.income, current: currentTotals.income, previous: previousTotals.income },
+        { name: translations.expense, current: currentTotals.expense, previous: previousTotals.expense },
     ];
-}, [transactions, selectedMonth, translations]);
+  }, [transactionsForCycle, billingCycles, selectedCycle, translations, transactions]);
+
+  const allCyclesWithVirtualOption: BillingCycle[] = useMemo(() => {
+    const allCyclesOption: BillingCycle = {
+      id: ALL_CYCLES_ID,
+      userId: user?.uid || '',
+      startDate: new Date(0), // Doesn't really matter
+    };
+    return [allCyclesOption, ...billingCycles];
+  }, [billingCycles, user]);
 
   if (isLoading) {
     return (
@@ -245,24 +315,82 @@ export default function DashboardPage() {
   }
   
   const isInstallment = !!deletingTransaction?.groupId;
+  const deleteDialogDescription = isInstallment 
+    ? translations.areYouSureDeleteInstallment 
+    : translations.areYouSureDelete;
 
   return (
     <>
     <div className="space-y-8">
-      <div className="flex items-center">
-            <LayoutDashboard className="h-8 w-8 mr-3 text-primary" />
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-      </div>
-       <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
+        <div className="flex items-center justify-between">
+            <div className="flex items-center">
+                <LayoutDashboard className="h-8 w-8 mr-3 text-primary" />
+                <h1 className="text-3xl font-bold">Dashboard</h1>
+            </div>
+            <Dialog open={isNewCycleDialogOpen} onOpenChange={setIsNewCycleDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline" className="border-primary border-2">
+                        <Rocket className="mr-2 h-4 w-4" />
+                        {translations.startNewCycle}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{translations.confirmNewCycleTitle}</DialogTitle>
+                    <DialogDescription className="text-base">
+                    {translations.confirmNewCycleDesc}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-2">
+                     <p className="font-semibold">{translations.selectStartDate}</p>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-full justify-start text-left font-normal h-11 text-base",
+                                !newCycleStartDate && "text-muted-foreground"
+                            )}
+                            >
+                            <CalendarIcon className="mr-2 h-5 w-5" />
+                            {newCycleStartDate ? format(newCycleStartDate, "PPP", { locale: currentLocale }) : <span>{translations.date}</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={newCycleStartDate}
+                                onSelect={setNewCycleStartDate}
+                                disabled={(date) => date > new Date() || date < subDays(new Date(), 30)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsNewCycleDialogOpen(false)}>{translations.cancel}</Button>
+                    <Button onClick={handleStartNewCycle} disabled={isStartingNewCycle || !newCycleStartDate}>
+                    {isStartingNewCycle ? translations.starting : translations.confirmAndStart}
+                    </Button>
+                </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+
+       <CycleSelector 
+         cycles={allCyclesWithVirtualOption}
+         selectedCycle={selectedCycle}
+         onSelectCycle={setSelectedCycle}
+       />
 
         <TotalsDisplay 
-          transactions={filteredTransactions} 
+          transactions={transactionsForCycle} 
           onSetSelectedType={setSelectedType}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <ExpensesChartCard 
-             transactions={filteredTransactions.filter(t => t.type === 'expense')} 
+             transactions={transactionsForCycle.filter(t => t.type === 'expense')} 
              categories={categories}
            />
            <IncomeExpenseChartCard chartData={incomeExpenseChartData} />
@@ -280,26 +408,32 @@ export default function DashboardPage() {
         searchTerm={searchTerm}
         selectedCategory={selectedCategory}
         selectedType={selectedType}
-        selectedMonth={selectedMonth}
         onDateChange={handleDateSelect}
         onSearchTermChange={setSearchTerm}
         onSelectedCategoryChange={setSelectedCategory}
         onSelectedTypeChange={setSelectedType}
-        onSetSelectedMonth={setSelectedMonth}
-        onCurrentPageChange={setCurrentPage}
+        onClearFilters={() => {
+          setSearchTerm("");
+          setSelectedType("all");
+          setSelectedCategory("all");
+          setDateRange(undefined);
+          setCurrentPage(1);
+        }}
+        isAnyFilterActive={searchTerm !== "" || selectedType !== "all" || selectedCategory !== "all" || dateRange?.from !== undefined}
+        currentCycleStartDate={cycleDateRange?.start}
       />
       
       <div>
         <TransactionList
           ref={paginationRef}
-          transactions={filteredTransactions}
+          transactions={filteredTransactionsForList}
           categories={categories}
           paymentMethods={paymentMethods}
           onEdit={handleEdit}
           onDelete={handleDelete}
           currentPage={currentPage}
-          onNextPage={handleNextPage}
-          onPreviousPage={handlePreviousPage}
+          onNextPage={() => setCurrentPage(p => p + 1)}
+          onPreviousPage={() => setCurrentPage(p => p - 1)}
           totalTransactionsCount={transactions.length}
         />
       </div>
@@ -307,10 +441,8 @@ export default function DashboardPage() {
       <DeleteConfirmationDialog
         isOpen={!!deletingTransaction}
         onClose={() => setDeletingTransaction(null)}
-        onConfirm={() => confirmDelete(false)}
-        onConfirmAll={() => confirmDelete(true)}
-        showInstallmentOptions={isInstallment}
-        description={isInstallment ? translations.areYouSureDeleteInstallment : translations.areYouSureDelete}
+        onConfirm={confirmDelete}
+        description={deleteDialogDescription}
       />
     </div>
 

@@ -401,7 +401,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
           />
         </div>
         
-        {showInstallments && !initialData?.id && (
+        {showInstallments && (
             <div className="space-y-4 rounded-lg border p-4 shadow-sm">
                 <FormField
                 control={form.control}
@@ -447,7 +447,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
         )}
 
         <div className="pt-2 flex flex-col md:flex-row md:justify-end gap-3">
-          {onSaveAndAddAnother && !initialData && (
+          {onSaveAndAddAnother && !initialData?.id && (
             <Button
               type="button"
               variant="secondary"

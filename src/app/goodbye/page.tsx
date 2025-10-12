@@ -9,6 +9,8 @@ import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import Link from "next/link";
 import { Heart, Share2, Home, Check } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function GoodbyePage() {
     const { translations } = useTranslations();
@@ -25,6 +27,13 @@ export default function GoodbyePage() {
     return (
         <BackgroundWrapper>
              <div className="flex min-h-screen flex-col">
+                <header className="flex items-center justify-end p-4">
+                    <div className="flex items-center space-x-2">
+                        <ThemeSwitcher />
+                        <LanguageSwitcher />
+                    </div>
+                </header>
+
                 <main className="flex-grow flex items-center justify-center p-4 text-center">
                     <Card className="w-full max-w-lg border-2 border-primary/50 shadow-2xl rounded-2xl bg-card/80 backdrop-blur-sm">
                         <CardHeader className="p-8">
@@ -32,6 +41,14 @@ export default function GoodbyePage() {
                                 <Heart className="h-16 w-16 text-primary animate-pulse" />
                             </div>
                             <CardTitle className="text-3xl">{translations.goodbyeTitle}</CardTitle>
+                             <h1 className="text-6xl font-extrabold -mt-2">
+                                <span style={{ background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)', WebkitBackgroundClip: 'text', color: 'transparent', textShadow: '0 2px 4px rgba(30, 58, 138, 0.4)', WebkitTextStroke: '1px rgba(0,0,0,0.1)' }}>
+                                    Finan
+                                </span>
+                                <span style={{ background: 'linear-gradient(135deg, #FBBF24, #FDE68A, #F59E0B)', WebkitBackgroundClip: 'text', color: 'transparent', textShadow: '0 2px 3px rgba(245, 158, 11, 0.5)', WebkitTextStroke: '1px rgba(245, 158, 11, 0.4)' }}>
+                                    Clan
+                                </span>
+                            </h1>
                             <CardDescription className="text-base text-muted-foreground pt-2">
                                 {translations.goodbyeMessage1}
                             </CardDescription>

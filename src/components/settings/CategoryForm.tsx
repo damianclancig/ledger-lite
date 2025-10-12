@@ -1,10 +1,9 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle, Trash2 } from "lucide-react";
+import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
 import type { Category, CategoryFormValues, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 
@@ -24,6 +27,9 @@ interface CategoryFormProps {
   onSubmit: (values: CategoryFormValues) => void;
   onClose: () => void;
   initialData?: Partial<Category>;
+  onDelete?: () => void;
+  isDeletable?: boolean;
+  inUseMessage?: string;
 }
 
 const getFormSchema = (translations: Translations) => z.object({
@@ -31,9 +37,17 @@ const getFormSchema = (translations: Translations) => z.object({
   isEnabled: z.boolean().default(true),
 });
 
-export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormProps) {
+export function CategoryForm({ 
+  onSubmit, 
+  onClose, 
+  initialData,
+  onDelete,
+  isDeletable,
+  inUseMessage,
+}: CategoryFormProps) {
   const { translations } = useTranslations();
   const formSchema = getFormSchema(translations);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(formSchema),
@@ -52,7 +66,19 @@ export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormPro
     });
   }, [initialData, form]);
 
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  }
+
+  const confirmDelete = () => {
+    if (onDelete) {
+      onDelete();
+    }
+    setIsDeleteDialogOpen(false);
+  }
+
   return (
+    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
@@ -93,5 +119,48 @@ export function CategoryForm({ onSubmit, onClose, initialData }: CategoryFormPro
         </div>
       </form>
     </Form>
+
+    {initialData && onDelete && (
+        <div className="mt-8">
+            <Separator />
+            <div className="mt-6">
+            {isDeletable ? (
+                <div className="rounded-lg border border-destructive p-4">
+                    <div className="flex items-start gap-4">
+                        <div className="text-destructive mt-1">
+                            <AlertTriangle className="h-5 w-5"/>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-destructive">{translations.dangerZone}</h3>
+                            <p className="text-sm text-destructive/90 mt-1 mb-3">{translations.deleteCategoryWarning}</p>
+                            <Button variant="destructive" onClick={handleDeleteClick}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {translations.deleteCategory}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <Alert variant="default" className="border-yellow-500/50 text-yellow-700 dark:border-yellow-500/50 dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-500">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle className="font-semibold">{translations.cannotDeleteCategoryTitle}</AlertTitle>
+                    <AlertDescription>
+                        {inUseMessage}
+                    </AlertDescription>
+                </Alert>
+            )}
+            </div>
+        </div>
+    )}
+     <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title={translations.deleteCategory}
+        description={translations.areYouSureDeleteCategory}
+        confirmButtonText={translations.delete}
+        confirmButtonVariant="destructive"
+      />
+    </>
   );
 }

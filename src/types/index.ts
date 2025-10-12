@@ -1,4 +1,3 @@
-
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -58,9 +57,10 @@ export interface Transaction {
   installments?: number;
   groupId?: string;
   savingsFundId?: string;
+  billingCycleId?: string;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId">;
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId">;
 
 
 // Tax types
@@ -96,6 +96,16 @@ export interface SavingsFund {
 
 export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "currentAmount">;
 
+
+// Billing Cycle types
+export interface BillingCycle {
+  id: string;
+  userId: string;
+  startDate: Date;
+  endDate?: Date;
+}
+
+
 export type Language = "en" | "es" | "pt";
 
 export const MONTHS = [
@@ -126,20 +136,18 @@ export interface Translations {
   confirmDelete: string;
   areYouSureDelete: string;
   areYouSureDeleteInstallment: string;
-  deleteAllInstallments: string;
-  deleteThisInstallment: string;
   totalIncome: string;
   totalExpenses: string;
   transactions: string;
   noTransactions: string;
   noTransactionsForFilters: string;
   filterByType: string;
-  filterByCategory: string;
   filterByDateRange: string;
   clearFilters: string;
   startDate: string;
   endDate: string;
   allCategories: string;
+  allCycles: string;
   allMonths: string;
   currentMonth: string;
   previousMonth: string;
@@ -187,7 +195,7 @@ export interface Translations {
   disabled: string;
   categoryAddedSuccess: string;
   categoryUpdatedSuccess: string;
-  categoryInUseError: string;
+  categoryExistsError: string;
   systemCategoryTooltip: string;
   // Validation messages
   descriptionRequired: string;
@@ -392,6 +400,19 @@ export interface Translations {
   savingsFundsIntroText1: string;
   savingsFundsIntroText2: string;
   savingsFundsIntroText3: string;
+  // Billing Cycles
+  welcomeTitle: string;
+  welcomeSubtitle: string;
+  welcomeDesc: string;
+  selectStartDate: string;
+  startFirstCycle: string;
+  starting: string;
+  startNewCycle: string;
+  confirmNewCycleTitle: string;
+  confirmNewCycleDesc: string;
+  confirmAndStart: string;
+  newCycleStartedTitle: string;
+  newCycleStartedDesc: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

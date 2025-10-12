@@ -42,6 +42,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // This logic is now handled in AuthProvider,
+    // but we keep a fallback just in case.
     if (!loading && user) {
       router.push("/dashboard");
     }

@@ -4,10 +4,9 @@
 import type { Transaction, TransactionType } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { TrendingUp, TrendingDown, DollarSign, Search } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { SeeDetailsButton } from '@/components/common/SeeDetailsButton';
 
 interface TotalsDisplayProps {
   transactions: Transaction[];
@@ -42,18 +41,7 @@ export function TotalsDisplay({ transactions, onSetSelectedType }: TotalsDisplay
             <TrendingUp className="h-5 w-5 text-green-500 mr-2" />
             {translations.totalIncome}
           </CardTitle>
-          <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary dark:text-accent" onClick={() => handleFilterClick('income')}>
-                        <Search className="h-5 w-5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>{translations.seeDetails}</p>
-                </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <SeeDetailsButton onClick={() => handleFilterClick('income')} />
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold text-center text-green-600 dark:text-green-400 font-mono">
@@ -67,18 +55,7 @@ export function TotalsDisplay({ transactions, onSetSelectedType }: TotalsDisplay
             <TrendingDown className="h-5 w-5 text-red-500 mr-2" />
             {translations.totalExpenses}
           </CardTitle>
-           <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary dark:text-accent" onClick={() => handleFilterClick('expense')}>
-                        <Search className="h-5 w-5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>{translations.seeDetails}</p>
-                </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+           <SeeDetailsButton onClick={() => handleFilterClick('expense')} />
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold text-center text-red-600 dark:text-red-400 font-mono">

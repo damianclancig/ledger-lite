@@ -10,7 +10,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransactionTypeToggle } from '@/components/transactions/TransactionTypeToggle';
 import { Filter, CalendarIcon, Search, XCircle } from 'lucide-react';
-import { format, isSameMonth } from 'date-fns';
+import { format } from 'date-fns';
+import { es, pt, enUS } from "date-fns/locale";
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslations } from '@/contexts/LanguageContext';
@@ -22,13 +23,13 @@ interface FiltersCardProps {
   searchTerm: string;
   selectedCategory: string | 'all';
   selectedType: TransactionType | 'all';
-  selectedMonth: Date | null;
   onDateChange: (range: DateRange | undefined) => void;
   onSearchTermChange: (term: string) => void;
   onSelectedCategoryChange: (category: string | 'all') => void;
   onSelectedTypeChange: (type: TransactionType | 'all') => void;
-  onSetSelectedMonth: (month: Date | null) => void;
-  onCurrentPageChange: (page: number) => void;
+  onClearFilters: () => void;
+  isAnyFilterActive: boolean;
+  currentCycleStartDate?: Date;
 }
 
 export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
@@ -37,35 +38,19 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   searchTerm,
   selectedCategory,
   selectedType,
-  selectedMonth,
   onDateChange,
   onSearchTermChange,
   onSelectedCategoryChange,
   onSelectedTypeChange,
-  onSetSelectedMonth,
-  onCurrentPageChange,
+  onClearFilters,
+  isAnyFilterActive,
+  currentCycleStartDate,
 }, ref) => {
   const { translations, language, translateCategory } = useTranslations();
   const isMobile = useIsMobile();
   
-  const isAnyFilterActive = useMemo(() => {
-    return (
-      searchTerm !== "" ||
-      selectedType !== "all" ||
-      selectedCategory !== "all" ||
-      dateRange?.from !== undefined ||
-      (selectedMonth !== null && !isSameMonth(selectedMonth, new Date()))
-    );
-  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedMonth]);
-
-  const clearFilters = () => {
-    onSearchTermChange("");
-    onSelectedTypeChange("all");
-    onSelectedCategoryChange("all");
-    onDateChange(undefined);
-    onSetSelectedMonth(new Date());
-    onCurrentPageChange(1);
-  };
+  const locales = { en: enUS, es, pt };
+  const currentLocale = locales[language] || enUS;
   
   const getCategoryDisplay = (cat: Category) => {
     if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
@@ -85,7 +70,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             </CardTitle>
             <Button
               variant="link"
-              onClick={clearFilters}
+              onClick={onClearFilters}
               className={cn(
                 "hidden md:flex text-base text-muted-foreground hover:text-primary p-0 h-auto justify-start transition-opacity duration-300",
                 isAnyFilterActive ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -117,7 +102,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             onValueChange={(value: string) => onSelectedCategoryChange(value as string | "all")}
           >
             <SelectTrigger className="text-base">
-              <SelectValue placeholder={translations.filterByCategory} />
+              <SelectValue placeholder={translations.category} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{translations.allCategories}</SelectItem>
@@ -141,14 +126,14 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                   {dateRange?.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                        {format(dateRange.to, "LLL dd, y")}
+                        {format(dateRange.from, "PP", { locale: currentLocale })} -{" "}
+                        {format(dateRange.to, "PP", { locale: currentLocale })}
                       </>
                     ) : (
-                      format(dateRange.from, "LLL dd, y")
+                      format(dateRange.from, "PP", { locale: currentLocale })
                     )
                   ) : (
-                    <span>{translations.filterByDateRange}</span>
+                    <span>{translations.dateRange}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -157,11 +142,12 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                 <Calendar
                   initialFocus
                   mode="range"
-                  month={selectedMonth || new Date()}
+                  locale={currentLocale}
+                  month={currentCycleStartDate}
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={onDateChange}
-                  numberOfMonths={1}
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
@@ -169,7 +155,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
           {isMobile && isAnyFilterActive && (
               <Button
                 variant="outline"
-                onClick={clearFilters}
+                onClick={onClearFilters}
                 className="w-full md:hidden"
               >
                 <XCircle className="mr-2 h-4 w-4" />

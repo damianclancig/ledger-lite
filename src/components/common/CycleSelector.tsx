@@ -15,9 +15,11 @@ interface CycleSelectorProps {
   onSelectCycle: (cycle: BillingCycle | null) => void;
 }
 
+const ALL_CYCLES_ID = "all";
+
 export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSelectorProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { language } = useTranslations();
+  const { language, translations } = useTranslations();
   const [showGradient, setShowGradient] = useState(false);
   const cycleRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
@@ -25,6 +27,9 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
   const currentLocale = locales[language] || enUS;
   
   const getCycleLabel = (cycle: BillingCycle) => {
+    if (cycle.id === ALL_CYCLES_ID) {
+      return translations.allCycles || "All Cycles";
+    }
     const startDate = new Date(cycle.startDate);
 
     if (!cycle.endDate) {
@@ -40,7 +45,6 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     const end = format(endDate, "dd MMM ''yy", { locale: currentLocale });
     return `${start} - ${end}`;
   };
-
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -112,8 +116,3 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     </div>
   );
 }
-
-// Rename component in file to avoid breaking changes
-export { CycleSelector as MonthSelector };
-
-    

@@ -1,6 +1,6 @@
 import { MongoClient, type WithId, type Document } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
-import type { Transaction, Tax, Category, PaymentMethod, SavingsFund } from '@/types';
+import type { Transaction, Tax, Category, PaymentMethod, SavingsFund, BillingCycle } from '@/types';
 
 // Helper function to get the database and collection
 export async function getDb() {
@@ -13,6 +13,7 @@ export async function getDb() {
     categoriesCollection: db.collection('categories'),
     paymentMethodsCollection: db.collection('paymentMethods'),
     savingsFundsCollection: db.collection('savingsFunds'),
+    billingCyclesCollection: db.collection('billingCycles'),
   };
 }
 
@@ -59,3 +60,13 @@ export function mapMongoDocumentSavingsFund(doc: WithId<Document>): SavingsFund 
     ...rest
   } as SavingsFund;
 }
+
+export function mapMongoDocumentBillingCycle(doc: WithId<Document>): BillingCycle {
+    const { _id, startDate, endDate, ...rest } = doc;
+    return {
+      id: _id.toString(),
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      ...rest
+    } as BillingCycle;
+  }

@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
 import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail } from '@/types';
 import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
+import { getCurrentBillingCycle } from './billingCycleActions';
 
 export async function getTransactions(userId: string): Promise<Transaction[]> {
   if (!userId) return [];
@@ -38,26 +39,34 @@ export async function addTransaction(data: TransactionFormValues, userId: string
   try {
     const { transactionsCollection } = await getDb();
     const { installments, ...transactionData } = data;
+    
+    // Get current billing cycle
+    const currentCycle = await getCurrentBillingCycle(userId);
+
+    const baseTransaction = {
+      ...transactionData,
+      userId,
+      billingCycleId: currentCycle?.id,
+    };
 
     if (installments && installments > 1) {
-      const installmentAmount = transactionData.amount / installments;
-      const originalDate = new Date(transactionData.date);
+      const installmentAmount = baseTransaction.amount / installments;
+      const originalDate = new Date(baseTransaction.date);
       const transactionsToInsert = [];
       const groupId = new ObjectId(); // Create a unique ID for this group of installments
 
       for (let i = 0; i < installments; i++) {
         transactionsToInsert.push({
-          ...transactionData,
+          ...baseTransaction,
           amount: installmentAmount,
           date: addMonths(originalDate, i),
-          description: `${transactionData.description} (Cuota ${i + 1}/${installments})`,
-          userId,
+          description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
           groupId: groupId.toString(),
         });
       }
       await transactionsCollection.insertMany(transactionsToInsert);
     } else {
-      const documentToInsert = { ...transactionData, date: new Date(transactionData.date), userId };
+      const documentToInsert = { ...baseTransaction, date: new Date(baseTransaction.date) };
       await transactionsCollection.insertOne(documentToInsert);
     }
     
@@ -116,7 +125,7 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
   }
 }
 
-export async function deleteTransaction(id: string, userId: string, deleteAllInstallments: boolean = false): Promise<{ success: boolean; error?: string }> {
+export async function deleteTransaction(id: string, userId: string): Promise<{ success: boolean; error?: string; deletedGroupId?: string }> {
     if (!ObjectId.isValid(id)) {
       return { success: false, error: 'Invalid transaction ID.' };
     }
@@ -129,14 +138,13 @@ export async function deleteTransaction(id: string, userId: string, deleteAllIns
       if (!transactionToDelete) {
         return { success: false, error: 'Transaction not found or you do not have permission to delete it.' };
       }
-  
-      if (deleteAllInstallments && transactionToDelete.groupId) {
-        // Delete all transactions with the same groupId
-        const result = await transactionsCollection.deleteMany({ userId, groupId: transactionToDelete.groupId });
-        if (result.deletedCount === 0) {
-            // Fallback to deleting just the one if group deletion somehow fails
-            await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId });
-        }
+      
+      let deletedGroupId: string | undefined = undefined;
+
+      if (transactionToDelete.groupId) {
+        // If it's an installment, delete all transactions with the same groupId
+        deletedGroupId = transactionToDelete.groupId;
+        await transactionsCollection.deleteMany({ userId, groupId: transactionToDelete.groupId });
       } else {
         // Delete only the single transaction
         await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId });
@@ -144,7 +152,7 @@ export async function deleteTransaction(id: string, userId: string, deleteAllIns
   
       revalidateTag(`transactions_${userId}`);
       revalidateTag(`savingsFunds_${userId}`);
-      return { success: true };
+      return { success: true, deletedGroupId };
     } catch (error) {
       console.error('Error deleting transaction(s):', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -352,4 +360,102 @@ export async function markTaxAsPaid(taxId: string, transactionId: string, userId
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       return { success: false, error: `Failed to update tax record. ${errorMessage}` };
     }
-  }
+}
+
+export async function getInstallmentPurchaseByGroupId(groupId: string, userId: string): Promise<Partial<Transaction> | null> {
+    if (!groupId || !userId) {
+      return null;
+    }
+    try {
+      const { transactionsCollection } = await getDb();
+      const groupTransactions = await transactionsCollection.find({ userId, groupId }).toArray();
+  
+      if (groupTransactions.length === 0) {
+        return null;
+      }
+  
+      // Sort by date to get the first installment
+      groupTransactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const firstInstallment = groupTransactions[0];
+      const totalAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const totalInstallments = groupTransactions.length;
+      const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+      const baseDescriptionMatch = firstInstallment.description.match(installmentRegex);
+      const baseDescription = baseDescriptionMatch ? baseDescriptionMatch[1].trim() : firstInstallment.description;
+  
+      return {
+        id: firstInstallment._id.toString(), // For key prop
+        groupId,
+        description: baseDescription,
+        amount: totalAmount,
+        date: new Date(firstInstallment.date),
+        categoryId: firstInstallment.categoryId,
+        type: 'expense',
+        paymentMethodId: firstInstallment.paymentMethodId,
+        installments: totalInstallments,
+      };
+    } catch (error) {
+      console.error('Error fetching installment purchase by group ID:', error);
+      return null;
+    }
+}
+  
+export async function updateInstallmentPurchase(groupId: string, data: TransactionFormValues, userId: string): Promise<{ success: boolean; error?: string }> {
+    if (!groupId || !userId) {
+        return { success: false, error: 'Invalid data for update.' };
+    }
+    try {
+        const { transactionsCollection } = await getDb();
+
+        // 1. Delete all existing transactions for this groupId
+        await transactionsCollection.deleteMany({ userId, groupId });
+        
+        // 2. Add new transactions based on the updated data
+        const { installments, ...transactionData } = data;
+        const currentCycle = await getCurrentBillingCycle(userId);
+        const baseTransaction = {
+            ...transactionData,
+            userId,
+            billingCycleId: currentCycle?.id,
+        };
+
+        if (installments && installments > 1) {
+            const installmentAmount = baseTransaction.amount / installments;
+            const originalDate = new Date(baseTransaction.date);
+            const transactionsToInsert = [];
+            const newGroupId = new ObjectId(groupId); // Use existing group ID
+
+            for (let i = 0; i < installments; i++) {
+                transactionsToInsert.push({
+                    ...baseTransaction,
+                    amount: installmentAmount,
+                    date: addMonths(originalDate, i),
+                    description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
+                    groupId: newGroupId.toString(),
+                });
+            }
+            await transactionsCollection.insertMany(transactionsToInsert);
+        } else {
+            // This case should ideally not happen if we are editing an installment purchase,
+            // but handle it just in case.
+            await transactionsCollection.insertOne({ 
+                ...baseTransaction, 
+                date: new Date(baseTransaction.date),
+                // No groupId or installments here
+            });
+        }
+        
+        revalidateTag(`transactions_${userId}`);
+        revalidateTag(`installmentDetails_${userId}`);
+        return { success: true };
+
+    } catch (error) {
+        console.error('Error updating installment purchase:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return { success: false, error: `Failed to update purchase. ${errorMessage}` };
+    }
+}
+    
+
+    
