@@ -329,9 +329,9 @@ export default function DashboardPage() {
             </div>
             <Dialog open={isNewCycleDialogOpen} onOpenChange={setIsNewCycleDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" className="border-primary border-2">
-                        <Rocket className="mr-2 h-4 w-4" />
-                        {translations.startNewCycle}
+                    <Button variant="outline" className="border-primary border-2 h-10 px-2 sm:px-4">
+                        <Rocket className="h-5 w-5 sm:mr-2" />
+                        <span className="hidden sm:inline">{translations.startNewCycle}</span>
                     </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -353,7 +353,7 @@ export default function DashboardPage() {
                             )}
                             >
                             <CalendarIcon className="mr-2 h-5 w-5" />
-                            {newCycleStartDate ? format(newCycleStartDate, "PPP", { locale: currentLocale }) : <span>{translations.date}</span>}
+                            {newCycleStartDate ? format(newCycleStartDate, "PP", { locale: currentLocale }) : <span>{translations.date}</span>}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
