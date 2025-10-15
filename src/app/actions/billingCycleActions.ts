@@ -1,9 +1,10 @@
+
 'use server';
 
 import { revalidateTag } from 'next/cache';
 import { getDb, mapMongoDocumentBillingCycle } from '@/lib/actions-helpers';
 import type { BillingCycle } from '@/types';
-import { subSeconds } from 'date-fns';
+import { subSeconds, startOfDay, endOfDay, subDays } from 'date-fns';
 
 export async function getBillingCycles(userId: string): Promise<BillingCycle[]> {
   if (!userId) return [];
@@ -29,12 +30,14 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
         const cyclesToClose = activeCycles.slice(1);
 
         for (const cycleToClose of cyclesToClose) {
+          const endDateForOldCycle = subSeconds(new Date(mostRecentCycle.startDate), 1);
           await billingCyclesCollection.updateOne(
             { _id: cycleToClose._id },
-            { $set: { endDate: subSeconds(new Date(mostRecentCycle.startDate), 1) } }
+            { $set: { endDate: endDateForOldCycle } }
           );
         }
         revalidateTag(`billingCycles_${userId}`);
+        // The most recent cycle is still active, return it
         return mapMongoDocumentBillingCycle(mostRecentCycle);
 
       } else if (activeCycles.length === 1) {
@@ -61,25 +64,24 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
 export async function startNewCycle(userId: string, startDate?: Date): Promise<BillingCycle | { error: string }> {
     if (!userId) return { error: 'User not authenticated.' };
     
-    const newCycleDate = startDate ? new Date(startDate) : new Date();
+    const newCycleDate = startDate ? startOfDay(new Date(startDate)) : startOfDay(new Date());
 
     try {
         const { billingCyclesCollection } = await getDb();
 
-        const currentCycles = await billingCyclesCollection.find({ userId, endDate: { $exists: false } }).toArray();
+        // Find the current active cycle (the one without an end date)
+        const currentActiveCycle = await billingCyclesCollection.findOne({ userId, endDate: { $exists: false } });
 
-        if (currentCycles.length > 0) {
-            for (const cycle of currentCycles) {
-                // Ensure the old cycle's end date is before the new cycle's start date
-                const endDateForOldCycle = subSeconds(newCycleDate, 1);
-                if (new Date(cycle.startDate) >= endDateForOldCycle) {
-                   return { error: 'The new cycle start date must be after the previous cycle\'s start date.' };
-                }
-                await billingCyclesCollection.updateOne(
-                    { _id: cycle._id },
-                    { $set: { endDate: endDateForOldCycle } }
-                );
+        if (currentActiveCycle) {
+            const endDateForOldCycle = endOfDay(subDays(newCycleDate, 1));
+            if (new Date(currentActiveCycle.startDate) >= endDateForOldCycle) {
+                return { error: 'The new cycle start date must be after the previous cycle\'s start date.' };
             }
+            // Close the previous cycle
+            await billingCyclesCollection.updateOne(
+                { _id: currentActiveCycle._id },
+                { $set: { endDate: endDateForOldCycle } }
+            );
         }
 
         const newCycleDocument = {

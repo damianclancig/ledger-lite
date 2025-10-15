@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter } from 'next/navigation';
 import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund, BillingCycle } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
-import { LayoutDashboard, Rocket, Plus } from "lucide-react";
+import { LayoutDashboard, Plus } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
@@ -22,10 +22,11 @@ import { TotalsDisplay } from "@/components/transactions/TotalsDisplay";
 import { FiltersCard } from "@/components/dashboard/cards/FiltersCard";
 import { ExpensesChartCard } from "@/components/dashboard/cards/ExpensesChartCard";
 import { IncomeExpenseChartCard } from "@/components/dashboard/cards/IncomeExpenseChartCard";
+import { DailyExpensesCard } from "@/components/dashboard/cards/DailyExpensesCard";
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
-import { format } from "date-fns";
+import { isToday, isYesterday, startOfToday, subDays } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -254,6 +255,30 @@ export default function DashboardPage() {
     ];
   }, [transactionsForCycle, billingCycles, selectedCycle, translations, transactions]);
 
+  const dailyExpensesData = useMemo(() => {
+    const todayExpenses = transactionsForCycle
+        .filter(t => t.type === 'expense' && isToday(t.date))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const yesterdayExpenses = transactionsForCycle
+        .filter(t => t.type === 'expense' && isYesterday(t.date))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    return [
+        { name: translations.yesterday, amount: yesterdayExpenses },
+        { name: translations.today, amount: todayExpenses },
+    ];
+  }, [transactionsForCycle, translations]);
+
+  const handleSeeDailyExpenses = () => {
+    const today = startOfToday();
+    const yesterday = subDays(today, 1);
+    setDateRange({ from: yesterday, to: today });
+    setSelectedType('expense');
+    filterCardRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+
   const allCyclesWithVirtualOption: BillingCycle[] = useMemo(() => {
     const allCyclesOption: BillingCycle = {
       id: ALL_CYCLES_ID,
@@ -315,6 +340,12 @@ export default function DashboardPage() {
            />
            <IncomeExpenseChartCard chartData={incomeExpenseChartData} />
            <SavingsFundsCard funds={savingsFunds} />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+                <DailyExpensesCard data={dailyExpensesData} onSeeDetails={handleSeeDailyExpenses} />
+            </div>
         </div>
         
         <div className="grid grid-cols-1 gap-8">

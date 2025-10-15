@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Adicionar Transação",
@@ -138,6 +139,9 @@
   "errorTitle": "Erro",
   "expensesByCategory": "Despesas por Categoria",
   "incomeVsExpense": "Receitas vs. Despesas",
+  "dailyExpenses": "Despesas Diárias",
+  "today": "Hoje",
+  "yesterday": "Ontem",
   "installmentProjection": "Projeção de Parcelas",
   "seeDetails": "Ver Detalhes",
   "managePaymentMethods": "Métodos de Pagamento",
@@ -272,7 +276,7 @@
   "startNewCycle": "Iniciar Novo Ciclo",
   "confirmNewCycleTitle": "Confirmar Novo Ciclo",
   "confirmNewCycleDesc": "Selecione uma data de início para o novo ciclo. O ciclo anterior será fechado automaticamente no dia anterior.",
-  "currentCycleStartsOn": "Seu ciclo atual começou em",
+  "currentCycleStartedOn": "Seu ciclo atual começou em",
   "confirmAndStart": "Confirmar e Iniciar",
   "newCycleStartedTitle": "Novo ciclo iniciado",
   "newCycleStartedDesc": "Seu novo ciclo de faturamento começou.",
@@ -282,5 +286,7 @@
   "cannotDeleteCategoryTitle": "Não é possível excluir a categoria",
   "categoryInUseError": "Esta categoria não pode ser excluída porque está sendo usada por uma ou mais transações.",
   "categoryDeletedSuccess": "Categoria excluída com sucesso.",
-  "resultsPerPage": "Resultados por página:"
+  "resultsPerPage": "Resultados por página:",
+  "current": "Atual"
 }
+

@@ -12,8 +12,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { loading, user } = useAuth();
   
-  const publicPagesWithLayout = ['/', '/terms'];
-  const pagesWithOwnLayout = ['/goodbye', '/welcome', '/login'];
+  const publicPagesWithLayout = ['/terms'];
+  const pagesWithOwnLayout = ['/', '/goodbye', '/welcome', '/login'];
   
   const isPublicPageWithLayout = publicPagesWithLayout.includes(pathname);
   const hasOwnLayout = pagesWithOwnLayout.includes(pathname);

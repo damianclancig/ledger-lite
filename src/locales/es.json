@@ -1,3 +1,4 @@
+
 {
   "appName": "FinanClan",
   "addTransaction": "Añadir Transacción",
@@ -138,6 +139,9 @@
   "errorTitle": "Error",
   "expensesByCategory": "Gastos por Categoría",
   "incomeVsExpense": "Ingresos vs Gastos",
+  "dailyExpenses": "Gastos Diarios",
+  "today": "Hoy",
+  "yesterday": "Ayer",
   "installmentProjection": "Proyección de Cuotas",
   "seeDetails": "Ver Detalle",
   "managePaymentMethods": "Métodos de Pago",
@@ -186,7 +190,7 @@
   "dangerZone": "Zona de Peligro",
   "deleteAccount": "Eliminar Cuenta",
   "deleteAccountWarning": "Esta acción es irreversible. Todos tus datos, incluyendo transacciones, categorías e impuestos, serán eliminados permanentemente. Esta acción no se puede deshacer.",
-  "deleteAccountConfirmation": "¿Estás absolutamente seguro de que quieres eliminar tu cuenta?",
+  "deleteAccountConfirmation": "¿Estás absolutely seguro de que quieres eliminar tu cuenta?",
   "deleteAccountInputPrompt": "Para confirmar, por favor escribe la palabra de confirmación a continuación.",
   "deleteAccountConfirmationWord": "ELIMINAR",
   "goodbyeTitle": "¡Te extrañaremos!",
@@ -272,7 +276,7 @@
   "startNewCycle": "Iniciar Nuevo Ciclo",
   "confirmNewCycleTitle": "Confirmar Nuevo Ciclo",
   "confirmNewCycleDesc": "Selecciona una fecha de inicio para el nuevo ciclo. El ciclo anterior se cerrará automáticamente el día anterior.",
-  "currentCycleStartsOn": "Tu ciclo actual comenzó el",
+  "currentCycleStartedOn": "Tu ciclo actual comenzó el",
   "confirmAndStart": "Confirmar e Iniciar",
   "newCycleStartedTitle": "Nuevo ciclo iniciado",
   "newCycleStartedDesc": "Tu nuevo ciclo de facturación ha comenzado.",
@@ -282,5 +286,7 @@
   "cannotDeleteCategoryTitle": "No se puede eliminar la categoría",
   "categoryInUseError": "Esta categoría no se puede eliminar porque está siendo utilizada por una o más transacciones.",
   "categoryDeletedSuccess": "Categoría eliminada con éxito.",
-  "resultsPerPage": "Resultados por página:"
+  "resultsPerPage": "Resultados por página:",
+  "current": "Actual"
 }
+

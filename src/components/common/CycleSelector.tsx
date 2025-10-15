@@ -33,7 +33,8 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     const startDate = new Date(cycle.startDate);
 
     if (!cycle.endDate) {
-      return "Ciclo Actual";
+      const start = format(startDate, "dd MMM ''yy", { locale: currentLocale });
+      return `${start} - ${translations.current || 'Current'}`;
     }
     const endDate = new Date(cycle.endDate);
 
