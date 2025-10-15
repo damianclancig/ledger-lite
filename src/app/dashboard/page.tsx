@@ -49,12 +49,13 @@ export default function DashboardPage() {
   const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
   
-  // Filters
+  // Filters & Pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const wasLoadingRef = useRef(true);
   const prevPageRef = useRef(currentPage);
 
@@ -214,7 +215,7 @@ export default function DashboardPage() {
     if (!sessionStorage.getItem('editedTransactionId')) {
         setCurrentPage(1);
     }
-  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedCycle]);
+  }, [searchTerm, selectedType, selectedCategory, dateRange, selectedCycle, itemsPerPage]);
 
    const handleDateSelect = (range: DateRange | undefined) => {
     setDateRange(range);
@@ -353,7 +354,8 @@ export default function DashboardPage() {
           currentPage={currentPage}
           onNextPage={() => setCurrentPage(p => p + 1)}
           onPreviousPage={() => setCurrentPage(p => p - 1)}
-          totalTransactionsCount={transactions.length}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       </div>
 

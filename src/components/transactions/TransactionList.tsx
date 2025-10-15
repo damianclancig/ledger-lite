@@ -21,6 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
 import { formatCurrency } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -28,11 +29,11 @@ interface TransactionListProps {
   paymentMethods: PaymentMethod[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
-  itemsPerPage?: number;
+  itemsPerPage: number;
+  onItemsPerPageChange: (value: number) => void;
   currentPage: number;
   onNextPage: () => void;
   onPreviousPage: () => void;
-  totalTransactionsCount: number;
 }
 
 export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListProps>(
@@ -42,11 +43,11 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
     paymentMethods,
     onEdit,
     onDelete,
-    itemsPerPage = 10,
+    itemsPerPage,
+    onItemsPerPageChange,
     currentPage,
     onNextPage,
     onPreviousPage,
-    totalTransactionsCount,
   }, ref) => {
     const { translations, language, translateCategory } = useTranslations();
     const isMobile = useIsMobile();
@@ -82,11 +83,55 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
         <div className="text-center py-10 text-muted-foreground">
           <ListTree className="mx-auto h-12 w-12 mb-4" />
           <p className="text-lg">
-            {totalTransactionsCount > 0 ? translations.noTransactionsForFilters : translations.noTransactions}
+            {transactions.length > 0 ? translations.noTransactionsForFilters : translations.noTransactions}
           </p>
         </div>
       );
     }
+
+    const renderPagination = () => (
+      <div ref={ref} className="flex items-center justify-end space-x-2 sm:space-x-4 py-4 scroll-mt-24">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {translations.resultsPerPage}
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => onItemsPerPageChange(Number(value))}
+          >
+            <SelectTrigger className="inline-flex w-auto h-8 ml-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 50, 100].map(size => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {translations.page} {currentPage} {translations.of} {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPreviousPage}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">{translations.previous}</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onNextPage}
+          disabled={currentPage === totalPages}
+        >
+          <span className="hidden sm:inline">{translations.next}</span>
+          <ChevronRight className="h-4 w-4 sm:ml-1" />
+        </Button>
+      </div>
+    );
 
     if (isMobile) {
       return (
@@ -141,31 +186,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
             </CardContent>
           </Card>
           
-          {totalPages > 1 && (
-            <div ref={ref} className="flex items-center justify-end space-x-2 py-4 scroll-mt-24">
-              <span className="text-sm text-muted-foreground">
-                {translations.page} {currentPage} {translations.of} {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onPreviousPage}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                {translations.previous}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onNextPage}
-                disabled={currentPage === totalPages}
-              >
-                {translations.next}
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-          )}
+          {transactions.length > 10 && renderPagination()}
         </div>
       );
     }
@@ -221,31 +242,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
         </Table>
         </CardContent>
         </Card>
-        {totalPages > 1 && (
-          <div ref={ref} className="flex items-center justify-end space-x-2 py-4 scroll-mt-24">
-            <span className="text-sm text-muted-foreground">
-              {translations.page} {currentPage} {translations.of} {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onPreviousPage}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              {translations.previous}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNextPage}
-              disabled={currentPage === totalPages}
-            >
-              {translations.next}
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        )}
+        {transactions.length > 10 && renderPagination()}
       </div>
     );
   }

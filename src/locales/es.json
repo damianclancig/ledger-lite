@@ -281,5 +281,6 @@
   "deleteCategoryWarning": "Esta categoría no tiene transacciones asociadas. Puedes eliminarla de forma segura.",
   "cannotDeleteCategoryTitle": "No se puede eliminar la categoría",
   "categoryInUseError": "Esta categoría no se puede eliminar porque está siendo utilizada por una o más transacciones.",
-  "categoryDeletedSuccess": "Categoría eliminada con éxito."
+  "categoryDeletedSuccess": "Categoría eliminada con éxito.",
+  "resultsPerPage": "Resultados por página:"
 }

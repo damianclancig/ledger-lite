@@ -39,7 +39,7 @@
   "page": "Page",
   "of": "of",
   "next": "Next",
-  "previous": "Anterior",
+  "previous": "Previous",
   "selectLanguage": "Select Language",
   "english": "English",
   "spanish": "Spanish",
@@ -281,5 +281,6 @@
   "deleteCategoryWarning": "This category has no associated transactions. You can delete it safely.",
   "cannotDeleteCategoryTitle": "Cannot Delete Category",
   "categoryInUseError": "This category cannot be deleted because it is being used by one or more transactions.",
-  "categoryDeletedSuccess": "Category successfully deleted."
+  "categoryDeletedSuccess": "Category successfully deleted.",
+  "resultsPerPage": "Results per page:"
 }
