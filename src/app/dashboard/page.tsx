@@ -12,7 +12,7 @@ import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/
 import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { getSavingsFunds } from "@/app/actions/savingsFundActions";
-import { getCurrentBillingCycle, getBillingCycles } from "@/app/actions/billingCycleActions";
+import { getCurrentBillingCycle, getBillingCycles, startNewCycle } from "@/app/actions/billingCycleActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { CycleSelector } from "@/components/common/CycleSelector";
@@ -26,7 +26,7 @@ import { DailyExpensesCard } from "@/components/dashboard/cards/DailyExpensesCar
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
-import { isToday, isYesterday, startOfToday, subDays } from "date-fns";
+import { isToday, isYesterday, startOfToday, subDays, startOfDay } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -121,7 +121,17 @@ export default function DashboardPage() {
       setInstallmentProjection(projectionData);
       setSavingsFunds(fundsData);
       setBillingCycles(allCycles);
-      setSelectedCycle(currentCycle);
+
+      const savedCycleId = sessionStorage.getItem('selectedCycleId');
+      const savedCycle = savedCycleId ? allCycles.find(c => c.id === savedCycleId) : null;
+      
+      if (savedCycle) {
+        setSelectedCycle(savedCycle);
+      } else {
+        setSelectedCycle(currentCycle);
+        sessionStorage.setItem('selectedCycleId', currentCycle.id);
+      }
+
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
       toast({ title: translations.errorTitle, description: "Could not load dashboard data.", variant: "destructive" });
@@ -146,6 +156,26 @@ export default function DashboardPage() {
     }
     prevPageRef.current = currentPage;
   }, [currentPage]);
+  
+  const handleSelectCycle = (cycle: BillingCycle | null) => {
+    if (cycle) {
+      setSelectedCycle(cycle);
+      sessionStorage.setItem('selectedCycleId', cycle.id);
+    }
+  };
+
+  const handleStartNewCycle = async (startDate: Date) => {
+    if (!user) return;
+    const result = await startNewCycle(user.uid, startOfDay(startDate));
+    if ('error' in result) {
+        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+    } else {
+        toast({ title: translations.newCycleStartedTitle, description: translations.newCycleStartedDesc });
+        sessionStorage.removeItem('selectedCycleId'); // Clear saved cycle to default to new current one
+        loadAllData();
+    }
+  }
+
 
   const handleEdit = (transaction: Transaction) => {
     sessionStorage.setItem('editedTransactionId', transaction.id);
@@ -285,7 +315,7 @@ export default function DashboardPage() {
       userId: user?.uid || '',
       startDate: new Date(0), // Doesn't really matter
     };
-    return [allCyclesOption, ...billingCycles];
+    return [...billingCycles, allCyclesOption];
   }, [billingCycles, user]);
 
   if (isLoading) {
@@ -318,14 +348,14 @@ export default function DashboardPage() {
             </div>
             <NewCycleDialog 
               selectedCycle={selectedCycle}
-              onCycleStarted={loadAllData}
+              onCycleStarted={handleStartNewCycle}
             />
         </div>
 
        <CycleSelector 
          cycles={allCyclesWithVirtualOption}
          selectedCycle={selectedCycle}
-         onSelectCycle={setSelectedCycle}
+         onSelectCycle={handleSelectCycle}
        />
 
         <TotalsDisplay 

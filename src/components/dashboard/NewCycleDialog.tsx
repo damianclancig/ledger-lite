@@ -2,10 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { startNewCycle } from "@/app/actions/billingCycleActions";
 import type { BillingCycle } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,19 +18,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Rocket, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { subDays, startOfDay, format } from "date-fns";
+import { subDays, format } from "date-fns";
 import { es, pt, enUS } from "date-fns/locale";
 
 interface NewCycleDialogProps {
     selectedCycle: BillingCycle | null;
-    onCycleStarted: () => void;
+    onCycleStarted: (startDate: Date) => void;
 }
 
 const ALL_CYCLES_ID = "all";
 
 export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialogProps) {
-    const { user } = useAuth();
-    const { toast } = useToast();
     const { translations, language } = useTranslations();
     const [isStartingNewCycle, setIsStartingNewCycle] = useState(false);
     const [newCycleStartDate, setNewCycleStartDate] = useState<Date | undefined>(new Date());
@@ -43,18 +38,10 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
     const currentLocale = locales[language] || enUS;
     
     const handleStartNewCycle = async () => {
-        if (!user || !newCycleStartDate) {
-          toast({ title: translations.errorTitle, description: translations.dateRequired, variant: "destructive" });
-          return;
-        };
+        if (!newCycleStartDate) return;
+        
         setIsStartingNewCycle(true);
-        const result = await startNewCycle(user.uid, startOfDay(newCycleStartDate));
-        if ('error' in result) {
-          toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
-        } else {
-          toast({ title: translations.newCycleStartedTitle, description: translations.newCycleStartedDesc });
-          onCycleStarted();
-        }
+        await onCycleStarted(newCycleStartDate);
         setIsStartingNewCycle(false);
         setIsNewCycleDialogOpen(false);
         setNewCycleStartDate(new Date());
@@ -74,9 +61,9 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
                 <DialogDescription asChild>
                     <div className="text-base space-y-2">
                         <span>{translations.confirmNewCycleDesc}</span>
-                        {selectedCycle && selectedCycle.id !== ALL_CYCLES_ID && (
+                        {selectedCycle && selectedCycle.id !== ALL_CYCLES_ID && !selectedCycle.endDate && (
                             <div className="text-sm text-muted-foreground">
-                                {translations.currentCycleStartsOn}{' '}
+                                {translations.currentCycleStartedOn}{' '}
                                 <span className="font-semibold">{format(new Date(selectedCycle.startDate), 'PP', { locale: currentLocale })}</span>.
                             </div>
                         )}
@@ -103,7 +90,12 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
                             mode="single"
                             selected={newCycleStartDate}
                             onSelect={setNewCycleStartDate}
-                            disabled={(date) => date > new Date() || date < subDays(new Date(), 30)}
+                            disabled={(date) => {
+                                const cycleStartDate = selectedCycle && selectedCycle.id !== ALL_CYCLES_ID && !selectedCycle.endDate 
+                                    ? new Date(selectedCycle.startDate)
+                                    : subDays(new Date(), 30);
+                                return date > new Date() || date <= cycleStartDate;
+                            }}
                             initialFocus
                         />
                     </PopoverContent>
