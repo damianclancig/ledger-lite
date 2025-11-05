@@ -4,10 +4,12 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { format, isSameDay } from "date-fns";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { es, pt, enUS } from 'date-fns/locale';
 import type { BillingCycle } from "@/types";
+import { format, isSameDay } from "date-fns";
+import { es, pt, enUS } from 'date-fns/locale';
+import { toZonedTime } from "date-fns-tz";
+
 
 interface CycleSelectorProps {
   cycles: BillingCycle[];
@@ -19,32 +21,44 @@ const ALL_CYCLES_ID = "all";
 
 export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSelectorProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { language, translations } = useTranslations();
+  const { translations, language } = useTranslations();
   const [showGradient, setShowGradient] = useState(false);
   const cycleRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
   const locales = { en: enUS, es, pt };
   const currentLocale = locales[language] || enUS;
   
+  const formatDateString = (dateString: string) => {
+    if (!dateString) return '';
+    // Directly create a Date object from the ISO string.
+    // The key is to use a formatter that respects the original date components.
+    // By creating the date as UTC and formatting it as UTC, we prevent timezone shifts.
+    const date = new Date(dateString);
+    const zonedDate = toZonedTime(date, 'UTC');
+    return format(zonedDate, "dd MMM ''yy", { locale: currentLocale, timeZone: 'UTC' });
+  };
+
   const getCycleLabel = (cycle: BillingCycle) => {
     if (cycle.id === ALL_CYCLES_ID) {
       return translations.allCycles || "All Cycles";
     }
-    const startDate = new Date(cycle.startDate);
+
+    const startDateLabel = formatDateString(cycle.startDate);
 
     if (!cycle.endDate) {
-      const start = format(startDate, "dd MMM ''yy", { locale: currentLocale });
-      return `${start} - ${translations.current || 'Current'}`;
+        return startDateLabel;
     }
-    const endDate = new Date(cycle.endDate);
-
-    if (isSameDay(startDate, endDate)) {
-       return format(startDate, "dd MMM ''yy", { locale: currentLocale });
+    
+    // Check if start and end date strings (YYYY-MM-DD part) are the same
+    const startDatePart = cycle.startDate.substring(0, 10);
+    const endDatePart = cycle.endDate.substring(0, 10);
+    
+    if (startDatePart === endDatePart) {
+      return startDateLabel;
     }
 
-    const start = format(startDate, "dd MMM", { locale: currentLocale });
-    const end = format(endDate, "dd MMM ''yy", { locale: currentLocale });
-    return `${start} - ${end}`;
+    const endDateLabel = formatDateString(cycle.endDate);
+    return `${startDateLabel} - ${endDateLabel}`;
   };
 
   useEffect(() => {
@@ -117,3 +131,6 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     </div>
   );
 }
+
+// Rename component in file to avoid breaking changes
+export { CycleSelector as MonthSelector };

@@ -32,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { cn, formatNumberForDisplay } from "@/lib/utils";
 import { CalendarIcon, DollarSign, Edit3, Type, ListTree, CreditCard, TrendingUp, TrendingDown, Layers } from "lucide-react";
 import type { Transaction, Category, PaymentMethod, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
@@ -64,15 +64,6 @@ const getFormSchema = (translations: Translations) => z.object({
   installments: z.number().min(1).max(120).optional(),
 });
 
-const formatNumberWithCommas = (numStr: string): string => {
-  if (!numStr) return '';
-  const [integerPart, decimalPart] = numStr.split('.');
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  if (decimalPart !== undefined) {
-    return `${formattedIntegerPart}.${decimalPart}`;
-  }
-  return formattedIntegerPart;
-};
 
 export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, onClose, isTaxPayment = false, categories, paymentMethods }: TransactionFormProps) {
   const { translations, language, translateCategory } = useTranslations();
@@ -99,7 +90,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   
   useEffect(() => {
     if (initialData?.amount) {
-      setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
+      setDisplayAmount(formatNumberForDisplay(String(initialData.amount.toFixed(2))));
     }
     const initialInstallments = initialData?.installments || 1;
     setInstallments(initialInstallments);
@@ -164,7 +155,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       numericValue = parts.join('.');
     }
     
-    const formattedDisplay = formatNumberWithCommas(numericValue);
+    const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
     
     const valueForForm = numericValue.replace(/,/g, '');

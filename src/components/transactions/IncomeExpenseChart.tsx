@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/chart";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ListTree } from "lucide-react";
+import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 
 interface ChartData {
     name: string;
@@ -19,21 +20,6 @@ interface ChartData {
 interface IncomeExpenseChartProps {
   chartData: ChartData[];
 }
-
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
-};
-
-const formatCurrencyK = (value: number): string => {
-    if (Math.abs(value) >= 1000) {
-      return `$${(value / 1000).toFixed(0)}k`;
-    }
-    return formatCurrency(value);
-};
 
 const CustomLegend = () => {
     const { translations } = useTranslations();

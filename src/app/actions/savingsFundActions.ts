@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentSavingsFund } from '@/lib/actions-helpers';
 import type { SavingsFund, SavingsFundFormValues, Translations } from '@/types';
 import { addTransaction } from './transactionActions';
+import { startOfDay } from 'date-fns';
 
 export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
   if (!userId) return [];
@@ -70,7 +71,7 @@ export async function addSavingsFund(data: SavingsFundFormValues, userId: string
     
     const documentToInsert = { 
         ...data, 
-        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+        targetDate: data.targetDate ? startOfDay(new Date(data.targetDate)) : undefined,
         userId,
     };
     
@@ -103,7 +104,7 @@ export async function updateSavingsFund(id: string, data: SavingsFundFormValues,
     
     const documentToUpdate = { 
         ...data, 
-        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+        targetDate: data.targetDate ? startOfDay(new Date(data.targetDate)) : undefined,
     };
 
     const result = await savingsFundsCollection.updateOne(
@@ -258,5 +259,3 @@ export async function withdrawFromFund(
         return { success: false, error: `Failed to withdraw from fund. ${errorMessage}` };
     }
 }
-
-    

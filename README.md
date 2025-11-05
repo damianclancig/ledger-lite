@@ -5,11 +5,12 @@ FinanClan es una aplicación web moderna y segura diseñada para ayudarte a llev
 
 ## ✨ Características Principales
 
-- **Gestión Completa de Transacciones**: Crea, visualiza, edita y elimina transacciones de ingresos y gastos de forma rápida.
+- **Gestión Completa de Transacciones**: Crea, visualiza, edita y elimina transacciones de ingresos y gastos de forma rápida y sencilla.
+- **Gestión de Ciclos de Facturación**: Define tus propios períodos financieros (ej: de salario a salario) para un análisis preciso y contextualizado de tus finanzas. Cierra un ciclo y empieza uno nuevo con un solo clic.
 - **Gestión de Fondos de Ahorro**: Crea objetivos de ahorro personalizados (vacaciones, un nuevo gadget, etc.), deposita o retira dinero de ellos, y visualiza el progreso para alcanzar tus metas financieras.
 - **Gestión de Categorías Personalizadas**: Añade, renombra y habilita o deshabilita tus propias categorías de gastos e ingresos para adaptar la aplicación a tu vida financiera. Las categorías por defecto son simples y concisas para un inicio rápido.
 - **Gestión de Métodos de Pago Personalizados**: Define tus propios métodos de pago, como tarjetas de crédito de bancos específicos, billeteras virtuales o efectivo, para un seguimiento detallado.
-- **Gestión de Cuotas Pendientes**: Visualiza de forma centralizada todas tus compras realizadas en cuotas, el estado de cada una, el monto total adeudado y el total a pagar en el mes actual. Incluye un slider y un campo de entrada manual para compras con un número elevado de cuotas (ej: 2 a 120).
+- **Gestión de Cuotas Pendientes**: Visualiza de forma centralizada todas tus compras realizadas en cuotas, el estado de cada una, el monto total adeudado y el total a pagar en el mes actual. Incluye un slider y un campo de entrada manual para compras con un número elevado de cuotas.
 - **Gestión de Impuestos y Servicios**: Registra pagos recurrentes como impuestos o servicios (Luz, Agua, Gas), visualiza su historial, márcalos como pagados y registra fácilmente nuevos períodos.
 - **Panel de Totales y Gráficos Interactivos**: Obtén una visión clara de tu salud financiera con tarjetas que muestran tus ingresos totales, gastos totales y el balance actual. Visualiza la distribución de tus gastos por categoría, la comparativa de ingresos vs. gastos, el **progreso de tus fondos de ahorro** y una **proyección anual de tus cuotas pendientes** con gráficos dinámicos.
 - **Búsqueda y Filtrado Avanzado**: Encuentra transacciones específicas fácilmente utilizando filtros por tipo (ingreso/gasto), categoría, rango de fechas o buscando por descripción.
@@ -30,6 +31,8 @@ Este proyecto está construido con tecnologías modernas y robustas para garanti
 - **Lenguaje**: [TypeScript](https://www.typescriptlang.org/)
 - **Estilos**: [Tailwind CSS](https://tailwindcss.com/)
 - **Componentes de UI**: [ShadCN UI](https://ui.shadcn.com/) y [Radix UI](https://www.radix-ui.com/)
+- **Manejo de Fechas**: [date-fns](https://date-fns.org/) y [date-fns-tz](https://github.com/marnusw/date-fns-tz)
+- **Gráficos**: [Recharts](https://recharts.org/)
 - **Base de Datos**: [MongoDB](https://www.mongodb.com/) (a través de MongoDB Atlas)
 - **Autenticación**: [Firebase Authentication](https://firebase.google.com/docs/auth)
 - **Analíticas**: [Vercel Analytics](https://vercel.com/analytics) y [Speed Insights](https://vercel.com/speed-insights)
@@ -77,7 +80,7 @@ npm install
 
 La aplicación necesita credenciales para conectarse a Firebase y MongoDB.
 
-1.  Crea un archivo llamado `.env.local` en la raíz del proyecto. Puedes copiar el archivo de ejemplo si existe.
+1.  Crea un archivo llamado `.env.local` en la raíz del proyecto.
 2.  Este archivo contendrá todas las claves de API necesarias.
 
 #### a. Configuración de Firebase (para Autenticación)
@@ -134,7 +137,7 @@ NEXT_PUBLIC_PAYPAL_URL="https://paypal.me/tuUsuario"
 
 ### 4. Ejecutar la Aplicación
 
-Once you have configured all the environment variables, you can start the development server:
+Una vez que hayas configurado todas las variables de entorno, puedes iniciar el servidor de desarrollo:
 
 ```bash
 npm run dev

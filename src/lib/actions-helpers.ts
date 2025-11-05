@@ -1,6 +1,7 @@
 import { MongoClient, type WithId, type Document } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
 import type { Transaction, Tax, Category, PaymentMethod, SavingsFund, BillingCycle } from '@/types';
+import { startOfDay } from 'date-fns';
 
 // Helper function to get the database and collection
 export async function getDb() {
@@ -22,7 +23,7 @@ export function mapMongoDocument(doc: WithId<Document>): Transaction {
   const { _id, date, ...rest } = doc;
   return { 
     id: _id.toString(),
-    date: new Date(date), // Ensure date is a Date object on the server
+    date: new Date(date), // Transaction dates can keep being Date objects for now
     ...rest 
   } as Transaction;
 }
@@ -65,8 +66,8 @@ export function mapMongoDocumentBillingCycle(doc: WithId<Document>): BillingCycl
     const { _id, startDate, endDate, ...rest } = doc;
     return {
       id: _id.toString(),
-      startDate: new Date(startDate),
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: new Date(startDate).toISOString(),
+      endDate: endDate ? new Date(endDate).toISOString() : undefined,
       ...rest
-    } as BillingCycle;
+    } as unknown as BillingCycle;
   }

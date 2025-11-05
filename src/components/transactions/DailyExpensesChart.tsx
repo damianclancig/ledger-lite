@@ -6,7 +6,7 @@ import { Bar, BarChart, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recha
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ListTree } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 
 export interface DailyExpensesData {
     name: string;
@@ -16,13 +16,6 @@ export interface DailyExpensesData {
 interface DailyExpensesChartProps {
   chartData: DailyExpensesData[];
 }
-
-const formatCurrencyK = (value: number): string => {
-    if (Math.abs(value) >= 1000) {
-      return `$${(value / 1000).toFixed(0)}k`;
-    }
-    return formatCurrency(value);
-};
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {

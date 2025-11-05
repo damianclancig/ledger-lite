@@ -26,7 +26,7 @@ import { DailyExpensesCard } from "@/components/dashboard/cards/DailyExpensesCar
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
-import { isToday, isYesterday, startOfToday, subDays, startOfDay } from "date-fns";
+import { isToday, isYesterday, startOfToday, subDays, startOfDay, parseISO, isWithinInterval as isWithinIntervalDateFns } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -114,8 +114,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const parsed = initialTransactions.map((t) => ({ ...t, date: new Date(t.date) }));
-      setTransactions(parsed);
+      setTransactions(initialTransactions);
       setCategories(initialCategories);
       setPaymentMethods(initialPaymentMethods);
       setInstallmentProjection(projectionData);
@@ -127,6 +126,8 @@ export default function DashboardPage() {
       
       if (savedCycle) {
         setSelectedCycle(savedCycle);
+      } else if (savedCycleId === ALL_CYCLES_ID) {
+        setSelectedCycle({ id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() });
       } else {
         setSelectedCycle(currentCycle);
         sessionStorage.setItem('selectedCycleId', currentCycle.id);
@@ -213,8 +214,8 @@ export default function DashboardPage() {
   const cycleDateRange = useMemo(() => {
     if (!selectedCycle || selectedCycle.id === ALL_CYCLES_ID) return null;
     return {
-      start: new Date(selectedCycle.startDate),
-      end: selectedCycle.endDate ? new Date(selectedCycle.endDate) : new Date(),
+      start: parseISO(selectedCycle.startDate as unknown as string),
+      end: selectedCycle.endDate ? parseISO(selectedCycle.endDate as unknown as string) : new Date(),
     };
   }, [selectedCycle]);
 
@@ -225,7 +226,7 @@ export default function DashboardPage() {
     }
     return baseTransactions.filter(t => {
       const transactionDate = new Date(t.date);
-      return transactionDate >= cycleDateRange.start && transactionDate <= cycleDateRange.end;
+      return isWithinIntervalDateFns(transactionDate, cycleDateRange);
     });
   }, [transactions, cycleDateRange]);
 
@@ -268,10 +269,10 @@ export default function DashboardPage() {
     }
     
     let previousTotals = { income: 0, expense: 0 };
-    if (previousCycle) {
-      const prevCycleStart = new Date(previousCycle.startDate);
-      const prevCycleEnd = new Date(previousCycle.endDate!);
-      previousTotals = transactions.filter(t => !t.savingsFundId && new Date(t.date) >= prevCycleStart && new Date(t.date) <= prevCycleEnd)
+    if (previousCycle && previousCycle.endDate) {
+      const prevCycleStart = parseISO(previousCycle.startDate as unknown as string);
+      const prevCycleEnd = parseISO(previousCycle.endDate as unknown as string);
+      previousTotals = transactions.filter(t => !t.savingsFundId && isWithinIntervalDateFns(new Date(t.date), {start: prevCycleStart, end: prevCycleEnd}))
         .reduce((acc, t) => {
           if (t.type === 'income') acc.income += t.amount;
           if (t.type === 'expense') acc.expense += t.amount;
@@ -313,7 +314,7 @@ export default function DashboardPage() {
     const allCyclesOption: BillingCycle = {
       id: ALL_CYCLES_ID,
       userId: user?.uid || '',
-      startDate: new Date(0), // Doesn't really matter
+      startDate: new Date(0).toISOString(),
     };
     return [...billingCycles, allCyclesOption];
   }, [billingCycles, user]);

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon, DollarSign, PiggyBank, Edit3 } from "lucide-react";
 import type { SavingsFund, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { formatNumberForDisplay } from "@/lib/utils";
 
 export type SavingsFundFormSubmitValues = z.infer<ReturnType<typeof getFormSchema>>;
 
@@ -31,16 +32,6 @@ const getFormSchema = (translations: Translations) => z.object({
   targetAmount: z.coerce.number({ required_error: translations.savingsFundTargetAmountRequired }).positive({ message: translations.savingsFundTargetAmountPositive }),
   targetDate: z.date().optional(),
 });
-
-const formatNumberWithCommas = (numStr: string): string => {
-  if (!numStr) return '';
-  const [integerPart, decimalPart] = numStr.split('.');
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  if (decimalPart !== undefined) {
-    return `${formattedIntegerPart}.${decimalPart}`;
-  }
-  return formattedIntegerPart;
-};
 
 export function SavingsFundForm({ onSubmit, onClose, initialData }: SavingsFundFormProps) {
   const { translations, language } = useTranslations();
@@ -61,7 +52,7 @@ export function SavingsFundForm({ onSubmit, onClose, initialData }: SavingsFundF
 
   useEffect(() => {
     if (initialData?.targetAmount) {
-      setDisplayAmount(formatNumberWithCommas(initialData.targetAmount.toFixed(2)));
+      setDisplayAmount(formatNumberForDisplay(String(initialData.targetAmount.toFixed(2))));
     }
     form.reset({
       name: initialData?.name || "",
@@ -88,7 +79,7 @@ export function SavingsFundForm({ onSubmit, onClose, initialData }: SavingsFundF
       numericValue = parts.join('.');
     }
     
-    const formattedDisplay = formatNumberWithCommas(numericValue);
+    const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
     
     const valueForForm = numericValue.replace(/,/g, '');

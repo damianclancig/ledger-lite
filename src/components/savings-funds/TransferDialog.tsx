@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { transferToFund, withdrawFromFund } from "@/app/actions/savingsFundActions";
 import { DollarSign } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatNumberForDisplay } from "@/lib/utils";
 
 interface TransferDialogProps {
   isOpen: boolean;
@@ -37,17 +37,6 @@ const getFormSchema = (translations: Translations, type: 'deposit' | 'withdrawal
     }),
   paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
 });
-
-
-const formatNumberWithCommas = (numStr: string): string => {
-    if (!numStr) return '';
-    const [integerPart, decimalPart] = numStr.split('.');
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    if (decimalPart !== undefined) {
-      return `${formattedIntegerPart}.${decimalPart}`;
-    }
-    return formattedIntegerPart;
-};
 
 export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, paymentMethods, onSuccess }: TransferDialogProps) {
   const { translations } = useTranslations();
@@ -92,7 +81,7 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
       numericValue = parts.join('.');
     }
     
-    const formattedDisplay = formatNumberWithCommas(numericValue);
+    const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
     
     const valueForForm = numericValue.replace(/,/g, '');
@@ -217,5 +206,3 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
     </Dialog>
   );
 }
-
-    

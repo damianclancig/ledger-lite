@@ -101,8 +101,8 @@ export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "current
 export interface BillingCycle {
   id: string;
   userId: string;
-  startDate: Date;
-  endDate?: Date;
+  startDate: string; // Changed to string in YYYY-MM-DD format
+  endDate?: string;   // Changed to string in YYYY-MM-DD format
 }
 
 
@@ -413,6 +413,14 @@ export interface Translations {
   confirmAndStart: string;
   newCycleStartedTitle: string;
   newCycleStartedDesc: string;
+  deleteCategory: string;
+  areYouSureDeleteCategory: string;
+  deleteCategoryWarning: string;
+  cannotDeleteCategoryTitle: string;
+  categoryInUseError: string;
+  categoryDeletedSuccess: string;
+  resultsPerPage: string;
+  current: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

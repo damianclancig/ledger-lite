@@ -76,7 +76,7 @@ export async function startNewCycle(userId: string, startDate?: Date): Promise<B
 
         if (activeCycles.length > 0) {
             const mostRecentActiveCycle = activeCycles.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0];
-            if (new Date(mostRecentActiveCycle.startDate) >= newCycleDate) {
+            if (startOfDay(new Date(mostRecentActiveCycle.startDate)) >= newCycleDate) {
                 return { error: 'The new cycle start date must be after the previous cycle\'s start date.' };
             }
             

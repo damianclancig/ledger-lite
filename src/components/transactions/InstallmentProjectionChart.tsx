@@ -8,25 +8,11 @@ import { ListTree, MousePointerClick } from "lucide-react";
 import type { InstallmentProjection } from "@/types";
 import { format, parse, isSameMonth } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
+import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 
 interface InstallmentProjectionChartProps {
   data: InstallmentProjection[];
 }
-
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
-};
-
-const formatCurrencyK = (value: number): string => {
-    if (Math.abs(value) >= 1000) {
-      return `$${(value / 1000).toFixed(0)}k`;
-    }
-    return formatCurrency(value);
-};
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   const { language } = useTranslations();

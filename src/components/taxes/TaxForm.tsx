@@ -28,6 +28,7 @@ import type { Tax, TaxFormValues, Translations } from "@/types";
 import { MONTHS } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { formatNumberForDisplay } from "@/lib/utils";
 
 export type TaxFormSubmitValues = z.infer<ReturnType<typeof getFormSchema>>;
 
@@ -88,7 +89,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
         amount: initialData.amount,
       });
       if (initialData.amount) {
-        setDisplayAmount(formatNumberWithCommas(initialData.amount.toFixed(2)));
+        setDisplayAmount(formatNumberForDisplay(String(initialData.amount.toFixed(2))));
       }
     }
   }, [initialData, form, currentYear]);
@@ -112,23 +113,6 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
     setShowSuggestions(false);
   };
   
-  const formatNumberWithCommas = (numStr: string): string => {
-    if (!numStr) return '';
-    const parts = numStr.split('.');
-    const integerPart = parts[0];
-    const decimalPart = parts[1];
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  
-    if (decimalPart !== undefined) {
-      return `${formattedIntegerPart}.${decimalPart}`;
-    }
-    
-    if (numStr.slice(-1) === '.') {
-      return `${formattedIntegerPart}.`;
-    }
-    return formattedIntegerPart;
-  };
-  
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
@@ -143,7 +127,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
       numericValue = parts.join('.');
     }
     
-    const formattedDisplay = formatNumberWithCommas(numericValue);
+    const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
     
     const valueForForm = numericValue.endsWith('.') ? numericValue.slice(0, -1) : numericValue;
@@ -264,7 +248,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
                       field.onBlur();
                       const value = form.getValues('amount');
                       if (value) {
-                        setDisplayAmount(formatNumberWithCommas(value.toFixed(2)));
+                        setDisplayAmount(formatNumberForDisplay(String(value.toFixed(2))));
                       } else {
                         setDisplayAmount('');
                       }

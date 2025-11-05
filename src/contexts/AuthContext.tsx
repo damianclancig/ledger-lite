@@ -8,7 +8,6 @@ import { app, googleProvider } from "@/lib/firebase";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "./LanguageContext";
-import { getBillingCycles } from "@/app/actions/billingCycleActions";
 
 interface AuthContextType {
   user: User | null;
@@ -54,21 +53,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = useCallback(async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const loggedInUser = result.user;
-      if (loggedInUser) {
-        // After successful login, check for billing cycles
-        const cycles = await getBillingCycles(loggedInUser.uid);
-        if (cycles.length === 0) {
-          router.push('/welcome');
-        } else {
-          router.push('/dashboard');
-        }
-      }
+      await signInWithPopup(auth, googleProvider);
+      // Redirection logic is now handled by the main useEffect
     } catch (error) {
       handleAuthError(error as AuthError);
     }
-  }, [router, toast, translations]);
+  }, [toast, translations]);
   
   const signOut = useCallback(async (redirectPath: string = '/') => {
     try {
@@ -96,7 +86,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         router.push('/');
       }
       
-      if (user && pathname === '/') {
+      // If user is logged in, redirect from public-only pages to dashboard
+      if (user && (pathname === '/' || pathname === '/login')) {
         router.push('/dashboard');
       }
     }

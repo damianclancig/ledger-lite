@@ -5,7 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
 import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail } from '@/types';
-import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
+import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast, startOfDay } from 'date-fns';
 import { getCurrentBillingCycle } from './billingCycleActions';
 
 export async function getTransactions(userId: string): Promise<Transaction[]> {
@@ -45,6 +45,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
 
     const baseTransaction = {
       ...transactionData,
+      date: startOfDay(new Date(transactionData.date)),
       userId,
       billingCycleId: currentCycle?.id,
     };
@@ -59,15 +60,14 @@ export async function addTransaction(data: TransactionFormValues, userId: string
         transactionsToInsert.push({
           ...baseTransaction,
           amount: installmentAmount,
-          date: addMonths(originalDate, i),
+          date: startOfDay(addMonths(originalDate, i)),
           description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
           groupId: groupId.toString(),
         });
       }
       await transactionsCollection.insertMany(transactionsToInsert);
     } else {
-      const documentToInsert = { ...baseTransaction, date: new Date(baseTransaction.date) };
-      await transactionsCollection.insertOne(documentToInsert);
+      await transactionsCollection.insertOne(baseTransaction);
     }
     
     revalidateTag(`transactions_${userId}`);
@@ -100,7 +100,7 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
     // Installment logic is not applied on update for simplicity
     const { installments, ...transactionData } = data;
     
-    const documentToUpdate: any = { ...transactionData, date: new Date(transactionData.date) };
+    const documentToUpdate: any = { ...transactionData, date: startOfDay(new Date(transactionData.date)) };
     
     const result = await transactionsCollection.updateOne(
         { _id: new ObjectId(id), userId }, // Ensure user owns the doc
@@ -422,7 +422,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
 
         if (installments && installments > 1) {
             const installmentAmount = baseTransaction.amount / installments;
-            const originalDate = new Date(baseTransaction.date);
+            const originalDate = startOfDay(new Date(baseTransaction.date));
             const transactionsToInsert = [];
             const newGroupId = new ObjectId(groupId); // Use existing group ID
 
@@ -430,7 +430,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
                 transactionsToInsert.push({
                     ...baseTransaction,
                     amount: installmentAmount,
-                    date: addMonths(originalDate, i),
+                    date: startOfDay(addMonths(originalDate, i)),
                     description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
                     groupId: newGroupId.toString(),
                 });
@@ -441,7 +441,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
             // but handle it just in case.
             await transactionsCollection.insertOne({ 
                 ...baseTransaction, 
-                date: new Date(baseTransaction.date),
+                date: startOfDay(new Date(baseTransaction.date)),
                 // No groupId or installments here
             });
         }
@@ -456,6 +456,3 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
         return { success: false, error: `Failed to update purchase. ${errorMessage}` };
     }
 }
-    
-
-    
