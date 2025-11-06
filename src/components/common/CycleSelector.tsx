@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/contexts/LanguageContext";
 import type { BillingCycle } from "@/types";
-import { format, isSameDay } from "date-fns";
+import { formatDateSafe } from "@/lib/date-utils";
 import { es, pt, enUS } from 'date-fns/locale';
-import { toZonedTime } from "date-fns-tz";
-
 
 interface CycleSelectorProps {
   cycles: BillingCycle[];
@@ -25,31 +23,25 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
   const [showGradient, setShowGradient] = useState(false);
   const cycleRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
-  const locales = { en: enUS, es, pt };
-  const currentLocale = locales[language] || enUS;
-  
-  const formatDateString = (dateString: string) => {
-    if (!dateString) return '';
-    // Directly create a Date object from the ISO string.
-    // The key is to use a formatter that respects the original date components.
-    // By creating the date as UTC and formatting it as UTC, we prevent timezone shifts.
-    const date = new Date(dateString);
-    const zonedDate = toZonedTime(date, 'UTC');
-    return format(zonedDate, "dd MMM ''yy", { locale: currentLocale, timeZone: 'UTC' });
+  const locales = {
+    en: enUS,
+    es: es,
+    pt: pt,
   };
+  const currentLocale = locales[language] || enUS;
 
   const getCycleLabel = (cycle: BillingCycle) => {
     if (cycle.id === ALL_CYCLES_ID) {
       return translations.allCycles || "All Cycles";
     }
 
-    const startDateLabel = formatDateString(cycle.startDate);
+    const startDateLabel = formatDateSafe(cycle.startDate, "dd MMM ''yy", currentLocale);
 
     if (!cycle.endDate) {
         return startDateLabel;
     }
     
-    // Check if start and end date strings (YYYY-MM-DD part) are the same
+    // Check if start and end dates are on the same day
     const startDatePart = cycle.startDate.substring(0, 10);
     const endDatePart = cycle.endDate.substring(0, 10);
     
@@ -57,7 +49,7 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
       return startDateLabel;
     }
 
-    const endDateLabel = formatDateString(cycle.endDate);
+    const endDateLabel = formatDateSafe(cycle.endDate, "dd MMM ''yy", currentLocale);
     return `${startDateLabel} - ${endDateLabel}`;
   };
 

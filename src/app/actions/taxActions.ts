@@ -1,9 +1,11 @@
+
 'use server';
 
 import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentTax } from '@/lib/actions-helpers';
 import type { Tax, TaxFormValues, Translations } from '@/types';
+import { startOfDay } from 'date-fns';
 
 export async function getTaxes(userId: string): Promise<Tax[]> {
   if (!userId) return [];
@@ -35,7 +37,7 @@ export async function getTaxes(userId: string): Promise<Tax[]> {
         bulkOps.push({
           updateOne: {
             filter: { _id: tax._id },
-            update: { $set: { year, month } }
+            update: { $set: { year, month, date: startOfDay(new Date(tax.date)) } }
           }
         });
       }
@@ -109,7 +111,6 @@ export async function addTax(data: TaxFormValues, userId: string, translations: 
         amount,
         month,
         year,
-        date: new Date(),
         userId,
         isPaid: false
       };

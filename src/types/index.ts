@@ -50,7 +50,7 @@ export interface Transaction {
   userId: string;
   description: string;
   amount: number;
-  date: Date;
+  date: string; // Dates are handled as ISO strings
   categoryId: string;
   type: TransactionType;
   paymentMethodId: string;
@@ -60,7 +60,9 @@ export interface Transaction {
   billingCycleId?: string;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId">;
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId"> & {
+  date: Date; // Form uses Date object, but it's converted to string for backend
+};
 
 
 // Tax types
@@ -71,7 +73,7 @@ export interface Tax {
   month: number; // 0 for January, 11 for December
   year: number;
   amount: number;
-  date: Date; // The date the record was created, for sorting
+  date?: string; // ISO string for payment date
   isPaid: boolean;
   transactionId?: string; // ID of the transaction that paid this tax
 }
@@ -90,19 +92,21 @@ export interface SavingsFund {
   name: string;
   description: string;
   targetAmount: number;
-  targetDate?: Date;
+  targetDate?: string; // ISO string
   currentAmount: number; // This will be calculated on the fly
 }
 
-export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "currentAmount">;
+export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "currentAmount"> & {
+    targetDate?: Date; // Form uses Date object
+};
 
 
 // Billing Cycle types
 export interface BillingCycle {
   id: string;
   userId: string;
-  startDate: string; // Changed to string in YYYY-MM-DD format
-  endDate?: string;   // Changed to string in YYYY-MM-DD format
+  startDate: string; // ISO string
+  endDate?: string;   // ISO string
 }
 
 
@@ -266,6 +270,9 @@ export interface Translations {
   // Charts
   expensesByCategory: string;
   incomeVsExpense: string;
+  dailyExpenses: string;
+  today: string;
+  yesterday: string;
   installmentProjection: string;
   seeDetails: string;
   // Payment Methods
@@ -410,6 +417,7 @@ export interface Translations {
   startNewCycle: string;
   confirmNewCycleTitle: string;
   confirmNewCycleDesc: string;
+  currentCycleStartedOn: string;
   confirmAndStart: string;
   newCycleStartedTitle: string;
   newCycleStartedDesc: string;
@@ -425,6 +433,11 @@ export interface Translations {
 
 export type DateRange = ReactDayPickerDateRange;
 
+export interface DailyExpenses {
+  today: number;
+  yesterday: number;
+}
+
 export interface InstallmentDetail {
   id: string;
   description: string;
@@ -434,8 +447,8 @@ export interface InstallmentDetail {
   totalInstallments: number;
   pendingAmount: number;
   paymentMethodName: string;
-  purchaseDate: Date;
-  lastInstallmentDate: Date;
+  purchaseDate: string; // ISO string
+  lastInstallmentDate: string; // ISO string
 }
 
 export interface CompletedInstallmentDetail {
@@ -444,8 +457,8 @@ export interface CompletedInstallmentDetail {
   totalAmount: number;
   totalInstallments: number;
   paymentMethodName: string;
-  purchaseDate: Date;
-  lastInstallmentDate: Date;
+  purchaseDate: string; // ISO string
+  lastInstallmentDate: string; // ISO string
 }
 
 export interface InstallmentProjection {

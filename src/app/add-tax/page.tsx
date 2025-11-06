@@ -56,7 +56,7 @@ export default function AddTaxPage() {
 
     const result = await addTax(values, user.uid, translations);
 
-    if (result && 'error' in result) {
+    if (result && !result.success) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.taxAddedTitle, description: translations.taxAddedDesc });

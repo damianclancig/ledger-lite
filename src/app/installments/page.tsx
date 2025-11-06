@@ -14,7 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
-import { format } from 'date-fns';
+import { formatDateSafe } from "@/lib/date-utils";
 import { es, pt, enUS } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IntroAccordion } from "@/components/common/IntroAccordion";
@@ -120,8 +120,8 @@ export default function InstallmentsPage() {
                    </div>
                     <div className="col-span-12 md:col-span-6">
                         <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
-                            <span className="capitalize">{translations.purchaseDate}: {format(new Date(item.purchaseDate), 'dd/MM/yy')}</span>
-                            <span className="capitalize text-right">{translations.endsIn} {format(new Date(item.lastInstallmentDate), 'MMMM yyyy', { locale: currentLocale })}</span>
+                            <span className="capitalize">{translations.purchaseDate}: {formatDateSafe(item.purchaseDate, 'dd/MM/yyyy', currentLocale)}</span>
+                            <span className="capitalize text-right">{translations.endsIn} {formatDateSafe(item.lastInstallmentDate, 'MMMM yyyy', currentLocale)}</span>
                         </div>
                         <Progress value={(item.currentInstallment / item.totalInstallments) * 100} className="h-4"/>
                         <div className="flex justify-between items-center mt-1 text-sm text-muted-foreground">
@@ -153,8 +153,8 @@ export default function InstallmentsPage() {
               </div>
               <div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
-                    <span className="capitalize">{translations.purchaseDate}: {format(new Date(item.purchaseDate), 'dd/MM/yy')}</span>
-                    <span className="capitalize text-right">{translations.endsIn} {format(new Date(item.lastInstallmentDate), 'MMMM yyyy', { locale: currentLocale })}</span>
+                    <span className="capitalize">{translations.purchaseDate}: {formatDateSafe(item.purchaseDate, 'dd/MM/yyyy', currentLocale)}</span>
+                    <span className="capitalize text-right">{translations.endsIn} {formatDateSafe(item.lastInstallmentDate, 'MMMM yyyy', currentLocale)}</span>
                 </div>
                 <Progress value={(item.currentInstallment / item.totalInstallments) * 100} className="h-3"/>
                 <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground">
@@ -193,8 +193,8 @@ export default function InstallmentsPage() {
                 <TableCell className="font-medium text-base">{item.description}</TableCell>
                 <TableCell className="text-base">{item.paymentMethodName}</TableCell>
                 <TableCell className="text-center text-base">{item.totalInstallments}</TableCell>
-                <TableCell className="text-base">{format(new Date(item.purchaseDate), 'PP', { locale: currentLocale })}</TableCell>
-                <TableCell className="text-base">{format(new Date(item.lastInstallmentDate), 'MMM yyyy', { locale: currentLocale })}</TableCell>
+                <TableCell className="text-base">{formatDateSafe(item.purchaseDate, 'PPP', currentLocale)}</TableCell>
+                <TableCell className="text-base">{formatDateSafe(item.lastInstallmentDate, 'MMM yyyy', currentLocale)}</TableCell>
                 <TableCell className="text-right font-mono font-semibold text-base">{formatCurrency(item.totalAmount)}</TableCell>
               </TableRow>
             ))}
@@ -214,8 +214,8 @@ export default function InstallmentsPage() {
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base text-muted-foreground">
                   <div className="flex items-center"><Receipt className="h-4 w-4 mr-2" /><span>{item.paymentMethodName}</span></div>
                   <div className="flex items-center"><Hash className="h-4 w-4 mr-2" /><span>{item.totalInstallments} {translations.installments.toLowerCase()}</span></div>
-                  <div className="flex items-center"><ShoppingBag className="h-4 w-4 mr-2" /><span>{format(new Date(item.purchaseDate), 'PP', { locale: currentLocale })}</span></div>
-                  <div className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /><span>{format(new Date(item.lastInstallmentDate), 'MMM yyyy', { locale: currentLocale })}</span></div>
+                  <div className="flex items-center"><ShoppingBag className="h-4 w-4 mr-2" /><span>{formatDateSafe(item.purchaseDate, 'PPP', currentLocale)}</span></div>
+                  <div className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /><span>{formatDateSafe(item.lastInstallmentDate, 'MMM yyyy', currentLocale)}</span></div>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -272,5 +272,3 @@ export default function InstallmentsPage() {
     </div>
   );
 }
-
-    

@@ -15,12 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { Edit3, Trash2, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ListTree, CalendarIcon, Tag, CreditCard } from "lucide-react";
 import type { Transaction, Category, PaymentMethod } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { format } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
 import { formatCurrency } from '@/lib/utils';
+import { formatDateSafe } from '@/lib/date-utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TransactionListProps {
@@ -62,18 +62,8 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
       es: es,
       pt: pt,
     };
+    const currentLocale = locales[language] || enUS;
 
-    const formatDate = (date: Date | string) => {
-      try {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        if (isNaN(dateObj.getTime())) {
-          return "Invalid Date";
-        }
-        return format(dateObj, "PPP", { locale: locales[language] || enUS });
-      } catch (e) {
-        return "Invalid Date";
-      }
-    };
 
     const categoryMap = React.useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
     const paymentMethodMap = React.useMemo(() => new Map(paymentMethods.map(p => [p.id, p.name])), [paymentMethods]);
@@ -145,7 +135,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                   <div id={`transaction-${transaction.id}`} className="flex flex-col">
                     <div className="p-4 flex-grow space-y-1">
                       <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">{formatDate(new Date(transaction.date))}</span>
+                        <span className="text-sm text-muted-foreground">{formatDateSafe(transaction.date, "PPP", currentLocale)}</span>
                         <p className="text-base text-foreground/90 break-words w-full whitespace-pre-wrap">{transaction.description}</p>
                       </div>
                       
@@ -211,7 +201,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
               const category = categoryMap.get(transaction.categoryId);
               return (
               <TableRow key={transaction.id} id={`transaction-${transaction.id}`} className="hover:bg-muted/50 transition-colors">
-                <TableCell className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy")}</TableCell>
+                <TableCell className="text-base">{formatDateSafe(transaction.date, "dd/MM/yyyy", currentLocale)}</TableCell>
                 <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-base">{category ? translateCategory(category) : 'N/A'}</Badge>

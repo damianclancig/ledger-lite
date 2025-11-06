@@ -12,6 +12,9 @@ export function cn(...inputs: ClassValue[]) {
  * @returns The formatted currency string.
  */
 export function formatCurrency(value: number): string {
+  if (typeof value !== 'number') {
+    return '$0.00';
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -24,6 +27,9 @@ export function formatCurrency(value: number): string {
  * @returns The compact formatted currency string.
  */
 export function formatCurrencyK(value: number): string {
+    if (typeof value !== 'number') {
+      return '$0';
+    }
     if (Math.abs(value) >= 1000) {
       return `$${(value / 1000).toFixed(0)}k`;
     }

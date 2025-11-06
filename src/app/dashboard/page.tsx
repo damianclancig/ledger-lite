@@ -3,16 +3,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from 'next/navigation';
-import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund, BillingCycle } from "@/types";
+import type { Transaction, TransactionType, Category, DateRange, PaymentMethod, SavingsFund, BillingCycle, InstallmentProjection } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
 import { LayoutDashboard, Plus } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { getTransactions, deleteTransaction, getInstallmentProjection } from "@/app/actions/transactionActions";
-import { getCategories } from "@/app/actions/categoryActions";
-import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
-import { getSavingsFunds } from "@/app/actions/savingsFundActions";
-import { getCurrentBillingCycle, getBillingCycles, startNewCycle } from "@/app/actions/billingCycleActions";
+import { deleteTransaction } from "@/app/actions/transactionActions";
+import { getDashboardData } from "@/app/actions/dashboardActions";
+import { startNewCycle } from "@/app/actions/billingCycleActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { CycleSelector } from "@/components/common/CycleSelector";
@@ -26,7 +24,7 @@ import { DailyExpensesCard } from "@/components/dashboard/cards/DailyExpensesCar
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
-import { isToday, isYesterday, startOfToday, subDays, startOfDay, parseISO, isWithinInterval as isWithinIntervalDateFns } from "date-fns";
+import { startOfDay } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -38,16 +36,17 @@ export default function DashboardPage() {
   const filterCardRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
   
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [installmentProjection, setInstallmentProjection] = useState<any[]>([]);
+  const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
   const [savingsFunds, setSavingsFunds] = useState<SavingsFund[]>([]);
+  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
+  const [dailyExpenses, setDailyExpenses] = useState<{today: number, yesterday: number} | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
-  // Billing Cycles
-  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
   
   // Filters & Pagination
@@ -91,46 +90,33 @@ export default function DashboardPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-      const [
-        initialTransactions, 
-        initialCategories, 
-        initialPaymentMethods, 
-        projectionData, 
-        fundsData,
-        currentCycle,
-        allCycles
-      ] = await Promise.all([
-        getTransactions(user.uid),
-        getCategories(user.uid),
-        getPaymentMethods(user.uid),
-        getInstallmentProjection(user.uid),
-        getSavingsFunds(user.uid),
-        getCurrentBillingCycle(user.uid),
-        getBillingCycles(user.uid)
-      ]);
-
-      if (!currentCycle) {
+      const data = await getDashboardData(user.uid);
+      
+      if (!data.currentCycle && data.totalCyclesCount === 0) {
         router.push('/welcome');
         return;
       }
-
-      setTransactions(initialTransactions);
-      setCategories(initialCategories);
-      setPaymentMethods(initialPaymentMethods);
-      setInstallmentProjection(projectionData);
-      setSavingsFunds(fundsData);
-      setBillingCycles(allCycles);
+      
+      setAllTransactions(data.transactions.map(t => ({...t, date: new Date(t.date)})));
+      setCategories(data.categories);
+      setPaymentMethods(data.paymentMethods);
+      setInstallmentProjection(data.installmentProjection);
+      setSavingsFunds(data.savingsFunds);
+      setBillingCycles(data.billingCycles);
+      setDailyExpenses(data.dailyExpenses);
 
       const savedCycleId = sessionStorage.getItem('selectedCycleId');
-      const savedCycle = savedCycleId ? allCycles.find(c => c.id === savedCycleId) : null;
+      const savedCycle = savedCycleId ? data.billingCycles.find(c => c.id === savedCycleId) : null;
       
       if (savedCycle) {
         setSelectedCycle(savedCycle);
       } else if (savedCycleId === ALL_CYCLES_ID) {
         setSelectedCycle({ id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() });
+      } else if (data.currentCycle) {
+        setSelectedCycle(data.currentCycle);
+        sessionStorage.setItem('selectedCycleId', data.currentCycle.id);
       } else {
-        setSelectedCycle(currentCycle);
-        sessionStorage.setItem('selectedCycleId', currentCycle.id);
+        setSelectedCycle(data.billingCycles[0] || null);
       }
 
     } catch (error) {
@@ -177,7 +163,6 @@ export default function DashboardPage() {
     }
   }
 
-
   const handleEdit = (transaction: Transaction) => {
     sessionStorage.setItem('editedTransactionId', transaction.id);
     sessionStorage.setItem('editedTransactionPage', String(currentPage));
@@ -197,7 +182,7 @@ export default function DashboardPage() {
     if (deletingTransaction && user) {
       const result = await deleteTransaction(deletingTransaction.id, user.uid);
       if (result.success) {
-        setTransactions(prev => {
+        setAllTransactions(prev => {
           if (result.deletedGroupId) {
             return prev.filter(t => t.groupId !== result.deletedGroupId);
           }
@@ -214,21 +199,21 @@ export default function DashboardPage() {
   const cycleDateRange = useMemo(() => {
     if (!selectedCycle || selectedCycle.id === ALL_CYCLES_ID) return null;
     return {
-      start: parseISO(selectedCycle.startDate as unknown as string),
-      end: selectedCycle.endDate ? parseISO(selectedCycle.endDate as unknown as string) : new Date(),
+      start: new Date(selectedCycle.startDate),
+      end: selectedCycle.endDate ? new Date(selectedCycle.endDate) : new Date(),
     };
   }, [selectedCycle]);
 
   const transactionsForCycle = useMemo(() => {
-    const baseTransactions = transactions.filter(t => !t.savingsFundId);
+    const baseTransactions = allTransactions.filter(t => !t.savingsFundId);
     if (!cycleDateRange) {
         return baseTransactions; // All cycles are selected
     }
     return baseTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return isWithinIntervalDateFns(transactionDate, cycleDateRange);
+      const transactionDate = t.date;
+      return transactionDate >= cycleDateRange.start && transactionDate <= cycleDateRange.end;
     });
-  }, [transactions, cycleDateRange]);
+  }, [allTransactions, cycleDateRange]);
 
   const filteredTransactionsForList = useMemo(() => {
     return transactionsForCycle.filter((t) => {
@@ -236,11 +221,11 @@ export default function DashboardPage() {
       const matchesSearch = t.description.toLowerCase().includes(lowerSearchTerm);
       const matchesType = selectedType === "all" || t.type === selectedType;
       const matchesCategory = selectedCategory === "all" || t.categoryId === selectedCategory;
-      const transactionDate = new Date(t.date);
+      const transactionDate = t.date;
       const matchesDateRange = !dateRange?.from || transactionDate >= dateRange.from;
       const matchesDateRangeEnd = !dateRange?.to || transactionDate <= dateRange.to;
       return matchesSearch && matchesType && matchesCategory && matchesDateRange && matchesDateRangeEnd;
-    }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a,b) => b.date.getTime() - a.date.getTime());
   }, [transactionsForCycle, searchTerm, selectedType, selectedCategory, dateRange]);
 
   useEffect(() => {
@@ -252,7 +237,7 @@ export default function DashboardPage() {
    const handleDateSelect = (range: DateRange | undefined) => {
     setDateRange(range);
   };
-
+  
   const incomeExpenseChartData = useMemo(() => {
     const currentTotals = transactionsForCycle.reduce((acc, t) => {
       if (t.type === 'income') acc.income += t.amount;
@@ -270,9 +255,9 @@ export default function DashboardPage() {
     
     let previousTotals = { income: 0, expense: 0 };
     if (previousCycle && previousCycle.endDate) {
-      const prevCycleStart = parseISO(previousCycle.startDate as unknown as string);
-      const prevCycleEnd = parseISO(previousCycle.endDate as unknown as string);
-      previousTotals = transactions.filter(t => !t.savingsFundId && isWithinIntervalDateFns(new Date(t.date), {start: prevCycleStart, end: prevCycleEnd}))
+      const prevCycleStart = new Date(previousCycle.startDate);
+      const prevCycleEnd = new Date(previousCycle.endDate);
+      previousTotals = allTransactions.filter(t => !t.savingsFundId && t.date >= prevCycleStart && t.date <= prevCycleEnd)
         .reduce((acc, t) => {
           if (t.type === 'income') acc.income += t.amount;
           if (t.type === 'expense') acc.expense += t.amount;
@@ -284,31 +269,24 @@ export default function DashboardPage() {
         { name: translations.income, current: currentTotals.income, previous: previousTotals.income },
         { name: translations.expense, current: currentTotals.expense, previous: previousTotals.expense },
     ];
-  }, [transactionsForCycle, billingCycles, selectedCycle, translations, transactions]);
+  }, [transactionsForCycle, billingCycles, selectedCycle, translations, allTransactions]);
 
-  const dailyExpensesData = useMemo(() => {
-    const todayExpenses = transactionsForCycle
-        .filter(t => t.type === 'expense' && isToday(t.date))
-        .reduce((sum, t) => sum + t.amount, 0);
-
-    const yesterdayExpenses = transactionsForCycle
-        .filter(t => t.type === 'expense' && isYesterday(t.date))
-        .reduce((sum, t) => sum + t.amount, 0);
-
-    return [
-        { name: translations.yesterday, amount: yesterdayExpenses },
-        { name: translations.today, amount: todayExpenses },
-    ];
-  }, [transactionsForCycle, translations]);
+  const dailyExpensesDataForChart = useMemo(() => {
+      if (!dailyExpenses) return [];
+      return [
+          { name: translations.yesterday, amount: dailyExpenses.yesterday },
+          { name: translations.today, amount: dailyExpenses.today },
+      ];
+  }, [dailyExpenses, translations]);
 
   const handleSeeDailyExpenses = () => {
-    const today = startOfToday();
-    const yesterday = subDays(today, 1);
-    setDateRange({ from: yesterday, to: today });
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    setDateRange({ from: startOfDay(yesterday), to: new Date() });
     setSelectedType('expense');
     filterCardRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
 
   const allCyclesWithVirtualOption: BillingCycle[] = useMemo(() => {
     const allCyclesOption: BillingCycle = {
@@ -375,7 +353,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
-                <DailyExpensesCard data={dailyExpensesData} onSeeDetails={handleSeeDailyExpenses} />
+                <DailyExpensesCard data={dailyExpensesDataForChart} onSeeDetails={handleSeeDailyExpenses} />
             </div>
         </div>
         

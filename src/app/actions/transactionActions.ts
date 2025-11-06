@@ -243,8 +243,8 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
           totalInstallments: totalInstallments,
           pendingAmount: pendingAmount,
           paymentMethodName: paymentMethodName,
-          purchaseDate: firstInstallment.date,
-          lastInstallmentDate: lastInstallment.date,
+          purchaseDate: firstInstallment.date.toISOString(),
+          lastInstallmentDate: lastInstallment.date.toISOString(),
         });
       } else {
         // All installments are in the past, so it's completed
@@ -255,8 +255,8 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
             totalAmount: purchaseAmount,
             totalInstallments: totalInstallments,
             paymentMethodName: paymentMethodName,
-            purchaseDate: firstInstallment.date,
-            lastInstallmentDate: lastInstallment.date,
+            purchaseDate: firstInstallment.date.toISOString(),
+            lastInstallmentDate: lastInstallment.date.toISOString(),
           });
         }
       }

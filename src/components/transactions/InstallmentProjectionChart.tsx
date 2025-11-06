@@ -2,24 +2,26 @@
 "use client";
 
 import * as React from "react";
-import { Line, LineChart, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer, Dot } from "recharts";
+import { Line, LineChart, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Dot } from "recharts";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { ListTree, MousePointerClick } from "lucide-react";
+import { MousePointerClick } from "lucide-react";
 import type { InstallmentProjection } from "@/types";
-import { format, parse, isSameMonth } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { formatDateSafe } from "@/lib/date-utils";
 
 interface InstallmentProjectionChartProps {
   data: InstallmentProjection[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload }: any) => {
   const { language } = useTranslations();
   const locales = { en: enUS, es, pt };
   const currentLocale = locales[language] || enUS;
   if (active && payload && payload.length) {
-    const month = format(parse(payload[0].payload.month, 'yyyy-MM', new Date()), 'MMMM yyyy', { locale: currentLocale });
+    // We pass the full yyyy-MM as the payload month, need to make it a full date for formatting
+    const dateStr = `${payload[0].payload.month}-01T00:00:00.000Z`;
+    const month = formatDateSafe(dateStr, 'MMMM yyyy', currentLocale);
     const total = payload[0].value;
 
     return (
@@ -39,9 +41,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const CustomizedDot = (props: any) => {
     const { cx, cy, payload } = props;
     const now = new Date();
-    const dotMonth = parse(payload.month, 'yyyy-MM', new Date());
+    // Assuming payload.month is 'YYYY-MM'
+    const dotMonthYear = parseInt(payload.month.substring(0, 4));
+    const dotMonthMonth = parseInt(payload.month.substring(5, 7)) - 1;
 
-    if (isSameMonth(dotMonth, now)) {
+    if (now.getFullYear() === dotMonthYear && now.getMonth() === dotMonthMonth) {
         return <Dot cx={cx} cy={cy} r={8} fill="hsl(var(--accent))" stroke="hsl(var(--background))" strokeWidth={2} />;
     }
 
@@ -56,10 +60,14 @@ export function InstallmentProjectionChart({ data }: InstallmentProjectionChartP
   
   const noData = data.every(d => d.total === 0);
   
-  const chartData = data.map(d => ({
+  const chartData = data.map(d => {
+    // Convert "YYYY-MM" to a full date string for formatDateSafe
+    const dateStr = `${d.month}-01T00:00:00.000Z`;
+    return {
       ...d,
-      formattedMonth: format(parse(d.month, 'yyyy-MM', new Date()), 'MMM', { locale: currentLocale })
-  }))
+      formattedMonth: formatDateSafe(dateStr, 'MMM yyyy', currentLocale)
+    };
+  });
 
   if (noData) {
     return (
@@ -86,6 +94,7 @@ export function InstallmentProjectionChart({ data }: InstallmentProjectionChartP
             tickMargin={10}
             tick={{ fill: 'hsl(var(--foreground))' }}
             className="capitalize"
+            interval="preserveStartEnd"
           />
           <YAxis 
             tickFormatter={(value) => formatCurrencyK(value as number)}
