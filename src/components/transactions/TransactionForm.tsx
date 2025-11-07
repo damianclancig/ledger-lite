@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -92,6 +93,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     if (initialData?.amount) {
       setDisplayAmount(formatNumberForDisplay(String(initialData.amount.toFixed(2))));
     }
+    
     const initialInstallments = initialData?.installments || 1;
     setInstallments(initialInstallments);
     if (initialInstallments > 24) {
@@ -99,6 +101,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     } else {
       setIsManualInstallments(false);
     }
+
     form.reset({
       description: initialData?.description || "",
       amount: initialData?.amount,

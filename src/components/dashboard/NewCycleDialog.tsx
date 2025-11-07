@@ -41,7 +41,13 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
         if (!newCycleStartDate) return;
         
         setIsStartingNewCycle(true);
-        await onCycleStarted(newCycleStartDate);
+
+        // Create the date object representing midnight in the user's local timezone
+        const localDate = new Date(newCycleStartDate);
+        localDate.setHours(0, 0, 0, 0);
+
+        await onCycleStarted(localDate);
+        
         setIsStartingNewCycle(false);
         setIsNewCycleDialogOpen(false);
         setNewCycleStartDate(new Date());

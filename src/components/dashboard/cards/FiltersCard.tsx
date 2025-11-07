@@ -126,8 +126,8 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                   {dateRange?.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, "PP", { locale: currentLocale })} -{" "}
-                        {format(dateRange.to, "PP", { locale: currentLocale })}
+                        {format(dateRange.from, "PPP", { locale: currentLocale })} -{" "}
+                        {format(dateRange.to, "PPP", { locale: currentLocale })}
                       </>
                     ) : (
                       format(dateRange.from, "PP", { locale: currentLocale })

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/contexts/LanguageContext";
 import type { BillingCycle } from "@/types";
-import { formatDateSafe } from "@/lib/date-utils";
+import { format, isSameDay } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 
 interface CycleSelectorProps {
@@ -35,21 +35,19 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
       return translations.allCycles || "All Cycles";
     }
 
-    const startDateLabel = formatDateSafe(cycle.startDate, "dd MMM ''yy", currentLocale);
+    const startDate = new Date(cycle.startDate);
+    const startDateLabel = format(startDate, "dd MMM ''yy", { locale: currentLocale });
 
     if (!cycle.endDate) {
         return startDateLabel;
     }
     
-    // Check if start and end dates are on the same day
-    const startDatePart = cycle.startDate.substring(0, 10);
-    const endDatePart = cycle.endDate.substring(0, 10);
-    
-    if (startDatePart === endDatePart) {
+    const endDate = new Date(cycle.endDate);
+    if (isSameDay(startDate, endDate)) {
       return startDateLabel;
     }
 
-    const endDateLabel = formatDateSafe(cycle.endDate, "dd MMM ''yy", currentLocale);
+    const endDateLabel = format(endDate, "dd MMM ''yy", { locale: currentLocale });
     return `${startDateLabel} - ${endDateLabel}`;
   };
 

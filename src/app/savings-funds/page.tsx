@@ -23,10 +23,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { TransferDialog } from "@/components/savings-funds/TransferDialog";
 import { SavingsFundProgress } from "@/components/savings-funds/SavingsFundProgress";
 import { IntroAccordion } from "@/components/common/IntroAccordion";
+import { es, pt, enUS } from 'date-fns/locale';
 
 export default function SavingsFundsPage() {
   const { user } = useAuth();
-  const { translations } = useTranslations();
+  const { translations, language } = useTranslations();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -41,6 +42,13 @@ export default function SavingsFundsPage() {
 
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [transferDetails, setTransferDetails] = useState<{ fund: SavingsFund, type: 'deposit' | 'withdrawal' } | null>(null);
+
+  const locales = {
+    en: enUS,
+    es: es,
+    pt: pt,
+  };
+  const currentLocale = locales[language] || enUS;
 
   useEffect(() => {
     async function loadData() {
@@ -204,7 +212,7 @@ export default function SavingsFundsPage() {
 
                                   <div className="flex items-center text-sm text-muted-foreground">
                                       <Calendar className="h-4 w-4 mr-2" />
-                                      <span>{fund.targetDate ? format(new Date(fund.targetDate), "PP") : translations.noTargetDate}</span>
+                                      <span>{fund.targetDate ? format(new Date(fund.targetDate), "PP", { locale: currentLocale }) : translations.noTargetDate}</span>
                                   </div>
                                 </div>
                             </CardContent>
@@ -271,5 +279,3 @@ export default function SavingsFundsPage() {
     </>
   );
 }
-
-    

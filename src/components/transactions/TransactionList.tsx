@@ -12,15 +12,15 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Trash2, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ListTree, CalendarIcon, Tag, CreditCard } from "lucide-react";
+import { Edit3, Trash2, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ListTree, Tag, CreditCard } from "lucide-react";
 import type { Transaction, Category, PaymentMethod } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { format } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
 import { formatCurrency } from '@/lib/utils';
-import { formatDateSafe } from '@/lib/date-utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TransactionListProps {
@@ -135,7 +135,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                   <div id={`transaction-${transaction.id}`} className="flex flex-col">
                     <div className="p-4 flex-grow space-y-1">
                       <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">{formatDateSafe(transaction.date, "PPP", currentLocale)}</span>
+                        <span className="text-sm text-muted-foreground">{format(new Date(transaction.date), "PPP", { locale: currentLocale })}</span>
                         <p className="text-base text-foreground/90 break-words w-full whitespace-pre-wrap">{transaction.description}</p>
                       </div>
                       
@@ -201,7 +201,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
               const category = categoryMap.get(transaction.categoryId);
               return (
               <TableRow key={transaction.id} id={`transaction-${transaction.id}`} className="hover:bg-muted/50 transition-colors">
-                <TableCell className="text-base">{formatDateSafe(transaction.date, "dd/MM/yyyy", currentLocale)}</TableCell>
+                <TableCell className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy", { locale: currentLocale })}</TableCell>
                 <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-base">{category ? translateCategory(category) : 'N/A'}</Badge>

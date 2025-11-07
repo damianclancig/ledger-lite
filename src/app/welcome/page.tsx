@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Rocket, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { subDays, startOfDay, format } from "date-fns";
+import { subDays, format } from "date-fns";
 import { es, pt, enUS } from "date-fns/locale";
 import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import { Footer } from "@/components/layout/Footer";
@@ -37,7 +37,12 @@ export default function WelcomePage() {
             return;
         };
         setIsStartingNewCycle(true);
-        const result = await startNewCycle(user.uid, startOfDay(newCycleStartDate));
+
+        // Create the date object representing midnight in the user's local timezone
+        const localDate = new Date(newCycleStartDate);
+        localDate.setHours(0, 0, 0, 0);
+
+        const result = await startNewCycle(user.uid, localDate);
         if ('error' in result) {
             toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
             setIsStartingNewCycle(false);

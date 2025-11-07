@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart } from 'lucide-react';
 import { useTranslations } from '@/contexts/LanguageContext';
 import { SeeDetailsButton } from '@/components/common/SeeDetailsButton';
-import { DailyExpensesChart, type DailyExpensesData } from '@/components/transactions/DailyExpensesChart';
+import { DailyExpensesChart } from '@/components/transactions/DailyExpensesChart';
 
 interface DailyExpensesCardProps {
-    data: DailyExpensesData[];
+    data: { name: string; amount: number; isToday: boolean }[];
     onSeeDetails: () => void;
 }
 
@@ -17,7 +17,7 @@ export function DailyExpensesCard({ data, onSeeDetails }: DailyExpensesCardProps
     const { translations } = useTranslations();
 
     return (
-        <div className="md:col-span-1">
+        <div className="md:col-span-2">
             <Card className="shadow-xl border-2 border-primary h-full">
             <CardHeader className="p-4">
                  <div className="flex justify-between items-center">

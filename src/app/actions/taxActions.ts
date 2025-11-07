@@ -5,7 +5,6 @@ import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentTax } from '@/lib/actions-helpers';
 import type { Tax, TaxFormValues, Translations } from '@/types';
-import { startOfDay } from 'date-fns';
 
 export async function getTaxes(userId: string): Promise<Tax[]> {
   if (!userId) return [];
@@ -18,8 +17,8 @@ export async function getTaxes(userId: string): Promise<Tax[]> {
     if (legacyTaxes.length > 0) {
       const bulkOps = [];
       for (const tax of legacyTaxes) {
-        let year = new Date(tax.date).getFullYear();
-        let month = tax.month;
+        let year = new Date(tax.date).getUTCFullYear();
+        let month = new Date(tax.date).getUTCMonth();
 
         // Check if a document with the new values already exists
         let existing = await taxesCollection.findOne({ userId, name: tax.name, month, year });
@@ -37,7 +36,7 @@ export async function getTaxes(userId: string): Promise<Tax[]> {
         bulkOps.push({
           updateOne: {
             filter: { _id: tax._id },
-            update: { $set: { year, month, date: startOfDay(new Date(tax.date)) } }
+            update: { $set: { year, month, date: new Date(tax.date) } }
           }
         });
       }
@@ -180,3 +179,4 @@ export async function addTax(data: TaxFormValues, userId: string, translations: 
       return { error: `Failed to update tax. ${errorMessage}` };
     }
   }
+

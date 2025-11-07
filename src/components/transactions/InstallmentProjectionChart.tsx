@@ -6,9 +6,9 @@ import { Line, LineChart, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContai
 import { useTranslations } from "@/contexts/LanguageContext";
 import { MousePointerClick } from "lucide-react";
 import type { InstallmentProjection } from "@/types";
+import { format } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
-import { formatDateSafe } from "@/lib/date-utils";
 
 interface InstallmentProjectionChartProps {
   data: InstallmentProjection[];
@@ -19,9 +19,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   const locales = { en: enUS, es, pt };
   const currentLocale = locales[language] || enUS;
   if (active && payload && payload.length) {
-    // We pass the full yyyy-MM as the payload month, need to make it a full date for formatting
-    const dateStr = `${payload[0].payload.month}-01T00:00:00.000Z`;
-    const month = formatDateSafe(dateStr, 'MMMM yyyy', currentLocale);
+    const month = format(new Date(payload[0].payload.month + "-01T12:00:00"), 'MMMM yyyy', { locale: currentLocale });
     const total = payload[0].value;
 
     return (
@@ -41,11 +39,9 @@ const CustomTooltip = ({ active, payload }: any) => {
 const CustomizedDot = (props: any) => {
     const { cx, cy, payload } = props;
     const now = new Date();
-    // Assuming payload.month is 'YYYY-MM'
-    const dotMonthYear = parseInt(payload.month.substring(0, 4));
-    const dotMonthMonth = parseInt(payload.month.substring(5, 7)) - 1;
-
-    if (now.getFullYear() === dotMonthYear && now.getMonth() === dotMonthMonth) {
+    const [year, month] = payload.month.split('-').map(Number);
+    
+    if (now.getFullYear() === year && now.getMonth() + 1 === month) {
         return <Dot cx={cx} cy={cy} r={8} fill="hsl(var(--accent))" stroke="hsl(var(--background))" strokeWidth={2} />;
     }
 
@@ -61,11 +57,9 @@ export function InstallmentProjectionChart({ data }: InstallmentProjectionChartP
   const noData = data.every(d => d.total === 0);
   
   const chartData = data.map(d => {
-    // Convert "YYYY-MM" to a full date string for formatDateSafe
-    const dateStr = `${d.month}-01T00:00:00.000Z`;
     return {
       ...d,
-      formattedMonth: formatDateSafe(dateStr, 'MMM yyyy', currentLocale)
+      formattedMonth: format(new Date(d.month + "-01T12:00:00"), 'MMM yyyy', { locale: currentLocale })
     };
   });
 

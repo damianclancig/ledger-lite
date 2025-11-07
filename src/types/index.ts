@@ -1,3 +1,4 @@
+
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense";
@@ -50,7 +51,7 @@ export interface Transaction {
   userId: string;
   description: string;
   amount: number;
-  date: string; // Dates are handled as ISO strings
+  date: string; // Always an ISO string from the backend
   categoryId: string;
   type: TransactionType;
   paymentMethodId: string;
@@ -60,7 +61,7 @@ export interface Transaction {
   billingCycleId?: string;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId"> & {
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId" | "date"> & {
   date: Date; // Form uses Date object, but it's converted to string for backend
 };
 
@@ -253,6 +254,14 @@ export interface Translations {
   October: string;
   November: string;
   December: string;
+  // Days
+  Sunday: string;
+  Monday: string;
+  Tuesday: string;
+  Wednesday: string;
+  Thursday: string;
+  Friday: string;
+  Saturday: string;
   // Footer
   footerRights: string;
   footerAuthor: string;
@@ -429,6 +438,19 @@ export interface Translations {
   categoryDeletedSuccess: string;
   resultsPerPage: string;
   current: string;
+  // Budget Insights
+  budgetInsights: string;
+  budgetInsightsDescription: string;
+  dailyView: string;
+  weeklyView: string;
+  avgDailyExpense: string;
+  dailyBudget: string;
+  weeklyExpenses: string;
+  weeklyBudget: string;
+  historicCycleInfo: string;
+  historicCycleData: string;
+  avgDailyExpenseCycle: string;
+  avgWeeklyExpenseCycle: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;
@@ -464,4 +486,14 @@ export interface CompletedInstallmentDetail {
 export interface InstallmentProjection {
   month: string; // YYYY-MM
   total: number;
+}
+
+export interface BudgetInsights {
+  dailyAverage7Days: number;
+  weeklyExpensesTotal: number;
+  weeklyBudget: number;
+  dailyBudget: number;
+  isHistoric: boolean;
+  cycleDailyAverage: number;
+  cycleWeeklyAverage: number;
 }

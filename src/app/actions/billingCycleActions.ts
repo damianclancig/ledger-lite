@@ -4,7 +4,6 @@
 import { revalidateTag } from 'next/cache';
 import { getDb, mapMongoDocumentBillingCycle } from '@/lib/actions-helpers';
 import type { BillingCycle } from '@/types';
-import { subDays, startOfDay, endOfDay } from 'date-fns';
 
 export async function getBillingCycles(userId: string): Promise<BillingCycle[]> {
   if (!userId) return [];
@@ -31,7 +30,9 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
       if (activeCycles.length > 1) {
         const mostRecentCycle = activeCycles[0];
         const cyclesToCloseIds = activeCycles.slice(1).map(c => c._id);
-        const endDateForOldCycle = endOfDay(subDays(new Date(mostRecentCycle.startDate), 1));
+        
+        const newStartDate = new Date(mostRecentCycle.startDate);
+        const endDateForOldCycle = new Date(newStartDate.getTime() - 1);
         
         await billingCyclesCollection.updateMany(
             { _id: { $in: cyclesToCloseIds } },
@@ -59,15 +60,14 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
     }
 }
 
-export async function startNewCycle(userId: string, startDate?: Date): Promise<BillingCycle | { error: string }> {
+export async function startNewCycle(userId: string, startDate: Date): Promise<BillingCycle | { error: string }> {
     if (!userId) return { error: 'User not authenticated.' };
-    
-    const newCycleDate = startDate ? startOfDay(new Date(startDate)) : startOfDay(new Date());
+
+    const newCycleStartDate = startDate;
+    const endDateForOldCycles = new Date(newCycleStartDate.getTime() - 1);
 
     try {
         const { billingCyclesCollection } = await getDb();
-        
-        const endDateForOldCycles = endOfDay(subDays(newCycleDate, 1));
         
         const activeCycles = await billingCyclesCollection.find({ 
             userId, 
@@ -76,7 +76,7 @@ export async function startNewCycle(userId: string, startDate?: Date): Promise<B
 
         if (activeCycles.length > 0) {
             const mostRecentActiveCycle = activeCycles.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0];
-            if (startOfDay(new Date(mostRecentActiveCycle.startDate)) >= newCycleDate) {
+            if (new Date(mostRecentActiveCycle.startDate) >= newCycleStartDate) {
                 return { error: 'The new cycle start date must be after the previous cycle\'s start date.' };
             }
             
@@ -89,7 +89,7 @@ export async function startNewCycle(userId: string, startDate?: Date): Promise<B
 
         const newCycleDocument = {
             userId,
-            startDate: newCycleDate,
+            startDate: newCycleStartDate,
         };
 
         const result = await billingCyclesCollection.insertOne(newCycleDocument);
@@ -110,6 +110,6 @@ export async function startNewCycle(userId: string, startDate?: Date): Promise<B
     } catch (error) {
         console.error('Error starting new billing cycle:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return { error: `Failed to start new billing cycle. ${errorMessage}` };
+        return { error: `Failed to add billing cycle. ${errorMessage}` };
     }
 }

@@ -5,7 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
 import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail } from '@/types';
-import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast, startOfDay } from 'date-fns';
+import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
 import { getCurrentBillingCycle } from './billingCycleActions';
 
 export async function getTransactions(userId: string): Promise<Transaction[]> {
@@ -45,7 +45,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
 
     const baseTransaction = {
       ...transactionData,
-      date: startOfDay(new Date(transactionData.date)),
+      date: new Date(transactionData.date),
       userId,
       billingCycleId: currentCycle?.id,
     };
@@ -60,7 +60,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
         transactionsToInsert.push({
           ...baseTransaction,
           amount: installmentAmount,
-          date: startOfDay(addMonths(originalDate, i)),
+          date: addMonths(originalDate, i),
           description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
           groupId: groupId.toString(),
         });
@@ -100,7 +100,7 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
     // Installment logic is not applied on update for simplicity
     const { installments, ...transactionData } = data;
     
-    const documentToUpdate: any = { ...transactionData, date: startOfDay(new Date(transactionData.date)) };
+    const documentToUpdate: any = { ...transactionData, date: new Date(transactionData.date) };
     
     const result = await transactionsCollection.updateOne(
         { _id: new ObjectId(id), userId }, // Ensure user owns the doc
@@ -205,7 +205,6 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
     let totalPending = 0;
     let totalForCurrentMonth = 0;
     const now = new Date();
-    const currentMonthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
 
     const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
 
@@ -229,7 +228,7 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
         const pendingAmount = pendingInstallments.reduce((sum, item) => sum + item.amount, 0);
         totalPending += pendingAmount;
         
-        const currentMonthInstallment = pendingInstallments.find(item => isWithinInterval(new Date(item.date), currentMonthInterval));
+        const currentMonthInstallment = pendingInstallments.find(item => isSameMonth(new Date(item.date), now));
         if (currentMonthInstallment) {
           totalForCurrentMonth += currentMonthInstallment.amount;
         }
@@ -243,8 +242,8 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
           totalInstallments: totalInstallments,
           pendingAmount: pendingAmount,
           paymentMethodName: paymentMethodName,
-          purchaseDate: firstInstallment.date.toISOString(),
-          lastInstallmentDate: lastInstallment.date.toISOString(),
+          purchaseDate: firstInstallment.date,
+          lastInstallmentDate: lastInstallment.date,
         });
       } else {
         // All installments are in the past, so it's completed
@@ -255,8 +254,8 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
             totalAmount: purchaseAmount,
             totalInstallments: totalInstallments,
             paymentMethodName: paymentMethodName,
-            purchaseDate: firstInstallment.date.toISOString(),
-            lastInstallmentDate: lastInstallment.date.toISOString(),
+            purchaseDate: firstInstallment.date,
+            lastInstallmentDate: lastInstallment.date,
           });
         }
       }
@@ -389,7 +388,7 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
         groupId,
         description: baseDescription,
         amount: totalAmount,
-        date: new Date(firstInstallment.date),
+        date: new Date(firstInstallment.date).toISOString(),
         categoryId: firstInstallment.categoryId,
         type: 'expense',
         paymentMethodId: firstInstallment.paymentMethodId,
@@ -422,7 +421,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
 
         if (installments && installments > 1) {
             const installmentAmount = baseTransaction.amount / installments;
-            const originalDate = startOfDay(new Date(baseTransaction.date));
+            const originalDate = new Date(baseTransaction.date);
             const transactionsToInsert = [];
             const newGroupId = new ObjectId(groupId); // Use existing group ID
 
@@ -430,7 +429,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
                 transactionsToInsert.push({
                     ...baseTransaction,
                     amount: installmentAmount,
-                    date: startOfDay(addMonths(originalDate, i)),
+                    date: addMonths(originalDate, i),
                     description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
                     groupId: newGroupId.toString(),
                 });
@@ -441,7 +440,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
             // but handle it just in case.
             await transactionsCollection.insertOne({ 
                 ...baseTransaction, 
-                date: startOfDay(new Date(baseTransaction.date)),
+                date: new Date(baseTransaction.date),
                 // No groupId or installments here
             });
         }

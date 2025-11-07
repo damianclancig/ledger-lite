@@ -49,11 +49,7 @@ export default function TaxesPage() {
       }
       setIsLoading(true);
       const initialTaxes = await getTaxes(user.uid);
-      const parsed = initialTaxes.map((t) => ({
-        ...t,
-        date: new Date(t.date),
-      }));
-      setTaxes(parsed);
+      setTaxes(initialTaxes);
       setIsLoading(false);
     }
     loadTaxes();

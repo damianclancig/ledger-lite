@@ -11,6 +11,7 @@ import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 export interface DailyExpensesData {
     name: string;
     amount: number;
+    isToday: boolean;
 }
 
 interface DailyExpensesChartProps {
@@ -19,9 +20,10 @@ interface DailyExpensesChartProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const translatedLabel = payload[0].payload.name;
     return (
       <div className="rounded-lg border bg-background p-2.5 shadow-xl">
-        <p className="mb-2 font-medium capitalize">{label}</p>
+        <p className="mb-2 font-medium capitalize">{translatedLabel}</p>
         <div className="flex items-center justify-between gap-4">
             <span className="font-mono font-medium">{formatCurrency(payload[0].value)}</span>
         </div>
@@ -36,17 +38,27 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
   const { translations } = useTranslations();
 
   const chartConfig = React.useMemo(() => ({
-    today: {
-      label: translations.today,
+    amount: {
+      label: translations.amount,
       color: "hsl(var(--destructive))",
     },
-    yesterday: {
-      label: translations.yesterday,
-      color: "hsl(var(--destructive) / 0.5)",
-    },
+    today: {
+      color: "hsl(var(--accent))",
+    }
   }), [translations]) satisfies ChartConfig;
 
   const noData = chartData.every(d => d.amount === 0);
+
+  const getTranslatedDay = (dayKey: string) => {
+    const key = dayKey as keyof typeof translations;
+    if (translations[key]) {
+      return translations[key];
+    }
+    return dayKey;
+  }
+
+  const processedChartData = chartData.map(d => ({...d, name: getTranslatedDay(d.name)}));
+
 
   if (noData) {
     return (
@@ -62,7 +74,7 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
       <ChartContainer config={chartConfig} className="w-full h-full">
         <BarChart 
             accessibilityLayer
-            data={chartData}
+            data={processedChartData}
             margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
             barSize={60}
         >
@@ -83,10 +95,10 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
             content={<CustomTooltip />}
           />
           <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-            {chartData.map((entry) => (
+            {processedChartData.map((entry) => (
                 <Cell 
                     key={`cell-${entry.name}`} 
-                    fill={entry.name === translations.today ? chartConfig.today.color : chartConfig.yesterday.color}
+                    fill={entry.isToday ? chartConfig.today.color : chartConfig.amount.color}
                 />
             ))}
           </Bar>
