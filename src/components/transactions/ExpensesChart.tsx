@@ -9,12 +9,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useTranslations } from "@/contexts/LanguageContext";
-import type { Transaction, Category } from "@/types";
 import { ListTree } from "lucide-react";
 
+interface ExpenseData {
+    categoryId: string;
+    name: string;
+    isSystem: boolean;
+    total: number;
+}
+
 interface ExpensesChartProps {
-  transactions: Transaction[];
-  categoryIdToCategoryMap: Record<string, Category>;
+  expensesByCategory: ExpenseData[];
 }
 
 const COLORS = [
@@ -29,28 +34,18 @@ const COLORS = [
   "#F43F5E", // A strong rose
 ];
 
-export function ExpensesChart({ transactions, categoryIdToCategoryMap }: ExpensesChartProps) {
+export function ExpensesChart({ expensesByCategory }: ExpensesChartProps) {
   const { translations, translateCategory } = useTranslations();
 
   const chartData = React.useMemo(() => {
-    const expenses = transactions.filter((t) => t.type === "expense");
-    const categoryTotals = expenses.reduce((acc, transaction) => {
-      const category = categoryIdToCategoryMap[transaction.categoryId];
-      if (!category) return acc;
-      
-      const translatedCategoryName = translateCategory(category);
-      acc[translatedCategoryName] = (acc[translatedCategoryName] || 0) + transaction.amount;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(categoryTotals)
-      .map(([category, amount]) => ({
-        category,
-        amount,
+    return expensesByCategory
+      .map((item) => ({
+        category: translateCategory({ id: item.categoryId, name: item.name, isSystem: item.isSystem, isEnabled: true, userId: '' }),
+        amount: item.total,
         fill: COLORS[Math.floor(Math.random() * COLORS.length)]
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [transactions, categoryIdToCategoryMap, translateCategory]);
+  }, [expensesByCategory, translateCategory]);
   
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};

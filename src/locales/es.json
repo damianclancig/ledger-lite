@@ -197,7 +197,7 @@
   "dangerZone": "Zona de Peligro",
   "deleteAccount": "Eliminar Cuenta",
   "deleteAccountWarning": "Esta acción es irreversible. Todos tus datos, incluyendo transacciones, categorías e impuestos, serán eliminados permanentemente. Esta acción no se puede deshacer.",
-  "deleteAccountConfirmation": "¿Estás absolutely seguro de que quieres eliminar tu cuenta?",
+  "deleteAccountConfirmation": "Estás absolutamente seguro de que quieres eliminar tu cuenta?",
   "deleteAccountInputPrompt": "Para confirmar, por favor escribe la palabra de confirmación a continuación.",
   "deleteAccountConfirmationWord": "ELIMINAR",
   "goodbyeTitle": "¡Te extrañaremos!",

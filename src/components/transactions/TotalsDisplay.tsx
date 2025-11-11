@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Transaction, TransactionType } from "@/types";
+import type { TransactionType } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
@@ -9,22 +9,14 @@ import { formatCurrency } from "@/lib/utils";
 import { SeeDetailsButton } from '@/components/common/SeeDetailsButton';
 
 interface TotalsDisplayProps {
-  transactions: Transaction[];
+  totalIncome: number;
+  totalExpenses: number;
+  balance: number;
   onSetSelectedType: (type: TransactionType | "all") => void;
 }
 
-export function TotalsDisplay({ transactions, onSetSelectedType }: TotalsDisplayProps) {
+export function TotalsDisplay({ totalIncome, totalExpenses, balance, onSetSelectedType }: TotalsDisplayProps) {
   const { translations } = useTranslations();
-
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpenses = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpenses;
 
   const handleFilterClick = (type: TransactionType) => {
     onSetSelectedType(type);

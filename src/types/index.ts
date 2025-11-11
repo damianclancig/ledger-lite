@@ -496,4 +496,9 @@ export interface BudgetInsights {
   isHistoric: boolean;
   cycleDailyAverage: number;
   cycleWeeklyAverage: number;
+  totalIncome: number;
+  totalExpenses: number;
+  balance: number;
+  previousCycleIncome: number;
+  previousCycleExpenses: number;
 }

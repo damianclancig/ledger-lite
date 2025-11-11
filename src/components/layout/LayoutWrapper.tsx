@@ -5,13 +5,17 @@ import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "@/contexts/LanguageContext";
 import { Loader2 } from "lucide-react";
 import { BackgroundWrapper } from "./BackgroundWrapper";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { loading, user } = useAuth();
+  const { loading: authLoading, user } = useAuth();
+  const { loading: langLoading } = useTranslations();
   
+  const loading = authLoading || langLoading;
+
   const publicPagesWithLayout = ['/terms'];
   const pagesWithOwnLayout = ['/', '/goodbye', '/welcome', '/login'];
   

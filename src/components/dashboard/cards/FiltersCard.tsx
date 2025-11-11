@@ -123,17 +123,17 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                     !dateRange?.from && "text-muted-foreground"
                   )}
                 >
-                  {dateRange?.from ? (
+                  {dateRange && dateRange.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, "PPP", { locale: currentLocale })} -{" "}
-                        {format(dateRange.to, "PPP", { locale: currentLocale })}
+                        {format(dateRange.from, "d MMM yyyy", { locale: currentLocale })} -{" "}
+                        {format(dateRange.to, "d MMM yyyy", { locale: currentLocale })}
                       </>
                     ) : (
-                      format(dateRange.from, "PP", { locale: currentLocale })
+                      format(dateRange.from, "d MMM yyyy", { locale: currentLocale })
                     )
                   ) : (
-                    <span>{translations.dateRange}</span>
+                    <span>{translations.filterByDateRange}</span>
                   )}
                 </Button>
               </PopoverTrigger>

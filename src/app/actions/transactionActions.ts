@@ -4,15 +4,81 @@
 import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
-import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail } from '@/types';
-import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
+import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail, BillingCycle } from '@/types';
+import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
 import { getCurrentBillingCycle } from './billingCycleActions';
 
-export async function getTransactions(userId: string): Promise<Transaction[]> {
+interface GetTransactionsOptions {
+  cycle?: BillingCycle | null;
+  limit?: number;
+  projection?: boolean;
+}
+
+export async function getTransactions(userId: string, options: GetTransactionsOptions = {}): Promise<Transaction[]> {
   if (!userId) return [];
   try {
     const { transactionsCollection } = await getDb();
-    const transactions = await transactionsCollection.find({ userId }).sort({ date: -1 }).toArray();
+    
+    const query: any = { userId };
+
+    if (options.cycle && options.cycle.id !== 'all') {
+      const cycleEndDate = options.cycle.endDate 
+        ? new Date(options.cycle.endDate)
+        : endOfMonth(new Date()); 
+
+      query.date = { 
+        $gte: new Date(options.cycle.startDate),
+        $lte: cycleEndDate,
+      };
+    }
+
+    if (options.projection) {
+        query.type = 'expense';
+        query.groupId = { $exists: true };
+        const now = new Date();
+        const yearStart = startOfYear(now);
+        const yearEnd = endOfYear(now);
+        query.date = {
+            $gte: yearStart,
+            $lte: yearEnd
+        };
+
+        const pipeline = [
+          { $match: query },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+              total: { $sum: "$amount" }
+            }
+          },
+          { $sort: { _id: 1 } },
+          { $project: { _id: 0, month: "$_id", total: "$total" } }
+        ];
+        
+        const result = await transactionsCollection.aggregate(pipeline).toArray() as unknown as Transaction[];
+
+        const projectionMap = new Map(result.map((item: any) => [item.month, item.total]));
+        const finalProjection: any[] = [];
+        const currentYear = getYear(now);
+
+        for (let i = 0; i < 12; i++) {
+          const monthDate = new Date(currentYear, i, 1);
+          const monthKey = format(monthDate, 'yyyy-MM');
+          finalProjection.push({
+            month: monthKey,
+            total: projectionMap.get(monthKey) || 0
+          });
+        }
+        return finalProjection;
+    }
+    
+    let cursor = transactionsCollection.find(query).sort({ date: -1 });
+
+    if (options.limit) {
+      cursor = cursor.limit(options.limit);
+    }
+
+    const transactions = await cursor.toArray();
     return transactions.map(mapMongoDocument);
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -40,7 +106,6 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     const { transactionsCollection } = await getDb();
     const { installments, ...transactionData } = data;
     
-    // Get current billing cycle
     const currentCycle = await getCurrentBillingCycle(userId);
 
     const baseTransaction = {
@@ -54,7 +119,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
       const installmentAmount = baseTransaction.amount / installments;
       const originalDate = new Date(baseTransaction.date);
       const transactionsToInsert = [];
-      const groupId = new ObjectId(); // Create a unique ID for this group of installments
+      const groupId = new ObjectId(); 
 
       for (let i = 0; i < installments; i++) {
         transactionsToInsert.push({
@@ -74,8 +139,6 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     revalidateTag(`taxes_${userId}`);
     revalidateTag(`savingsFunds_${userId}`);
 
-    // For simplicity, we'll just return a success-like object.
-    // Returning the first created transaction in an installment scenario.
     const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (Cuota 1/${installments})` : transactionData.description }, { sort: { date: 1 } });
     
     if (!firstTransaction) {
@@ -97,13 +160,12 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { transactionsCollection } = await getDb();
-    // Installment logic is not applied on update for simplicity
     const { installments, ...transactionData } = data;
     
     const documentToUpdate: any = { ...transactionData, date: new Date(transactionData.date) };
     
     const result = await transactionsCollection.updateOne(
-        { _id: new ObjectId(id), userId }, // Ensure user owns the doc
+        { _id: new ObjectId(id), userId },
         { $set: documentToUpdate }
     );
     
@@ -142,11 +204,9 @@ export async function deleteTransaction(id: string, userId: string): Promise<{ s
       let deletedGroupId: string | undefined = undefined;
 
       if (transactionToDelete.groupId) {
-        // If it's an installment, delete all transactions with the same groupId
         deletedGroupId = transactionToDelete.groupId;
         await transactionsCollection.deleteMany({ userId, groupId: transactionToDelete.groupId });
       } else {
-        // Delete only the single transaction
         await transactionsCollection.deleteOne({ _id: new ObjectId(id), userId });
       }
   
@@ -246,7 +306,6 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
           lastInstallmentDate: lastInstallment.date,
         });
       } else {
-        // All installments are in the past, so it's completed
         if (isPast(new Date(lastInstallment.date))) {
           completedDetails.push({
             id: firstInstallment.id,
@@ -271,67 +330,6 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
   } catch (error) {
     console.error('Error fetching installment details:', error);
     return { pendingDetails: [], completedDetails: [], totalPending: 0, totalForCurrentMonth: 0 };
-  }
-}
-
-export async function getInstallmentProjection(userId: string): Promise<{ month: string; total: number }[]> {
-  if (!userId) return [];
-  try {
-    const { transactionsCollection } = await getDb();
-    const now = new Date();
-    const yearStart = startOfYear(now);
-    const yearEnd = endOfYear(now);
-
-    const pipeline = [
-      {
-        $match: {
-          userId: userId,
-          type: 'expense',
-          groupId: { $exists: true },
-          date: {
-            $gte: yearStart,
-            $lte: yearEnd
-          }
-        }
-      },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
-          total: { $sum: "$amount" }
-        }
-      },
-      {
-        $sort: { _id: 1 }
-      },
-      {
-        $project: {
-          _id: 0,
-          month: "$_id",
-          total: "$total"
-        }
-      }
-    ];
-
-    const result = await transactionsCollection.aggregate(pipeline).toArray() as { month: string; total: number }[];
-
-    const projectionMap = new Map(result.map(item => [item.month, item.total]));
-    const finalProjection = [];
-    const currentYear = getYear(now);
-
-    for (let i = 0; i < 12; i++) {
-      const monthDate = new Date(currentYear, i, 1);
-      const monthKey = format(monthDate, 'yyyy-MM');
-      finalProjection.push({
-        month: monthKey,
-        total: projectionMap.get(monthKey) || 0
-      });
-    }
-
-    return finalProjection;
-    
-  } catch (error) {
-    console.error('Error fetching installment projection:', error);
-    return [];
   }
 }
 
@@ -373,7 +371,6 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
         return null;
       }
   
-      // Sort by date to get the first installment
       groupTransactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
       const firstInstallment = groupTransactions[0];
@@ -384,7 +381,7 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
       const baseDescription = baseDescriptionMatch ? baseDescriptionMatch[1].trim() : firstInstallment.description;
   
       return {
-        id: firstInstallment._id.toString(), // For key prop
+        id: firstInstallment._id.toString(),
         groupId,
         description: baseDescription,
         amount: totalAmount,
@@ -407,10 +404,8 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
     try {
         const { transactionsCollection } = await getDb();
 
-        // 1. Delete all existing transactions for this groupId
         await transactionsCollection.deleteMany({ userId, groupId });
         
-        // 2. Add new transactions based on the updated data
         const { installments, ...transactionData } = data;
         const currentCycle = await getCurrentBillingCycle(userId);
         const baseTransaction = {
@@ -423,7 +418,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
             const installmentAmount = baseTransaction.amount / installments;
             const originalDate = new Date(baseTransaction.date);
             const transactionsToInsert = [];
-            const newGroupId = new ObjectId(groupId); // Use existing group ID
+            const newGroupId = new ObjectId(groupId);
 
             for (let i = 0; i < installments; i++) {
                 transactionsToInsert.push({
@@ -436,12 +431,9 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
             }
             await transactionsCollection.insertMany(transactionsToInsert);
         } else {
-            // This case should ideally not happen if we are editing an installment purchase,
-            // but handle it just in case.
             await transactionsCollection.insertOne({ 
                 ...baseTransaction, 
                 date: new Date(baseTransaction.date),
-                // No groupId or installments here
             });
         }
         

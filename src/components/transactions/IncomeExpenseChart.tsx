@@ -24,10 +24,10 @@ interface IncomeExpenseChartProps {
 const CustomLegend = () => {
     const { translations } = useTranslations();
     const chartConfig = {
-        income_current: { label: translations.currentMonth, color: "hsl(var(--chart-2))" },
-        income_previous: { label: translations.previousMonth, color: "hsl(var(--chart-2) / 0.5)" },
-        expense_current: { label: translations.currentMonth, color: "hsl(var(--destructive))" },
-        expense_previous: { label: translations.previousMonth, color: "hsl(var(--destructive) / 0.5)" },
+        current_cycle: { label: "Ciclo Seleccionado", color: "hsl(var(--chart-2))" },
+        previous_cycle: { label: "Ciclo Anterior", color: "hsl(var(--chart-2) / 0.5)" },
+        expense_current: { label: "Ciclo Seleccionado", color: "hsl(var(--destructive))" },
+        expense_previous: { label: "Ciclo Anterior", color: "hsl(var(--destructive) / 0.5)" },
     };
 
     return (
@@ -35,12 +35,12 @@ const CustomLegend = () => {
             <div className="flex flex-col items-start gap-2">
                 <div className="font-bold">{translations.income}</div>
                 <div className="flex items-center gap-2">
-                    <div style={{ width: 12, height: 12, backgroundColor: chartConfig.income_current.color, borderRadius: '2px' }} />
-                    <span className="text-muted-foreground">{chartConfig.income_current.label}</span>
+                    <div style={{ width: 12, height: 12, backgroundColor: chartConfig.current_cycle.color, borderRadius: '2px' }} />
+                    <span className="text-muted-foreground">{chartConfig.current_cycle.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div style={{ width: 12, height: 12, backgroundColor: chartConfig.income_previous.color, borderRadius: '2px' }} />
-                    <span className="text-muted-foreground">{chartConfig.income_previous.label}</span>
+                    <div style={{ width: 12, height: 12, backgroundColor: chartConfig.previous_cycle.color, borderRadius: '2px' }} />
+                    <span className="text-muted-foreground">{chartConfig.previous_cycle.label}</span>
                 </div>
             </div>
             <div className="flex flex-col items-start gap-2">
@@ -64,7 +64,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const isIncome = label === translations.income;
     const title = isIncome ? translations.income : translations.expense;
     
-    // payload[0] is for 'previous', payload[1] is for 'current'
     const previousValue = payload[0]?.value || 0;
     const currentValue = payload[1]?.value || 0;
 
@@ -73,11 +72,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="mb-2 font-medium">{title}</p>
         <div className="space-y-1">
             <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">{translations.currentMonth}:</span>
+                <span className="text-muted-foreground">Ciclo Seleccionado:</span>
                 <span className="font-mono font-medium">{formatCurrency(currentValue)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">{translations.previousMonth}:</span>
+                <span className="text-muted-foreground">Ciclo Anterior:</span>
                 <span className="font-mono font-medium">{formatCurrency(previousValue)}</span>
             </div>
         </div>

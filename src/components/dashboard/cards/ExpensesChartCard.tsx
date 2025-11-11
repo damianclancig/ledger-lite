@@ -1,28 +1,24 @@
 
 "use client";
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExpensesChart } from '@/components/transactions/ExpensesChart';
 import { PieChart } from 'lucide-react';
-import type { Transaction, Category } from '@/types';
 import { useTranslations } from '@/contexts/LanguageContext';
 
 interface ExpensesChartCardProps {
-    transactions: Transaction[];
-    categories: Category[];
+    expensesByCategory: {
+        categoryId: string;
+        name: string;
+        isSystem: boolean;
+        total: number;
+    }[];
 }
 
-export function ExpensesChartCard({ transactions, categories }: ExpensesChartCardProps) {
+export function ExpensesChartCard({ expensesByCategory }: ExpensesChartCardProps) {
     const { translations } = useTranslations();
     
-    const categoryIdToCategoryMap = useMemo(() => {
-        return categories.reduce((acc, cat) => {
-            acc[cat.id] = cat;
-            return acc;
-        }, {} as Record<string, Category>);
-    }, [categories]);
-
     return (
         <div className="md:col-span-1">
             <Card className="shadow-xl border-2 border-primary h-full">
@@ -33,7 +29,7 @@ export function ExpensesChartCard({ transactions, categories }: ExpensesChartCar
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-                <ExpensesChart transactions={transactions} categoryIdToCategoryMap={categoryIdToCategoryMap} />
+                <ExpensesChart expensesByCategory={expensesByCategory} />
             </CardContent>
             </Card>
         </div>

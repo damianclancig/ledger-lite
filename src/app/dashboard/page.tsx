@@ -25,94 +25,22 @@ import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard"
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
 import { BudgetInsightsCard } from "@/components/dashboard/cards/BudgetInsightsCard";
-import { differenceInDays, endOfMonth, isPast } from 'date-fns';
 
 const ALL_CYCLES_ID = "all";
 
-const calculateBudgetInsightsClient = (transactionsInCycle: Transaction[], allTransactions: Transaction[], currentCycle: BillingCycle | null): BudgetInsights => {
-    const now = new Date();
-    
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-
-    const last7DaysExpenses = allTransactions
-        .filter(t => {
-            const transactionDate = new Date(t.date);
-            return t.type === 'expense' && !t.savingsFundId && transactionDate >= sevenDaysAgo && transactionDate <= today;
-        })
-        .reduce((sum, t) => sum + t.amount, 0);
-
-    const dailyAverage7Days = last7DaysExpenses > 0 ? last7DaysExpenses / 7 : 0;
-
-    const balance = transactionsInCycle.reduce((acc, t) => {
-        if (t.type === 'income') return acc + t.amount;
-        if (t.type === 'expense' && !t.savingsFundId) return acc - t.amount;
-        return acc;
-    }, 0);
-
-    let weeklyBudget = 0;
-    let dailyBudget = 0;
-    let isHistoric = false;
-    let cycleDailyAverage = 0;
-    let cycleWeeklyAverage = 0;
-    
-    if (currentCycle && currentCycle.id !== 'all') {
-        const cycleStart = new Date(currentCycle.startDate);
-        
-        if (currentCycle.endDate && isPast(new Date(currentCycle.endDate))) {
-            isHistoric = true;
-            const cycleEnd = new Date(currentCycle.endDate);
-            const cycleDurationDays = Math.max(1, differenceInDays(cycleEnd, cycleStart) + 1);
-            
-            const cycleTotalExpenses = transactionsInCycle
-                .filter(t => t.type === 'expense' && !t.savingsFundId)
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            cycleDailyAverage = cycleTotalExpenses / cycleDurationDays;
-            cycleWeeklyAverage = cycleDailyAverage * 7;
-        } else {
-            isHistoric = false;
-            const endOfCurrentMonth = endOfMonth(now);
-            const daysLeft = Math.max(1, differenceInDays(endOfCurrentMonth, now));
-            
-            if (balance > 0) {
-                dailyBudget = balance / daysLeft;
-                weeklyBudget = dailyBudget * 7;
-            }
-        }
-    }
-    
-    return {
-        dailyAverage7Days,
-        weeklyExpensesTotal: last7DaysExpenses,
-        weeklyBudget,
-        dailyBudget,
-        isHistoric,
-        cycleDailyAverage,
-        cycleWeeklyAverage,
-    };
-};
-
-const getDayName = (date: Date): string => {
-    const dayIndex = date.getDay();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[dayIndex];
-}
-
-const calculateDailyExpenses = (transactions: Transaction[]) => {
+const calculateDailyExpensesClient = (transactions: Transaction[]) => {
     const dailyData: { name: string; amount: number; isToday: boolean }[] = [];
     const now = new Date();
+    
+    const userLocale = navigator.language;
+    const getDayName = (date: Date): string => {
+        return date.toLocaleDateString(userLocale, { weekday: 'long' });
+    }
 
     for (let i = 6; i >= 0; i--) {
         const date = new Date(now);
         date.setDate(now.getDate() - i);
-
-        const dayStart = new Date(date);
-        dayStart.setHours(0, 0, 0, 0);
+        date.setHours(0, 0, 0, 0);
 
         const dayEnd = new Date(date);
         dayEnd.setHours(23, 59, 59, 999);
@@ -120,7 +48,7 @@ const calculateDailyExpenses = (transactions: Transaction[]) => {
         const expensesForDay = transactions
             .filter(t => {
                 const transactionDate = new Date(t.date);
-                return t.type === 'expense' && !t.savingsFundId && transactionDate >= dayStart && transactionDate <= dayEnd;
+                return t.type === 'expense' && !t.savingsFundId && transactionDate >= date && transactionDate <= dayEnd;
             })
             .reduce((sum, t) => sum + t.amount, 0);
         
@@ -135,32 +63,31 @@ const calculateDailyExpenses = (transactions: Transaction[]) => {
             isToday: i === 0,
         });
     }
-
     return dailyData;
 };
 
 export default function DashboardPage() {
-  const { translations, language } = useTranslations();
+  const { translations } = useTranslations();
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
   const filterCardRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
   
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
   const [savingsFunds, setSavingsFunds] = useState<SavingsFund[]>([]);
   const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
-  const [budgetInsights, setBudgetInsights] = useState<BudgetInsights | null>(null);
   
+  const [transactionsForCycle, setTransactionsForCycle] = useState<Transaction[]>([]);
+  const [budgetInsights, setBudgetInsights] = useState<BudgetInsights | null>(null);
+  const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
+  const [expensesByCategory, setExpensesByCategory] = useState<any[]>([]);
+  const [installmentProjection, setInstallmentProjection] = useState<InstallmentProjection[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
-
-  const [selectedCycle, setSelectedCycle] = useState<BillingCycle | null>(null);
   
-  // Filters & Pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
@@ -197,52 +124,56 @@ export default function DashboardPage() {
     wasLoadingRef.current = isLoading;
   }, [isLoading]);
 
-  const loadAllData = useCallback(async () => {
+  const loadDataForCycle = useCallback(async (cycle: BillingCycle | null) => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await getDashboardData(user.uid);
-      
-      if (!data.currentCycle && data.totalCyclesCount === 0) {
-        router.push('/welcome');
-        return;
-      }
-      
-      setAllTransactions(data.transactions);
-      setCategories(data.categories);
-      setPaymentMethods(data.paymentMethods);
-      setInstallmentProjection(data.installmentProjection);
-      setSavingsFunds(data.savingsFunds);
-      setBillingCycles(data.billingCycles);
-      // setBudgetInsights(data.budgetInsights); // Initial insights are now calculated on client
+        const cycleId = cycle ? cycle.id : null;
+        const data = await getDashboardData(user.uid, cycleId);
 
-      const savedCycleId = sessionStorage.getItem('selectedCycleId');
-      const savedCycle = savedCycleId ? data.billingCycles.find(c => c.id === savedCycleId) : null;
-      
-      if (savedCycle) {
-        setSelectedCycle(savedCycle);
-      } else if (savedCycleId === ALL_CYCLES_ID) {
-        setSelectedCycle({ id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() });
-      } else if (data.currentCycle) {
-        setSelectedCycle(data.currentCycle);
-        sessionStorage.setItem('selectedCycleId', data.currentCycle.id);
-      } else {
-        setSelectedCycle(data.billingCycles[0] || null);
-      }
+        if (!data.currentCycle && data.totalCyclesCount === 0) {
+            router.push('/welcome');
+            return;
+        }
+
+        setTransactionsForCycle(data.transactionsForCycle);
+        setBudgetInsights(data.budgetInsights);
+        setExpensesByCategory(data.expensesByCategory);
+        setInstallmentProjection(data.installmentProjection);
+        setCategories(data.categories);
+        setPaymentMethods(data.paymentMethods);
+        setSavingsFunds(data.savingsFunds);
+        setBillingCycles(data.billingCycles);
+        
+        const savedCycleId = sessionStorage.getItem('selectedCycleId');
+        if (savedCycleId && !selectedCycle) {
+            const cycleToSelect = data.billingCycles.find(c => c.id === savedCycleId) || (savedCycleId === ALL_CYCLES_ID ? { id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() } : null);
+            setSelectedCycle(cycleToSelect || data.currentCycle);
+        } else if (!selectedCycle) {
+            setSelectedCycle(data.currentCycle);
+        }
 
     } catch (error) {
-      console.error("Failed to load dashboard data:", error);
-      toast({ title: translations.errorTitle, description: "Could not load dashboard data.", variant: "destructive" });
+        console.error("Failed to load dashboard data:", error);
+        toast({ title: translations.errorTitle, description: "Could not load dashboard data.", variant: "destructive" });
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [user, router, toast, translations]);
-
+  }, [user, router, toast, translations, selectedCycle]);
 
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    if (user && !selectedCycle) {
+        loadDataForCycle(null);
+    }
+  }, [user, selectedCycle, loadDataForCycle]);
 
+  const handleSelectCycle = (cycle: BillingCycle | null) => {
+    if (cycle) {
+        setSelectedCycle(cycle);
+        sessionStorage.setItem('selectedCycleId', cycle.id);
+        loadDataForCycle(cycle);
+    }
+  };
 
   useEffect(() => {
     if (prevPageRef.current === currentPage) return;
@@ -255,13 +186,6 @@ export default function DashboardPage() {
     prevPageRef.current = currentPage;
   }, [currentPage]);
   
-  const handleSelectCycle = (cycle: BillingCycle | null) => {
-    if (cycle) {
-      setSelectedCycle(cycle);
-      sessionStorage.setItem('selectedCycleId', cycle.id);
-    }
-  };
-
   const handleStartNewCycle = async (startDate: Date) => {
     if (!user) return;
     const result = await startNewCycle(user.uid, startDate);
@@ -269,8 +193,9 @@ export default function DashboardPage() {
         toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
         toast({ title: translations.newCycleStartedTitle, description: translations.newCycleStartedDesc });
-        sessionStorage.removeItem('selectedCycleId'); // Clear saved cycle to default to new current one
-        loadAllData();
+        sessionStorage.removeItem('selectedCycleId');
+        setSelectedCycle(null);
+        loadDataForCycle(null);
     }
   }
 
@@ -293,7 +218,7 @@ export default function DashboardPage() {
     if (deletingTransaction && user) {
       const result = await deleteTransaction(deletingTransaction.id, user.uid);
       if (result.success) {
-        loadAllData(); // Reload all data to ensure consistency
+        loadDataForCycle(selectedCycle);
         toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });
       } else {
         toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -310,24 +235,32 @@ export default function DashboardPage() {
     };
   }, [selectedCycle]);
 
-  const transactionsForCycle = useMemo(() => {
-    const baseTransactions = allTransactions.filter(t => !t.savingsFundId);
-    if (!cycleDateRange) {
-        return baseTransactions; // All cycles are selected
+  const dailyExpensesChartData = useMemo(() => {
+    if (!budgetInsights) return [];
+    
+    const now = new Date();
+    const userLocale = navigator.language;
+    const getDayName = (date: Date): string => {
+        return date.toLocaleDateString(userLocale, { weekday: 'long' });
     }
-    return baseTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= cycleDateRange.start && transactionDate <= cycleDateRange.end;
-    });
-  }, [allTransactions, cycleDateRange]);
+    const data = [];
+    for(let i=0; i<7; i++) {
+        const date = new Date(now);
+        date.setDate(now.getDate() - i);
+        let dayLabel: string;
+        if (i === 0) dayLabel = 'today';
+        else if (i === 1) dayLabel = 'yesterday';
+        else dayLabel = getDayName(date);
 
-  // Recalculate budget insights whenever the selected cycle or transactions change
-  useEffect(() => {
-    if (selectedCycle && allTransactions.length > 0) {
-      const insights = calculateBudgetInsightsClient(transactionsForCycle, allTransactions, selectedCycle);
-      setBudgetInsights(insights);
+        data.push({
+            name: dayLabel,
+            amount: 0, 
+            isToday: i === 0,
+        });
     }
-  }, [selectedCycle, transactionsForCycle, allTransactions]);
+    
+    return data;
+  }, [budgetInsights]);
 
   const filteredTransactionsForList = useMemo(() => {
     return transactionsForCycle.filter((t) => {
@@ -363,39 +296,17 @@ export default function DashboardPage() {
   };
   
   const incomeExpenseChartData = useMemo(() => {
-    const currentTotals = transactionsForCycle.reduce((acc, t) => {
-      if (t.type === 'income') acc.income += t.amount;
-      if (t.type === 'expense' && !t.savingsFundId) acc.expense += t.amount;
-      return acc;
-    }, { income: 0, expense: 0 });
-    
-    let previousCycle;
-    if (selectedCycle && selectedCycle.id !== ALL_CYCLES_ID) {
-      const selectedCycleIndex = billingCycles.findIndex(c => c.id === selectedCycle.id);
-      if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
-          previousCycle = billingCycles[selectedCycleIndex + 1];
-      }
+    if (!budgetInsights) {
+        return [
+            { name: translations.income, current: 0, previous: 0 },
+            { name: translations.expense, current: 0, previous: 0 },
+        ];
     }
-    
-    let previousTotals = { income: 0, expense: 0 };
-    if (previousCycle && previousCycle.endDate) {
-      const prevCycleStart = new Date(previousCycle.startDate);
-      const prevCycleEnd = new Date(previousCycle.endDate);
-      previousTotals = allTransactions.filter(t => !t.savingsFundId && new Date(t.date) >= prevCycleStart && new Date(t.date) <= prevCycleEnd)
-        .reduce((acc, t) => {
-          if (t.type === 'income') acc.income += t.amount;
-          if (t.type === 'expense' && !t.savingsFundId) acc.expense += t.amount;
-          return acc;
-        }, { income: 0, expense: 0 });
-    }
-
     return [
-        { name: translations.income, current: currentTotals.income, previous: previousTotals.income },
-        { name: translations.expense, current: currentTotals.expense, previous: previousTotals.expense },
+        { name: translations.income, current: budgetInsights.totalIncome, previous: budgetInsights.previousCycleIncome },
+        { name: translations.expense, current: budgetInsights.totalExpenses, previous: budgetInsights.previousCycleExpenses },
     ];
-  }, [transactionsForCycle, billingCycles, selectedCycle, translations, allTransactions]);
-
-  const dailyExpenses = useMemo(() => calculateDailyExpenses(allTransactions), [allTransactions]);
+  }, [budgetInsights, translations]);
 
   const handleSeeDailyExpenses = () => {
     const today = new Date();
@@ -415,7 +326,7 @@ export default function DashboardPage() {
     return [...billingCycles, allCyclesOption];
   }, [billingCycles, user]);
 
-  if (isLoading) {
+  if (isLoading || !selectedCycle) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 mb-8" />
@@ -456,21 +367,22 @@ export default function DashboardPage() {
        />
 
         <TotalsDisplay 
-          transactions={transactionsForCycle} 
+          totalIncome={budgetInsights?.totalIncome || 0}
+          totalExpenses={budgetInsights?.totalExpenses || 0}
+          balance={budgetInsights?.balance || 0}
           onSetSelectedType={setSelectedType}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <ExpensesChartCard 
-             transactions={transactionsForCycle.filter(t => t.type === 'expense')} 
-             categories={categories}
+             expensesByCategory={expensesByCategory}
            />
            <IncomeExpenseChartCard chartData={incomeExpenseChartData} />
            <SavingsFundsCard funds={savingsFunds} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <DailyExpensesCard data={dailyExpenses} onSeeDetails={handleSeeDailyExpenses} />
+            <DailyExpensesCard data={dailyExpensesChartData} onSeeDetails={handleSeeDailyExpenses} />
             {budgetInsights && <BudgetInsightsCard insights={budgetInsights} />}
         </div>
         
