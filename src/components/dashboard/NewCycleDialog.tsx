@@ -70,7 +70,7 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
                         {selectedCycle && selectedCycle.id !== ALL_CYCLES_ID && !selectedCycle.endDate && (
                             <div className="text-sm text-muted-foreground">
                                 {translations.currentCycleStartedOn}{' '}
-                                <span className="font-semibold">{format(new Date(selectedCycle.startDate), 'PP', { locale: currentLocale })}</span>.
+                                <span className="font-semibold">{format(new Date(selectedCycle.startDate), 'PPP', { locale: currentLocale })}</span>.
                             </div>
                         )}
                     </div>
@@ -88,7 +88,7 @@ export function NewCycleDialog({ selectedCycle, onCycleStarted }: NewCycleDialog
                         )}
                         >
                         <CalendarIcon className="mr-2 h-5 w-5" />
-                        {newCycleStartDate ? format(newCycleStartDate, "PP", { locale: currentLocale }) : <span>{translations.date}</span>}
+                        {newCycleStartDate ? format(newCycleStartDate, "PPP", { locale: currentLocale }) : <span>{translations.date}</span>}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

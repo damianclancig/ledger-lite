@@ -491,6 +491,7 @@ export interface InstallmentProjection {
 export interface BudgetInsights {
   dailyAverage7Days: number;
   weeklyExpensesTotal: number;
+  dailyExpenses: { date: string; total: number }[];
   weeklyBudget: number;
   dailyBudget: number;
   isHistoric: boolean;

@@ -25,46 +25,9 @@ import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard"
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
 import { BudgetInsightsCard } from "@/components/dashboard/cards/BudgetInsightsCard";
+import { isSameDay, parseISO, differenceInDays, startOfDay, format as formatDate } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
-
-const calculateDailyExpensesClient = (transactions: Transaction[]) => {
-    const dailyData: { name: string; amount: number; isToday: boolean }[] = [];
-    const now = new Date();
-    
-    const userLocale = navigator.language;
-    const getDayName = (date: Date): string => {
-        return date.toLocaleDateString(userLocale, { weekday: 'long' });
-    }
-
-    for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(now.getDate() - i);
-        date.setHours(0, 0, 0, 0);
-
-        const dayEnd = new Date(date);
-        dayEnd.setHours(23, 59, 59, 999);
-
-        const expensesForDay = transactions
-            .filter(t => {
-                const transactionDate = new Date(t.date);
-                return t.type === 'expense' && !t.savingsFundId && transactionDate >= date && transactionDate <= dayEnd;
-            })
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        let dayLabel: string;
-        if (i === 0) dayLabel = 'today';
-        else if (i === 1) dayLabel = 'yesterday';
-        else dayLabel = getDayName(date);
-
-        dailyData.push({
-            name: dayLabel,
-            amount: expensesForDay,
-            isToday: i === 0,
-        });
-    }
-    return dailyData;
-};
 
 export default function DashboardPage() {
   const { translations } = useTranslations();
@@ -236,31 +199,53 @@ export default function DashboardPage() {
   }, [selectedCycle]);
 
   const dailyExpensesChartData = useMemo(() => {
-    if (!budgetInsights) return [];
-    
+    if (!budgetInsights?.dailyExpenses) return [];
+
     const now = new Date();
-    const userLocale = navigator.language;
+    const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    
+    // 1. Create a map for the last 7 days in the user's local timezone
+    const dailyTotals = new Map<string, number>();
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayKey = formatDate(date, 'yyyy-MM-dd');
+        dailyTotals.set(dayKey, 0);
+    }
+
+    // 2. Process transactions and aggregate amounts into the local timezone days
+    budgetInsights.dailyExpenses.forEach(expense => {
+        const expenseDate = new Date(expense.date); // This is UTC date
+        const localDayKey = formatDate(expenseDate, 'yyyy-MM-dd'); // Convert to local 'YYYY-MM-DD'
+        if (dailyTotals.has(localDayKey)) {
+            dailyTotals.set(localDayKey, dailyTotals.get(localDayKey)! + expense.total);
+        }
+    });
+
+    // 3. Format the data for the chart
     const getDayName = (date: Date): string => {
         return date.toLocaleDateString(userLocale, { weekday: 'long' });
     }
-    const data = [];
-    for(let i=0; i<7; i++) {
-        const date = new Date(now);
-        date.setDate(now.getDate() - i);
-        let dayLabel: string;
-        if (i === 0) dayLabel = 'today';
-        else if (i === 1) dayLabel = 'yesterday';
-        else dayLabel = getDayName(date);
 
-        data.push({
-            name: dayLabel,
-            amount: 0, 
-            isToday: i === 0,
-        });
-    }
-    
-    return data;
-  }, [budgetInsights]);
+    return Array.from(dailyTotals.entries())
+        .map(([dayKey, total]) => {
+            const itemDate = new Date(dayKey + 'T12:00:00'); // Use noon to avoid TZ shifts
+            let dayLabel: string;
+            const diff = differenceInDays(startOfDay(now), startOfDay(itemDate));
+
+            if (diff === 0) dayLabel = 'today';
+            else if (diff === 1) dayLabel = 'yesterday';
+            else dayLabel = getDayName(itemDate);
+
+            return {
+                name: dayLabel,
+                amount: total,
+                isToday: diff === 0,
+            };
+        })
+        .reverse(); // To have the oldest day first
+
+  }, [budgetInsights?.dailyExpenses]);
 
   const filteredTransactionsForList = useMemo(() => {
     return transactionsForCycle.filter((t) => {

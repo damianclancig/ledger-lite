@@ -6,14 +6,14 @@ import { getCategories } from './categoryActions';
 import { getPaymentMethods } from './paymentMethodActions';
 import { getSavingsFunds } from './savingsFundActions';
 import { getCurrentBillingCycle, getBillingCycles } from './billingCycleActions';
-import { endOfMonth, isPast, differenceInDays } from 'date-fns';
+import { endOfMonth, isPast, differenceInDays, startOfDay, format } from 'date-fns';
 import type { Transaction, BudgetInsights, BillingCycle, InstallmentProjection } from '@/types';
 import { getDb } from '@/lib/actions-helpers';
 import { ObjectId } from 'mongodb';
 
-export async function getBudgetInsights(userId: string, startDate: Date, endDate: Date): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal'>> {
+export async function getBudgetInsights(userId: string, startDate: Date, endDate: Date): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'dailyExpenses'>> {
     if (!userId) {
-        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0 };
+        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, dailyExpenses: [] };
     }
     
     try {
@@ -26,16 +26,22 @@ export async function getBudgetInsights(userId: string, startDate: Date, endDate
                 $gte: startDate,
                 $lte: endDate
             }
-        }).toArray();
+        }, { projection: { date: 1, amount: 1, _id: 0 } }).toArray();
 
         const weeklyExpensesTotal = last7DaysExpenses.reduce((sum, t) => sum + t.amount, 0);
         const dailyAverage7Days = weeklyExpensesTotal > 0 ? weeklyExpensesTotal / 7 : 0;
+        
+        // Return the raw transactions for the frontend to process into local time days
+        const dailyExpenses = last7DaysExpenses.map(t => ({
+            date: new Date(t.date).toISOString(),
+            total: t.amount,
+        }));
 
-        return { dailyAverage7Days, weeklyExpensesTotal };
+        return { dailyAverage7Days, weeklyExpensesTotal, dailyExpenses };
 
     } catch (error) {
         console.error('Error fetching budget insights:', error);
-        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0 };
+        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, dailyExpenses: [] };
     }
 }
 
@@ -151,12 +157,21 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
         throw new Error("User not authenticated.");
     }
 
+    // Frontend will now define the precise 7-day range based on user's timezone
+    const now = new Date();
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+    const sevenDaysAgoStart = new Date(now);
+    sevenDaysAgoStart.setDate(now.getDate() - 6);
+    sevenDaysAgoStart.setHours(0, 0, 0, 0);
+
     const [
         paymentMethods,
         savingsFunds,
         currentCycle,
         billingCycles,
         categories,
+        weeklyInsights,
         installmentProjection,
     ] = await Promise.all([
         getPaymentMethods(userId),
@@ -164,9 +179,10 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
         getCurrentBillingCycle(userId),
         getBillingCycles(userId),
         getCategories(userId),
-        getTransactions(userId, { projection: true })
+        getBudgetInsights(userId, sevenDaysAgoStart, todayEnd),
+        getTransactions(userId, { projection: true }),
     ]);
-
+    
     let activeCycle = currentCycle;
     if (cycleId) {
         if (cycleId === 'all') {
@@ -200,15 +216,6 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     }
 
     const totalCyclesCount = billingCycles.length;
-
-    const now = new Date();
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
-    const sevenDaysAgoStart = new Date(now);
-    sevenDaysAgoStart.setDate(now.getDate() - 6);
-    sevenDaysAgoStart.setHours(0, 0, 0, 0);
-
-    const weeklyInsights = await getBudgetInsights(userId, sevenDaysAgoStart, todayEnd);
 
     return {
         transactionsForCycle,
