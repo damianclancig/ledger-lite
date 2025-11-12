@@ -19,6 +19,7 @@ import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import Link from "next/link";
 
 export default function WelcomePage() {
     const { user } = useAuth();
@@ -65,7 +66,7 @@ export default function WelcomePage() {
                 <main className="flex-grow flex items-center justify-center p-4">
                     <Card className="w-full max-w-2xl shadow-2xl border-2 border-primary/50 bg-card/80 backdrop-blur-sm">
                         <CardHeader className="text-center p-8">
-                            <CardTitle className="text-3xl">¡Bienvenido a</CardTitle>
+                            <CardTitle className="text-3xl">{translations.welcomeTitle}</CardTitle>
                             <h1 className="text-6xl font-extrabold -mt-2">
                                 <span style={{ background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)', WebkitBackgroundClip: 'text', color: 'transparent', textShadow: '0 2px 4px rgba(30, 58, 138, 0.4)', WebkitTextStroke: '1px rgba(0,0,0,0.1)' }}>
                                     Finan
@@ -119,6 +120,13 @@ export default function WelcomePage() {
                             <Rocket className="mr-3 h-5 w-5" />
                             {isStartingNewCycle ? translations.starting : translations.startFirstCycle}
                             </Button>
+                            <p className="text-center text-xs text-muted-foreground px-4">
+                                {translations.welcomeTermsText1}{' '}
+                                <Link href="/terms" className="underline hover:text-primary">
+                                {translations.termsAndConditions}
+                                </Link>
+                                .
+                            </p>
                         </CardContent>
                     </Card>
                 </main>

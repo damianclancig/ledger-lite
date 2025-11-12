@@ -5,22 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { addSavingsFund } from "@/app/actions/savingsFundActions";
 import { SavingsFundForm, type SavingsFundFormSubmitValues } from "@/components/savings-funds/SavingsFundForm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormPageLayout } from "@/components/layout/FormPageLayout";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import React, { useEffect } from "react";
 
 export default function AddSavingsFundPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   const handleFormSubmit = async (values: SavingsFundFormSubmitValues) => {
     if (!user) {
@@ -39,26 +31,11 @@ export default function AddSavingsFundPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-       <div className="flex justify-end mb-4">
-        <Button asChild variant="ghost" className="text-base">
-            <Link href="/savings-funds">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {translations.back}
-            </Link>
-        </Button>
-      </div>
-      <Card className="shadow-xl border-2 border-primary">
-        <CardHeader>
-          <CardTitle>{translations.newSavingsFund}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SavingsFundForm
-            onSubmit={handleFormSubmit}
-            onClose={() => router.push("/savings-funds")}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <FormPageLayout title={translations.newSavingsFund} backHref="/savings-funds">
+      <SavingsFundForm
+        onSubmit={handleFormSubmit}
+        onClose={() => router.push("/savings-funds")}
+      />
+    </FormPageLayout>
   );
 }

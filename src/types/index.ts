@@ -330,7 +330,7 @@ export interface Translations {
   supportPaypal: string;
   // Account Deletion
   account: string;
-  accountSettings: string;
+  accountInformation: string;
   dangerZone: string;
   deleteAccount: string;
   deleteAccountWarning: string;
@@ -420,6 +420,7 @@ export interface Translations {
   welcomeTitle: string;
   welcomeSubtitle: string;
   welcomeDesc: string;
+  welcomeTermsText1: string;
   selectStartDate: string;
   startFirstCycle: string;
   starting: string;

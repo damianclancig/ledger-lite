@@ -31,8 +31,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // Render pages with completely custom layouts (like login, goodbye)
-  if (hasOwnLayout && !user) {
+  // Render pages with completely custom layouts
+  if (hasOwnLayout) {
     return <main>{children}</main>;
   }
 

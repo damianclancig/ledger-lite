@@ -5,12 +5,9 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { getSavingsFundById, updateSavingsFund } from "@/app/actions/savingsFundActions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormPageLayout } from "@/components/layout/FormPageLayout";
+import { EditPageLoader } from "@/components/common/EditPageLoader";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { SavingsFund } from "@/types";
 import { SavingsFundForm, type SavingsFundFormSubmitValues } from "@/components/savings-funds/SavingsFundForm";
 
@@ -25,10 +22,6 @@ export default function EditSavingsFundPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const id = params.id as string;
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -68,50 +61,16 @@ export default function EditSavingsFundPage() {
   };
   
   if (isLoading || !fund) {
-    return (
-       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-end mb-4">
-            <Skeleton className="h-10 w-24" />
-        </div>
-        <Card>
-          <CardHeader>
-             <Skeleton className="h-8 w-48" />
-          </CardHeader>
-          <CardContent>
-             <div className="space-y-6">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-             </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return <EditPageLoader />;
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex justify-end mb-4">
-        <Button asChild variant="ghost" className="text-base">
-            <Link href="/savings-funds">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {translations.back}
-            </Link>
-        </Button>
-      </div>
-      <Card className="shadow-xl border-2 border-primary">
-        <CardHeader>
-          <CardTitle>{translations.editSavingsFund}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SavingsFundForm
-            onSubmit={handleFormSubmit}
-            onClose={() => router.push("/savings-funds")}
-            initialData={fund}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <FormPageLayout title={translations.editSavingsFund} backHref="/savings-funds">
+      <SavingsFundForm
+        onSubmit={handleFormSubmit}
+        onClose={() => router.push("/savings-funds")}
+        initialData={fund}
+      />
+    </FormPageLayout>
   );
 }

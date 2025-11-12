@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
@@ -11,10 +11,19 @@ import { Heart, Share2, Home, Check } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function GoodbyePage() {
     const { translations } = useTranslations();
+    const { signOut } = useAuth();
     const [isCopied, setIsCopied] = useState(false);
+
+    useEffect(() => {
+        // This is the crucial step: explicitly sign out on the client-side.
+        // This clears any lingering user state in the AuthContext.
+        // The noRedirect flag prevents it from navigating away from this page.
+        signOut(undefined, { noRedirect: true });
+    }, [signOut]);
 
     const handleShare = () => {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;

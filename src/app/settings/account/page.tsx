@@ -13,11 +13,13 @@ import { deleteUserAccount } from "@/app/actions/userActions";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
 
 export default function AccountSettingsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { translations } = useTranslations();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -28,9 +30,9 @@ export default function AccountSettingsPage() {
     setIsDeleting(true);
     const result = await deleteUserAccount(user.uid);
     if (result.success) {
-      // The signOut function now handles redirection.
-      // It will clear the client-side session and then navigate.
-      await signOut('/goodbye');
+      // The server action was successful, now redirect to the goodbye page.
+      // The goodbye page will handle the final client-side sign-out.
+      router.push('/goodbye');
     } else {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
       setIsDeleting(false);
@@ -39,8 +41,8 @@ export default function AccountSettingsPage() {
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (open) {
-      setConfirmationText(""); // Reset text when dialog opens
+    if (!open) {
+      setConfirmationText(""); // Reset text when dialog closes
     }
     setIsDialogOpen(open);
   }
@@ -53,7 +55,7 @@ export default function AccountSettingsPage() {
         <CardHeader>
           <div className="flex items-center">
             <User className="h-6 w-6 mr-3 text-primary" />
-            <CardTitle>{translations.accountSettings}</CardTitle>
+            <CardTitle>{translations.accountInformation}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -82,7 +84,7 @@ export default function AccountSettingsPage() {
            <AlertDialog open={isDialogOpen} onOpenChange={handleOpenChange}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={isDeleting}>
-                {isDeleting ? "Eliminando..." : translations.deleteAccount}
+                {isDeleting ? translations.processing + "..." : translations.deleteAccount}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -113,7 +115,7 @@ export default function AccountSettingsPage() {
                   onClick={handleDeleteAccount}
                   disabled={isDeleteButtonDisabled}
                 >
-                  {isDeleting ? "Eliminando..." : translations.deleteAccount}
+                  {isDeleting ? translations.processing + "..." : translations.deleteAccount}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
