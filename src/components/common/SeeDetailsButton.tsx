@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -21,12 +22,12 @@ export function SeeDetailsButton({ href, onClick }: SeeDetailsButtonProps) {
 
     const buttonElement = href ? (
         <Button asChild variant="ghost" size="icon" className="group h-8 w-8">
-            <Link href={href}>
+            <Link href={href} aria-label={translations.seeDetails}>
                 {buttonContent}
             </Link>
         </Button>
     ) : (
-        <Button variant="ghost" size="icon" className="group h-8 w-8" onClick={onClick}>
+        <Button variant="ghost" size="icon" className="group h-8 w-8" onClick={onClick} aria-label={translations.seeDetails}>
             {buttonContent}
         </Button>
     );

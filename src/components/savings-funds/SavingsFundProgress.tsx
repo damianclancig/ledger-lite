@@ -38,6 +38,7 @@ export function SavingsFundProgress({ fund, size }: SavingsFundProgressProps) {
   const isApproachingGoal = progress >= 80 && !isCompleted;
   
   const percentage = Math.min(100, progress);
+  const ariaLabel = `${translations.progress} ${translations.for} ${fund.name}: ${percentage.toFixed(0)}%`;
 
   return (
     <div className={cn(progressVariants({ size }))}>
@@ -47,6 +48,7 @@ export function SavingsFundProgress({ fund, size }: SavingsFundProgressProps) {
         </div>
         <Progress 
             value={percentage} 
+            aria-label={ariaLabel}
             className="h-3 relative overflow-hidden"
             indicatorClassName={cn({
                 "bg-green-600 after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/50 after:to-transparent after:animate-shimmer": isCompleted,

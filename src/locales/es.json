@@ -17,6 +17,7 @@
   "cancel": "Cancelar",
   "delete": "Eliminar",
   "edit": "Editar",
+  "for": "para",
   "confirmDelete": "Confirmar Eliminación",
   "areYouSureDelete": "¿Estás seguro de que quieres eliminar esta transacción? Esta acción no se puede deshacer.",
   "areYouSureDeleteInstallment": "Esta acción eliminará la compra completa y todas sus cuotas asociadas. Esta acción no se puede deshacer.",

@@ -17,6 +17,7 @@
   "cancel": "Cancelar",
   "delete": "Excluir",
   "edit": "Editar",
+  "for": "para",
   "confirmDelete": "Confirmar Exclusão",
   "areYouSureDelete": "Tem certeza de que deseja excluir esta transação? Esta ação não pode ser desfeita.",
   "areYouSureDeleteInstallment": "Esta ação excluirá a compra inteira e todas as suas parcelas associadas. Esta ação não pode ser desfeita.",

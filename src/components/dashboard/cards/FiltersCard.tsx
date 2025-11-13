@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, forwardRef } from 'react';
@@ -101,7 +100,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             value={selectedCategory}
             onValueChange={(value: string) => onSelectedCategoryChange(value as string | "all")}
           >
-            <SelectTrigger className="text-base">
+            <SelectTrigger className="text-base" aria-label={translations.category}>
               <SelectValue placeholder={translations.category} />
             </SelectTrigger>
             <SelectContent>
@@ -122,6 +121,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                     "w-full justify-start text-left font-normal text-base h-10 pl-10",
                     !dateRange?.from && "text-muted-foreground"
                   )}
+                  aria-label={translations.filterByDateRange}
                 >
                   {dateRange && dateRange.from ? (
                     dateRange.to ? (

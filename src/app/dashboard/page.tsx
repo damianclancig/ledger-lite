@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -24,8 +23,8 @@ import { DailyExpensesCard } from "@/components/dashboard/cards/DailyExpensesCar
 import { SavingsFundsCard } from "@/components/dashboard/cards/SavingsFundsCard";
 import { InstallmentProjectionCard } from "@/components/dashboard/cards/InstallmentProjectionCard";
 import { NewCycleDialog } from "@/components/dashboard/NewCycleDialog";
+import { isSameDay, parseISO, differenceInDays, startOfDay, format as formatDate, startOfToday, subDays } from "date-fns";
 import { BudgetInsightsCard } from "@/components/dashboard/cards/BudgetInsightsCard";
-import { isSameDay, parseISO, differenceInDays, startOfDay, format as formatDate } from "date-fns";
 
 const ALL_CYCLES_ID = "all";
 
@@ -204,32 +203,28 @@ export default function DashboardPage() {
     const now = new Date();
     const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
     
-    // 1. Create a map for the last 7 days in the user's local timezone
     const dailyTotals = new Map<string, number>();
     for (let i = 0; i < 7; i++) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
+        const date = subDays(startOfToday(), i);
         const dayKey = formatDate(date, 'yyyy-MM-dd');
         dailyTotals.set(dayKey, 0);
     }
 
-    // 2. Process transactions and aggregate amounts into the local timezone days
     budgetInsights.dailyExpenses.forEach(expense => {
-        const expenseDate = new Date(expense.date); // This is UTC date
-        const localDayKey = formatDate(expenseDate, 'yyyy-MM-dd'); // Convert to local 'YYYY-MM-DD'
+        const expenseDateUTC = parseISO(expense.date); 
+        const localDayKey = formatDate(expenseDateUTC, 'yyyy-MM-dd');
         if (dailyTotals.has(localDayKey)) {
             dailyTotals.set(localDayKey, dailyTotals.get(localDayKey)! + expense.total);
         }
     });
 
-    // 3. Format the data for the chart
     const getDayName = (date: Date): string => {
         return date.toLocaleDateString(userLocale, { weekday: 'long' });
     }
 
     return Array.from(dailyTotals.entries())
         .map(([dayKey, total]) => {
-            const itemDate = new Date(dayKey + 'T12:00:00'); // Use noon to avoid TZ shifts
+            const itemDate = parseISO(dayKey + 'T12:00:00Z');
             let dayLabel: string;
             const diff = differenceInDays(startOfDay(now), startOfDay(itemDate));
 
@@ -243,9 +238,9 @@ export default function DashboardPage() {
                 isToday: diff === 0,
             };
         })
-        .reverse(); // To have the oldest day first
+        .reverse(); 
 
-  }, [budgetInsights?.dailyExpenses]);
+  }, [budgetInsights?.dailyExpenses, translations]);
 
   const filteredTransactionsForList = useMemo(() => {
     return transactionsForCycle.filter((t) => {

@@ -1,8 +1,7 @@
-
 "use client";
 
 import type { TransactionType } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -29,10 +28,10 @@ export function TotalsDisplay({ totalIncome, totalExpenses, balance, onSetSelect
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium flex items-center">
+          <div className="font-medium flex items-center text-xl">
             <TrendingUp className="h-5 w-5 text-green-500 mr-2" />
             {translations.totalIncome}
-          </CardTitle>
+          </div>
           <SeeDetailsButton onClick={() => handleFilterClick('income')} />
         </CardHeader>
         <CardContent>
@@ -43,10 +42,10 @@ export function TotalsDisplay({ totalIncome, totalExpenses, balance, onSetSelect
       </Card>
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium flex items-center">
+          <div className="font-medium flex items-center text-xl">
             <TrendingDown className="h-5 w-5 text-red-500 mr-2" />
             {translations.totalExpenses}
-          </CardTitle>
+          </div>
            <SeeDetailsButton onClick={() => handleFilterClick('expense')} />
         </CardHeader>
         <CardContent>
@@ -57,10 +56,10 @@ export function TotalsDisplay({ totalIncome, totalExpenses, balance, onSetSelect
       </Card>
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium flex items-center">
+          <div className="font-medium flex items-center text-xl">
              <DollarSign className={`h-5 w-5 mr-2 ${balance >= 0 ? 'text-blue-500' : 'text-orange-500'}`} />
              Balance
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <div className={`text-xl md:text-2xl font-bold text-center ${balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'} font-mono`}>

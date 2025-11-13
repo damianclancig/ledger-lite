@@ -197,7 +197,7 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
                 {translations.cancel}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? `${translations.transfer}...` : translations.transfer}
+                {isSubmitting ? `${translations.processing}...` : translations.transfer}
               </Button>
             </DialogFooter>
           </form>

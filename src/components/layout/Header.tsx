@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -29,7 +28,7 @@ export function Header() {
         <div className="flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="mr-3 sm:mr-4 border-2 border-primary">
+              <Button variant="outline" size="icon" className="mr-3 sm:mr-4 border-2 border-primary" aria-label={translations.home}>
                 <Menu className="h-6 w-6" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>

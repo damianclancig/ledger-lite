@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -87,7 +86,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
             value={String(itemsPerPage)}
             onValueChange={(value) => onItemsPerPageChange(Number(value))}
           >
-            <SelectTrigger className="inline-flex w-auto h-8 ml-2">
+            <SelectTrigger className="inline-flex w-auto h-8 ml-2" aria-label={translations.resultsPerPage}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,6 +106,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
           size="sm"
           onClick={onPreviousPage}
           disabled={currentPage === 1}
+          aria-label={translations.previous}
         >
           <ChevronLeft className="h-4 w-4 sm:mr-1" />
           <span className="hidden sm:inline">{translations.previous}</span>
@@ -116,6 +116,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
           size="sm"
           onClick={onNextPage}
           disabled={currentPage === totalPages}
+          aria-label={translations.next}
         >
           <span className="hidden sm:inline">{translations.next}</span>
           <ChevronRight className="h-4 w-4 sm:ml-1" />

@@ -17,61 +17,49 @@ export async function getDb() {
   };
 }
 
+function mapBaseDocument<T>(doc: WithId<Document>): T {
+  const { _id, ...rest } = doc;
+  return { id: _id.toString(), ...rest } as T;
+}
+
 // Map MongoDB's _id and other fields to a serializable object
 export function mapMongoDocument(doc: WithId<Document>): Transaction {
-  const { _id, date, ...rest } = doc;
+  const baseDoc = mapBaseDocument<Omit<Transaction, 'date'>>(doc as any);
   return { 
-    id: _id.toString(),
-    date: new Date(date).toISOString(), // Standardize to ISO string
-    ...rest 
-  } as unknown as Transaction;
+    ...baseDoc,
+    date: new Date(doc.date).toISOString(), // Standardize to ISO string
+  };
 }
 
 export function mapMongoDocumentTax(doc: WithId<Document>): Tax {
-  const { _id, date, ...rest } = doc;
-  const mappedDoc = {
-    id: _id.toString(),
-    ...rest
-  } as unknown as Tax;
-
-  if (date) {
-    mappedDoc.date = new Date(date).toISOString(); // Standardize to ISO string
-  }
-  
-  return mappedDoc;
+  const baseDoc = mapBaseDocument<Omit<Tax, 'date'>>(doc as any);
+  return {
+    ...baseDoc,
+    date: doc.date ? new Date(doc.date).toISOString() : undefined,
+  };
 }
 
 export function mapMongoDocumentCategory(doc: WithId<Document>): Category {
-  const { _id, ...rest } = doc;
-  return {
-    id: _id.toString(),
-    ...rest
-  } as Category;
+  return mapBaseDocument<Category>(doc);
 }
 
 export function mapMongoDocumentPaymentMethod(doc: WithId<Document>): PaymentMethod {
-  const { _id, ...rest } = doc;
-  return {
-    id: _id.toString(),
-    ...rest
-  } as PaymentMethod;
+  return mapBaseDocument<PaymentMethod>(doc);
 }
 
 export function mapMongoDocumentSavingsFund(doc: WithId<Document>): SavingsFund {
-  const { _id, targetDate, ...rest } = doc;
+  const baseDoc = mapBaseDocument<Omit<SavingsFund, 'targetDate'>>(doc as any);
   return {
-    id: _id.toString(),
-    targetDate: targetDate ? new Date(targetDate).toISOString() : undefined, // Standardize to ISO string
-    ...rest
-  } as unknown as SavingsFund;
+    ...baseDoc,
+    targetDate: doc.targetDate ? new Date(doc.targetDate).toISOString() : undefined,
+  };
 }
 
 export function mapMongoDocumentBillingCycle(doc: WithId<Document>): BillingCycle {
-    const { _id, startDate, endDate, ...rest } = doc;
+    const baseDoc = mapBaseDocument<Omit<BillingCycle, 'startDate' | 'endDate'>>(doc as any);
     return {
-      id: _id.toString(),
-      startDate: new Date(startDate).toISOString(),
-      endDate: endDate ? new Date(endDate).toISOString() : undefined,
-      ...rest
-    } as unknown as BillingCycle;
+      ...baseDoc,
+      startDate: new Date(doc.startDate).toISOString(),
+      endDate: doc.endDate ? new Date(doc.endDate).toISOString() : undefined,
+    };
   }
