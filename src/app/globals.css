@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -106,5 +107,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Add CSS-based reaction to scroll direction for FAB */
+  body[data-scroll-direction="down"] .group.fixed {
+    transform: scale(0);
+  }
+  body[data-scroll-direction="up"] .group.fixed {
+    transform: scale(1);
   }
 }

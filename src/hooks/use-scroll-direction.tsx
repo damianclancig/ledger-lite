@@ -1,28 +1,49 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
+/**
+ * A performant hook to track scroll direction and apply it as a data attribute to the body.
+ * This avoids re-renders on scroll by decoupling the scroll logic from React state.
+ */
 export function useScrollDirection() {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
 
   useEffect(() => {
-    let lastScrollY = window.pageYOffset;
-
     const updateScrollDirection = () => {
       const scrollY = window.pageYOffset;
-      const direction = scrollY > lastScrollY ? 'down' : 'up';
-      if (direction !== scrollDirection && (scrollY - lastScrollY > 5 || scrollY - lastScrollY < -5)) {
-        setScrollDirection(direction);
+      
+      if (Math.abs(scrollY - lastScrollY.current) < 10) {
+        ticking.current = false;
+        return;
       }
-      lastScrollY = scrollY > 0 ? scrollY : 0;
+
+      const direction = scrollY > lastScrollY.current ? "down" : "up";
+      document.body.setAttribute('data-scroll-direction', direction);
+      
+      lastScrollY.current = scrollY > 0 ? scrollY : 0;
+      ticking.current = false;
     };
 
-    window.addEventListener('scroll', updateScrollDirection);
-    return () => {
-      window.removeEventListener('scroll', updateScrollDirection);
-    }
-  }, [scrollDirection]);
+    const onScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(updateScrollDirection);
+        ticking.current = true;
+      }
+    };
 
-  return scrollDirection;
-};
+    // Set initial direction
+    document.body.setAttribute('data-scroll-direction', 'up');
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      // Clean up the attribute when the component unmounts
+      document.body.removeAttribute('data-scroll-direction');
+    };
+  }, []);
+
+  // This hook now has no return value as it works via a side-effect on the DOM.
+}

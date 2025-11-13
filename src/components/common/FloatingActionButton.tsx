@@ -1,6 +1,7 @@
+
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
@@ -13,14 +14,20 @@ interface FloatingActionButtonProps {
 }
 
 export function FloatingActionButton({ onClick, label, icon: Icon }: FloatingActionButtonProps) {
-  const scrollDirection = useScrollDirection();
+  // This hook now applies the data-scroll-direction attribute to the body.
+  // It does not return a value, so we just call it to activate it.
+  useScrollDirection();
+  
+  // We add a CSS rule to globals.css to handle the show/hide transition.
+  // This is more performant than using React state.
 
   return (
     <Button
       onClick={onClick}
       className={cn(
-        "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-all duration-300 ease-in-out hover:w-auto hover:pr-6 hover:bg-primary/90 gap-0 hover:gap-2",
-        scrollDirection === "down" ? "scale-0" : "scale-100"
+        "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-transform duration-300 ease-in-out hover:w-auto hover:pr-6 hover:bg-primary/90 gap-0 hover:gap-2",
+        // The scale is now controlled by a data attribute on the body
+        "data-[scroll-direction='down']:scale-0 data-[scroll-direction='up']:scale-100"
       )}
       aria-label={label}
     >
