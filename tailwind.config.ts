@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -9,9 +10,9 @@ export default {
   ],
   theme: {
     fontFamily: {
-      sans: ['Faustina', 'sans-serif'],
-      serif: ['Faustina', 'serif'],
-      mono: ['Roboto Mono', 'monospace'],
+      sans: ['var(--font-faustina)', 'sans-serif'],
+      serif: ['var(--font-faustina)', 'serif'],
+      mono: ['var(--font-roboto-mono)', 'monospace'],
     },
     extend: {
       fontSize: {

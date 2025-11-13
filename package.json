@@ -2,6 +2,10 @@
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
+  "browserslist": [
+    "> 0.5%",
+    "not dead"
+  ],
   "scripts": {
     "dev": "next dev --turbopack -p 9003",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
