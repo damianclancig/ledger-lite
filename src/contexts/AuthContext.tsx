@@ -80,7 +80,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         '/taxes', '/add-tax', '/edit-tax',
         '/installments', '/edit-installment-purchase',
         '/savings-funds', '/savings-funds/add', '/savings-funds/edit',
-        '/settings'
+        '/settings',
+        '/card-summaries'
     ];
     
     // Pages that manage their own layout or are public
@@ -122,3 +123,5 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+    

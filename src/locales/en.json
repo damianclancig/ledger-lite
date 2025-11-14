@@ -305,6 +305,7 @@
   "dailyBudget": "Available Daily Budget",
   "weeklyExpenses": "Weekly Expenses (7d)",
   "weeklyBudget": "Available Weekly Budget",
+  "avgWeeklyExpense28d": "Weekly Average (28d)",
   "historicCycleInfo": "This is a summary of a past cycle. Projections are not available.",
   "historicCycleData": "Historic Cycle Data",
   "avgDailyExpenseCycle": "Avg. Daily Expense (Cycle)",

@@ -103,19 +103,25 @@ export async function getTransactionById(id: string, userId: string): Promise<Tr
 export async function addTransaction(data: TransactionFormValues, userId: string): Promise<Transaction | { error: string }> {
   if (!userId) return { error: 'User not authenticated.' };
   try {
-    const { transactionsCollection } = await getDb();
+    const { transactionsCollection, paymentMethodsCollection } = await getDb();
     const { installments, ...transactionData } = data;
     
     const currentCycle = await getCurrentBillingCycle(userId);
+
+    const paymentMethod = await paymentMethodsCollection.findOne({ _id: new ObjectId(data.paymentMethodId) });
+    const isCardPayment = data.type === 'expense' && paymentMethod?.type === 'Credit Card';
 
     const baseTransaction = {
       ...transactionData,
       date: new Date(transactionData.date),
       userId,
       billingCycleId: currentCycle?.id,
+      isCardPayment,
+      isPaid: !isCardPayment, // Paid if it's not a card payment
+      cardId: isCardPayment ? data.paymentMethodId : undefined,
     };
 
-    if (installments && installments > 1) {
+    if (installments && installments > 1 && isCardPayment) {
       const installmentAmount = baseTransaction.amount / installments;
       const originalDate = new Date(baseTransaction.date);
       const transactionsToInsert = [];
@@ -138,6 +144,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     revalidateTag(`transactions_${userId}`);
     revalidateTag(`taxes_${userId}`);
     revalidateTag(`savingsFunds_${userId}`);
+    revalidateTag(`cardSummaries_${userId}`);
 
     const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (Cuota 1/${installments})` : transactionData.description }, { sort: { date: 1 } });
     
@@ -212,6 +219,7 @@ export async function deleteTransaction(id: string, userId: string): Promise<{ s
   
       revalidateTag(`transactions_${userId}`);
       revalidateTag(`savingsFunds_${userId}`);
+      revalidateTag(`cardSummaries_${userId}`);
       return { success: true, deletedGroupId };
     } catch (error) {
       console.error('Error deleting transaction(s):', error);
@@ -447,3 +455,5 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
         return { success: false, error: `Failed to update purchase. ${errorMessage}` };
     }
 }
+
+    

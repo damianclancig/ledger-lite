@@ -59,9 +59,12 @@ export interface Transaction {
   groupId?: string;
   savingsFundId?: string;
   billingCycleId?: string;
+  isCardPayment?: boolean;
+  cardId?: string;
+  isPaid?: boolean;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId" | "date"> & {
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId" | "date" | "isCardPayment" | "cardId" | "isPaid"> & {
   date: Date; // Form uses Date object, but it's converted to string for backend
 };
 
@@ -110,6 +113,14 @@ export interface BillingCycle {
   endDate?: string;   // ISO string
 }
 
+// Card Summary types
+export interface CardSummary {
+    cardId: string;
+    cardName: string;
+    cardBank?: string;
+    totalAmount: number;
+    transactions: Transaction[];
+}
 
 export type Language = "en" | "es" | "pt";
 
@@ -448,10 +459,29 @@ export interface Translations {
   dailyBudget: string;
   weeklyExpenses: string;
   weeklyBudget: string;
+  avgWeeklyExpense28d: string;
   historicCycleInfo: string;
   historicCycleData: string;
   avgDailyExpenseCycle: string;
   avgWeeklyExpenseCycle: string;
+  // Card Summaries
+  cardSummaries: string;
+  cardSummariesIntroTitle: string;
+  cardSummariesIntroText1: string;
+  cardSummariesIntroText2: string;
+  cardSummariesIntroText3: string;
+  noCardSummaries: string;
+  unpaidExpenses: string;
+  paySummary: string;
+  payCardSummary: string;
+  payCardSummaryDesc: string;
+  paymentFrom: string;
+  partialAmount: string;
+  paymentDate: string;
+  amountToPay: string;
+  summaryPaymentSuccess: string;
+  summaryPaymentError: string;
+  paymentForCardSummary: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;
@@ -492,6 +522,7 @@ export interface InstallmentProjection {
 export interface BudgetInsights {
   dailyAverage7Days: number;
   weeklyExpensesTotal: number;
+  weeklyAverage28Days: number;
   dailyExpenses: { date: string; total: number }[];
   weeklyBudget: number;
   dailyBudget: number;
@@ -504,3 +535,5 @@ export interface BudgetInsights {
   previousCycleIncome: number;
   previousCycleExpenses: number;
 }
+
+    

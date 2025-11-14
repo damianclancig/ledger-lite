@@ -11,23 +11,34 @@ import type { Transaction, BudgetInsights, BillingCycle, InstallmentProjection }
 import { getDb } from '@/lib/actions-helpers';
 import { ObjectId } from 'mongodb';
 
-export async function getBudgetInsights(userId: string, startDate: Date, endDate: Date): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'dailyExpenses'>> {
+export async function getBudgetInsights(userId: string, startDate: Date, endDate: Date): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'weeklyAverage28Days' | 'dailyExpenses'>> {
     if (!userId) {
-        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, dailyExpenses: [] };
+        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] };
     }
     
     try {
         const { transactionsCollection } = await getDb();
-        const last7DaysExpenses = await transactionsCollection.find({
+        const twentyEightDaysAgoStart = subDays(startOfToday(), 27);
+
+        // Fetch expenses for the last 28 days to calculate both 7-day and 28-day metrics
+        const last28DaysExpenses = await transactionsCollection.find({
             userId,
             type: 'expense',
+            isCardPayment: { $ne: true }, // Exclude unpaid card expenses
             savingsFundId: { $exists: false },
             date: {
-                $gte: startDate,
+                $gte: twentyEightDaysAgoStart,
                 $lte: endDate
             }
         }, { projection: { date: 1, amount: 1, _id: 0 } }).toArray();
 
+        // Calculate 28-day average
+        const totalExpenses28Days = last28DaysExpenses.reduce((sum, t) => sum + t.amount, 0);
+        const weeklyAverage28Days = totalExpenses28Days > 0 ? totalExpenses28Days / 4 : 0;
+        
+        // Filter for last 7 days from the 28-day data
+        const last7DaysExpenses = last28DaysExpenses.filter(t => new Date(t.date) >= startDate);
+        
         const weeklyExpensesTotal = last7DaysExpenses.reduce((sum, t) => sum + t.amount, 0);
         const dailyAverage7Days = weeklyExpensesTotal > 0 ? weeklyExpensesTotal / 7 : 0;
         
@@ -36,11 +47,11 @@ export async function getBudgetInsights(userId: string, startDate: Date, endDate
             total: t.amount,
         }));
 
-        return { dailyAverage7Days, weeklyExpensesTotal, dailyExpenses };
+        return { dailyAverage7Days, weeklyExpensesTotal, weeklyAverage28Days, dailyExpenses };
 
     } catch (error) {
         console.error('Error fetching budget insights:', error);
-        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, dailyExpenses: [] };
+        return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] };
     }
 }
 
@@ -53,6 +64,7 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
           $match: {
             userId: userId,
             type: 'expense',
+            isCardPayment: { $ne: true }, // Exclude unpaid card expenses
             savingsFundId: { $exists: false },
             date: { $gte: startDate, $lte: endDate }
           }
@@ -105,8 +117,11 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
 const calculateCycleBudgetInsights = (transactions: Transaction[], currentCycle: BillingCycle | null): Pick<BudgetInsights, 'totalIncome' | 'totalExpenses' | 'balance' | 'weeklyBudget' | 'dailyBudget' | 'isHistoric' | 'cycleDailyAverage' | 'cycleWeeklyAverage' | 'previousCycleIncome' | 'previousCycleExpenses'> => {
     const now = new Date();
     
-    const income = transactions.filter(t => t.type === 'income' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
-    const expenses = transactions.filter(t => t.type === 'expense' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
+    // Filter out credit card expenses that are not yet paid
+    const relevantTransactions = transactions.filter(t => !t.isCardPayment);
+
+    const income = relevantTransactions.filter(t => t.type === 'income' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
+    const expenses = relevantTransactions.filter(t => t.type === 'expense' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
     const balance = income - expenses;
 
     let weeklyBudget = 0;
@@ -202,8 +217,8 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
         if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
             const previousCycle = billingCycles[selectedCycleIndex + 1];
             const transactionsForPreviousCycle = await getTransactions(userId, { cycle: previousCycle });
-            const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
-            const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
+            const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income' && !t.savingsFundId && !t.isCardPayment).reduce((sum, t) => sum + t.amount, 0);
+            const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense' && !t.savingsFundId && !t.isCardPayment).reduce((sum, t) => sum + t.amount, 0);
             
             budgetInsights.previousCycleIncome = prevIncome;
             budgetInsights.previousCycleExpenses = prevExpenses;
@@ -225,3 +240,5 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
         installmentProjection,
     };
 }
+
+    

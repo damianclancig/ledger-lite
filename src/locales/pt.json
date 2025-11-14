@@ -305,6 +305,7 @@
   "dailyBudget": "Orçamento Diário Disponível",
   "weeklyExpenses": "Despesas da Semana (7d)",
   "weeklyBudget": "Orçamento Semanal Disponível",
+  "avgWeeklyExpense28d": "Média Semanal (28d)",
   "historicCycleInfo": "Este é um resumo de um ciclo passado. As projeções não estão disponíveis.",
   "historicCycleData": "Dados Históricos do Ciclo",
   "avgDailyExpenseCycle": "Gasto Diário Méd. (Ciclo)",

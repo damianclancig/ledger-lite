@@ -97,6 +97,13 @@ export function BudgetInsightsCard({ insights }: BudgetInsightsCardProps) {
                     isSubItem
                 />
                 <InsightItem
+                    icon={TrendingDown}
+                    label={translations.avgWeeklyExpense28d}
+                    value={formatCurrency(insights.weeklyAverage28Days)}
+                    iconColor="text-orange-500"
+                    isSubItem
+                />
+                <InsightItem
                     icon={Wallet}
                     label={translations.weeklyBudget}
                     value={formatCurrency(insights.weeklyBudget)}

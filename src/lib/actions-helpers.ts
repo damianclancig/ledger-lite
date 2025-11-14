@@ -1,3 +1,4 @@
+
 import { MongoClient, type WithId, type Document } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
 import type { Transaction, Tax, Category, PaymentMethod, SavingsFund, BillingCycle } from '@/types';
@@ -63,3 +64,5 @@ export function mapMongoDocumentBillingCycle(doc: WithId<Document>): BillingCycl
       endDate: doc.endDate ? new Date(doc.endDate).toISOString() : undefined,
     };
   }
+
+    
