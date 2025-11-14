@@ -25,7 +25,6 @@ export async function getBudgetInsights(userId: string, startDate: Date, endDate
             userId,
             type: 'expense',
             isCardPayment: { $ne: true }, // Exclude unpaid card expenses
-            savingsFundId: { $exists: false },
             date: {
                 $gte: twentyEightDaysAgoStart,
                 $lte: endDate
@@ -65,7 +64,6 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
             userId: userId,
             type: 'expense',
             isCardPayment: { $ne: true }, // Exclude unpaid card expenses
-            savingsFundId: { $exists: false },
             date: { $gte: startDate, $lte: endDate }
           }
         },
@@ -117,11 +115,10 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
 const calculateCycleBudgetInsights = (transactions: Transaction[], currentCycle: BillingCycle | null): Pick<BudgetInsights, 'totalIncome' | 'totalExpenses' | 'balance' | 'weeklyBudget' | 'dailyBudget' | 'isHistoric' | 'cycleDailyAverage' | 'cycleWeeklyAverage' | 'previousCycleIncome' | 'previousCycleExpenses'> => {
     const now = new Date();
     
-    // Filter out credit card expenses that are not yet paid
-    const relevantTransactions = transactions.filter(t => !t.isCardPayment);
+    const relevantTransactions = transactions.filter(t => t.type === 'income' || t.type === 'expense');
 
-    const income = relevantTransactions.filter(t => t.type === 'income' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
-    const expenses = relevantTransactions.filter(t => t.type === 'expense' && !t.savingsFundId).reduce((sum, t) => sum + t.amount, 0);
+    const income = relevantTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = relevantTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const balance = income - expenses;
 
     let weeklyBudget = 0;
@@ -203,22 +200,28 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     }
 
     const transactionsForCycle = await getTransactions(userId, { cycle: activeCycle });
-
+    
     const cycleStartDate = activeCycle ? new Date(activeCycle.startDate) : new Date(0);
-    const cycleEndDate = activeCycle?.endDate ? new Date(activeCycle.endDate) : (activeCycle?.id === 'all' ? new Date() : endOfMonth(new Date()));
+    let cycleEndDate;
+    if (activeCycle?.endDate) {
+        cycleEndDate = new Date(activeCycle.endDate);
+    } else if (activeCycle?.id === 'all') {
+        cycleEndDate = new Date();
+    } else {
+        cycleEndDate = endOfMonth(new Date());
+    }
 
     const expensesByCategory = await getExpensesByCategory(userId, cycleStartDate, cycleEndDate);
 
     let budgetInsights = calculateCycleBudgetInsights(transactionsForCycle, activeCycle);
     
-    // Find previous cycle and get its totals
     if (activeCycle && activeCycle.id !== 'all') {
         const selectedCycleIndex = billingCycles.findIndex(c => c.id === activeCycle!.id);
         if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
             const previousCycle = billingCycles[selectedCycleIndex + 1];
             const transactionsForPreviousCycle = await getTransactions(userId, { cycle: previousCycle });
-            const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income' && !t.savingsFundId && !t.isCardPayment).reduce((sum, t) => sum + t.amount, 0);
-            const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense' && !t.savingsFundId && !t.isCardPayment).reduce((sum, t) => sum + t.amount, 0);
+            const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
             
             budgetInsights.previousCycleIncome = prevIncome;
             budgetInsights.previousCycleExpenses = prevExpenses;
@@ -240,5 +243,3 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
         installmentProjection,
     };
 }
-
-    

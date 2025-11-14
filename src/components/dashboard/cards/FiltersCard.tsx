@@ -21,11 +21,11 @@ interface FiltersCardProps {
   dateRange: DateRange | undefined;
   searchTerm: string;
   selectedCategory: string | 'all';
-  selectedType: TransactionType | 'all';
+  selectedType: TransactionType | "all";
   onDateChange: (range: DateRange | undefined) => void;
   onSearchTermChange: (term: string) => void;
   onSelectedCategoryChange: (category: string | 'all') => void;
-  onSelectedTypeChange: (type: TransactionType | 'all') => void;
+  onSelectedTypeChange: (type: TransactionType | "all") => void;
   onClearFilters: () => void;
   isAnyFilterActive: boolean;
   currentCycleStartDate?: Date;
@@ -94,7 +94,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
           </div>
           <TransactionTypeToggle
             value={selectedType}
-            onChange={(value) => onSelectedTypeChange(value as TransactionType | "all")}
+            onChange={onSelectedTypeChange}
           />
           <Select
             value={selectedCategory}

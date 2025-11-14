@@ -55,7 +55,7 @@ export default function CardSummariesPage() {
     
     useEffect(() => {
         loadData();
-    }, [user]);
+    }, [user, toast, translations]);
 
     const handleOpenPayDialog = (summary: CardSummary) => {
         setSelectedSummary(summary);
@@ -116,18 +116,20 @@ export default function CardSummariesPage() {
                 <div className="space-y-6">
                     {summaries.map(summary => (
                         <Card key={summary.cardId} className="shadow-xl border-2 border-primary/20">
-                            <CardHeader>
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <CardTitle className="flex items-center text-xl">
-                                            <Wallet className="h-5 w-5 mr-3 text-primary" />
-                                            {summary.cardName}
-                                        </CardTitle>
-                                        {summary.cardBank && <p className="text-sm text-muted-foreground pl-8">{summary.cardBank}</p>}
+                           <CardHeader>
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                    <div className="flex items-center">
+                                        <Wallet className="h-6 w-6 sm:h-7 sm:w-7 mr-3 text-primary" />
+                                        <div>
+                                            <CardTitle className="text-base sm:text-xl">
+                                                {summary.cardName}
+                                            </CardTitle>
+                                            {summary.cardBank && <p className="text-xs sm:text-sm text-muted-foreground">{summary.cardBank}</p>}
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm text-muted-foreground">{translations.totalAmount}</p>
-                                        <p className="text-2xl font-bold font-mono text-red-500">{formatCurrency(summary.totalAmount)}</p>
+                                    <div className="w-full sm:w-auto pt-2 sm:pt-0 text-right">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">{translations.totalAmount}</p>
+                                        <p className="text-lg sm:text-2xl font-bold font-mono text-red-500">{formatCurrency(summary.totalAmount)}</p>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -135,17 +137,17 @@ export default function CardSummariesPage() {
                                 <Accordion type="single" collapsible>
                                     <AccordionItem value="details">
                                         <AccordionTrigger>
-                                            <div className="flex items-center text-base">
+                                            <div className="flex items-center text-sm sm:text-base">
                                                 <Info className="h-4 w-4 mr-2" /> {translations.unpaidExpenses} ({summary.transactions.length})
                                             </div>
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <ul className="space-y-2 pt-2">
                                                 {summary.transactions.map(tx => (
-                                                    <li key={tx.id} className="flex justify-between items-center text-base border-b pb-1">
+                                                    <li key={tx.id} className="flex justify-between items-center text-sm sm:text-base border-b pb-1">
                                                         <div className="flex-1">
                                                             <p className="font-medium">{tx.description}</p>
-                                                            <p className="text-sm text-muted-foreground">{format(new Date(tx.date), "PPP", { locale: currentLocale })}</p>
+                                                            <p className="text-xs sm:text-sm text-muted-foreground">{format(new Date(tx.date), "PPP", { locale: currentLocale })}</p>
                                                         </div>
                                                         <p className="font-mono">{formatCurrency(tx.amount)}</p>
                                                     </li>
@@ -156,7 +158,7 @@ export default function CardSummariesPage() {
                                 </Accordion>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full text-lg" onClick={() => handleOpenPayDialog(summary)}>
+                                <Button className="w-full text-base sm:text-lg" onClick={() => handleOpenPayDialog(summary)}>
                                     <DollarSign className="h-5 w-5 mr-2"/> {translations.paySummary}
                                 </Button>
                             </CardFooter>
@@ -177,5 +179,3 @@ export default function CardSummariesPage() {
         </div>
     );
 }
-
-    

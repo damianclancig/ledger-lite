@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,7 +9,7 @@ import type { PaymentMethod, PaymentMethodFormValues } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Edit, Banknote, Building } from "lucide-react";
+import { CreditCard, Edit, Banknote, Building, CalendarDays } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -54,6 +55,7 @@ export default function ManagePaymentMethodsPage() {
       name: method.name, 
       type: method.type, 
       bank: method.bank,
+      closingDay: method.closingDay,
       isEnabled: !method.isEnabled 
     };
     const result = await updatePaymentMethod(method.id, values, user.uid);
@@ -88,6 +90,12 @@ export default function ManagePaymentMethodsPage() {
                     <span className="text-base">{method.bank}</span>
                   </div>
                 )}
+                 {method.type === 'Credit Card' && method.closingDay && (
+                  <div className="flex items-center">
+                    <CalendarDays className="mr-3 h-4 w-4" />
+                    <span className="text-base">{translations.closingDay}: {method.closingDay}</span>
+                  </div>
+                )}
               </div>
               <Separator/>
               <div className="flex items-center justify-between pt-1">
@@ -113,6 +121,7 @@ export default function ManagePaymentMethodsPage() {
           <TableHead>{translations.paymentMethodName}</TableHead>
           <TableHead>{translations.paymentMethodType}</TableHead>
           <TableHead>{translations.paymentMethodBank}</TableHead>
+          <TableHead className="text-center">{translations.closingDay}</TableHead>
           <TableHead className="text-center">{translations.paymentMethodStatus}</TableHead>
           <TableHead className="text-right">{translations.actions}</TableHead>
         </TableRow>
@@ -123,6 +132,9 @@ export default function ManagePaymentMethodsPage() {
             <TableCell className="font-medium text-base">{method.name}</TableCell>
             <TableCell className="text-base">{translatePaymentType(method.type)}</TableCell>
             <TableCell className="text-base">{method.bank || "N/A"}</TableCell>
+            <TableCell className="text-center text-base">
+                {method.type === 'Credit Card' && method.closingDay ? method.closingDay : 'N/A'}
+            </TableCell>
             <TableCell className="text-center">
               <Switch
                 checked={method.isEnabled}

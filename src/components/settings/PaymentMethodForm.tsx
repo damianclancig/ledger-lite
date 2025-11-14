@@ -14,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +33,7 @@ const getFormSchema = (translations: Translations) => z.object({
   name: z.string().min(1, { message: translations.paymentMethodNameRequired }),
   type: z.enum(PAYMENT_METHOD_TYPES, { required_error: translations.paymentMethodTypeRequired }),
   bank: z.string().optional(),
+  closingDay: z.coerce.number().min(1).max(31).optional(),
   isEnabled: z.boolean().default(true),
 });
 
@@ -42,21 +44,23 @@ export function PaymentMethodForm({ onSubmit, onClose, initialData }: PaymentMet
   const form = useForm<PaymentMethodFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      type: undefined,
-      bank: "",
-      isEnabled: true,
-      ...initialData,
+      name: initialData?.name || "",
+      type: initialData?.type,
+      bank: initialData?.bank || "",
+      closingDay: initialData?.closingDay || undefined,
+      isEnabled: initialData?.isEnabled ?? true,
     },
   });
+  
+  const paymentType = form.watch("type");
 
   useEffect(() => {
     form.reset({
-      name: "",
-      type: undefined,
-      bank: "",
-      isEnabled: true,
-      ...initialData,
+      name: initialData?.name || "",
+      type: initialData?.type,
+      bank: initialData?.bank || "",
+      closingDay: initialData?.closingDay || undefined,
+      isEnabled: initialData?.isEnabled ?? true,
     });
   }, [initialData, form]);
 
@@ -103,19 +107,39 @@ export function PaymentMethodForm({ onSubmit, onClose, initialData }: PaymentMet
           />
         </div>
         
-        <FormField
-            control={form.control}
-            name="bank"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{translations.paymentMethodBank}</FormLabel>
-                <FormControl>
-                  <Input placeholder={translations.paymentMethodBankPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="bank"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>{translations.paymentMethodBank}</FormLabel>
+                    <FormControl>
+                    <Input placeholder={translations.paymentMethodBankPlaceholder} {...field} value={field.value ?? ''} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            {paymentType === 'Credit Card' && (
+                 <FormField
+                    control={form.control}
+                    name="closingDay"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{translations.cardClosingDay}</FormLabel>
+                        <FormControl>
+                            <Input type="number" min="1" max="31" placeholder="Ej: 25" {...field} value={field.value ?? ''} />
+                        </FormControl>
+                        <FormDescription>
+                            {translations.cardClosingDayDesc}
+                        </FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
             )}
-          />
+        </div>
 
         <FormField
           control={form.control}

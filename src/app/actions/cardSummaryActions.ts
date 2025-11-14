@@ -58,16 +58,26 @@ export async function payCardSummary(
     if (!userId) return { success: false, error: 'User not authenticated.' };
 
     try {
-        const { transactionsCollection } = await getDb();
+        const { transactionsCollection, categoriesCollection } = await getDb();
 
-        // 1. Create the actual expense transaction for the payment
+        // 1. Find the 'Taxes' category to assign the payment to. Fallback to 'Other'.
+        let paymentCategory = await categoriesCollection.findOne({ userId, name: "Taxes" });
+        if (!paymentCategory) {
+            paymentCategory = await categoriesCollection.findOne({ userId, name: "Other" });
+            if (!paymentCategory) {
+                throw new Error("Default categories 'Taxes' or 'Other' not found.");
+            }
+        }
+        const paymentCategoryId = paymentCategory._id.toString();
+
+        // 2. Create the actual expense transaction for the payment
         const paymentTransaction = {
             userId,
             description,
             amount: paymentAmount,
             date: paymentDate,
-            categoryId: 'CARD_PAYMENT', // Special category for card payments
-            type: 'expense',
+            categoryId: paymentCategoryId,
+            type: 'expense' as 'expense',
             paymentMethodId,
             isCardPayment: false,
             isPaid: true,
@@ -78,7 +88,7 @@ export async function payCardSummary(
             throw new Error('Failed to create payment transaction.');
         }
 
-        // 2. Find and mark individual card transactions as paid
+        // 3. Find and mark individual card transactions as paid
         const transactionsToPay = await transactionsCollection.find({
             userId,
             cardId,

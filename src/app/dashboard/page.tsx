@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -51,7 +52,7 @@ export default function DashboardPage() {
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
+  const [selectedType, setSelectedType] = useState<TransactionType | "all" | "savings">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
@@ -246,7 +247,16 @@ export default function DashboardPage() {
     return transactionsForCycle.filter((t) => {
       const lowerSearchTerm = searchTerm.toLowerCase();
       const matchesSearch = t.description.toLowerCase().includes(lowerSearchTerm);
-      const matchesType = selectedType === "all" || t.type === selectedType;
+      
+      let matchesType = true;
+      if (selectedType === "all") {
+        matchesType = true;
+      } else if (selectedType === 'savings') {
+        matchesType = t.type === 'deposit' || t.type === 'withdrawal';
+      } else {
+        matchesType = t.type === selectedType;
+      }
+
       const matchesCategory = selectedCategory === "all" || t.categoryId === selectedCategory;
       
       let matchesDateRange = true;
@@ -380,7 +390,7 @@ export default function DashboardPage() {
         onDateChange={handleDateSelect}
         onSearchTermChange={setSearchTerm}
         onSelectedCategoryChange={setSelectedCategory}
-        onSelectedTypeChange={setSelectedType}
+        onSelectedTypeChange={(type) => setSelectedType(type as TransactionType | "all" | "savings")}
         onClearFilters={() => {
           setSearchTerm("");
           setSelectedType("all");

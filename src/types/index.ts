@@ -1,7 +1,7 @@
 
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
-export type TransactionType = "income" | "expense";
+export type TransactionType = "income" | "expense" | "deposit" | "withdrawal" | "transfer";
 
 export const CATEGORIES = [
   { key: "Salary", isSystem: false },
@@ -30,6 +30,7 @@ export interface PaymentMethod {
   name: string;
   type: PaymentMethodType;
   bank?: string;
+  closingDay?: number;
   isEnabled: boolean;
 }
 export type PaymentMethodFormValues = Omit<PaymentMethod, "id" | "userId">;
@@ -64,7 +65,7 @@ export interface Transaction {
   isPaid?: boolean;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "savingsFundId" | "groupId" | "billingCycleId" | "date" | "isCardPayment" | "cardId" | "isPaid"> & {
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "groupId" | "billingCycleId" | "date" | "isCardPayment" | "cardId" | "isPaid"> & {
   date: Date; // Form uses Date object, but it's converted to string for backend
 };
 
@@ -136,6 +137,7 @@ export interface Translations {
   appName: string;
   addTransaction: string;
   editTransaction: string;
+  deleteTransaction: string;
   description: string;
   amount: string;
   date: string;
@@ -144,11 +146,13 @@ export interface Translations {
   paymentType: string;
   income: string;
   expense: string;
+  transfer: string;
   save: string;
   saveAndAddAnother: string;
   cancel: string;
   delete: string;
   edit: string;
+  for: string;
   confirmDelete: string;
   areYouSureDelete: string;
   areYouSureDeleteInstallment: string;
@@ -283,7 +287,6 @@ export interface Translations {
   transactionUpdatedDesc: string;
   transactionDeletedTitle: string;
   transactionDeletedDesc: string;
-  deleteTransaction: string;
   taxAddedTitle: string;
   taxAddedDesc: string;
   errorTitle: string;
@@ -309,6 +312,9 @@ export interface Translations {
   paymentMethodAddedSuccess: string;
   paymentMethodUpdatedSuccess: string;
   paymentMethodInUseError: string;
+  cardClosingDay: string;
+  cardClosingDayDesc: string;
+  closingDay: string;
   // Installments
   installments: string;
   manualInstallments: string;
@@ -383,7 +389,6 @@ export interface Translations {
   withdraw: string;
   transferTo: string;
   withdrawFrom: string;
-  transfer: string;
   transferSuccess: string;
   transferError: string;
   withdrawAmountError: string;
@@ -535,5 +540,3 @@ export interface BudgetInsights {
   previousCycleIncome: number;
   previousCycleExpenses: number;
 }
-
-    
