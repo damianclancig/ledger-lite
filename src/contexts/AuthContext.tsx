@@ -18,22 +18,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { useAuthState } from "@/hooks/useAuthState";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, setUser } = useAuthState();
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
   const { translations } = useTranslations();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
   
   const handleAuthError = (error: AuthError) => {
     if (error.code === 'auth/unauthorized-domain') {
@@ -51,63 +42,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = useCallback(async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      // Successful sign-in is handled by onAuthStateChanged, which will trigger the useEffect below
+      const result = await signInWithPopup(auth, googleProvider);
+      setUser(result.user);
     } catch (error) {
       handleAuthError(error as AuthError);
     }
-  }, [toast, translations]);
+  }, [setUser, toast, translations]);
   
   const signOut = useCallback(async (redirectPath: string = '/', options: { noRedirect?: boolean } = {}) => {
     try {
       await firebaseSignOut(auth);
-      // The onAuthStateChanged listener will set the user to null.
-      // We handle redirection here to make it predictable.
+      setUser(null);
       if (!options.noRedirect) {
           router.push(redirectPath);
       }
     } catch (error) {
       console.error("Error signing out", error);
     }
-  }, [router]);
-  
-   useEffect(() => {
-    if (loading) return;
-
-    const protectedRoutes = [
-        '/dashboard', 
-        '/add-transaction', '/edit-transaction', 
-        '/taxes', '/add-tax', '/edit-tax',
-        '/installments', '/edit-installment-purchase',
-        '/savings-funds', '/savings-funds/add', '/savings-funds/edit',
-        '/settings',
-        '/card-summaries'
-    ];
-    
-    // Pages that manage their own layout or are public
-    const unmanagedRoutes = ['/', '/login', '/goodbye', '/welcome', '/terms'];
-
-    // Don't interfere with unmanaged routes
-    if (unmanagedRoutes.includes(pathname)) {
-        return;
-    }
-    
-    // Exception for the account deletion flow
-    if (pathname.startsWith('/settings/account')) {
-        return;
-    }
-
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-
-    if (!user && isProtectedRoute) {
-      router.push('/');
-    } else if (user && pathname === '/') {
-      // If a logged-in user lands on the homepage, redirect to dashboard
-      router.push('/dashboard');
-    }
-    
-  }, [user, loading, pathname, router]);
-
+  }, [setUser, router]);
 
   return (
     <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
