@@ -4,8 +4,6 @@ import { useTranslations } from "@/contexts/LanguageContext";
 import type { TransactionType } from "@/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Repeat } from 'lucide-react';
-
 interface TransactionTypeToggleProps {
   value: TransactionType | "all" | "savings";
   onChange: (value: TransactionType | "all" | "savings") => void;
@@ -16,25 +14,22 @@ type FilterType = "income" | "expense" | "savings";
 export function TransactionTypeToggle({ value, onChange }: TransactionTypeToggleProps) {
   const { translations } = useTranslations();
 
-  const options: { label: string; value: FilterType; colorClass: string; activeColorClass: string, icon: React.ElementType }[] = [
+  const options: { label: string; value: FilterType; colorClass: string; activeColorClass: string }[] = [
     {
       label: translations.income,
       value: "income",
-      icon: TrendingUp,
       colorClass: "bg-background border-input hover:bg-green-100 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border",
       activeColorClass: "bg-green-600 text-white hover:bg-green-700 border-transparent"
     },
     {
       label: translations.expense,
       value: "expense",
-      icon: TrendingDown,
       colorClass: "bg-background border-input hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 border",
       activeColorClass: "bg-red-600 text-white hover:bg-red-700 border-transparent"
     },
     {
       label: translations.Savings,
       value: "savings",
-      icon: Repeat,
       colorClass: "bg-background border-input hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border",
       activeColorClass: "bg-blue-600 text-white hover:bg-blue-700 border-transparent"
     },
@@ -67,7 +62,6 @@ export function TransactionTypeToggle({ value, onChange }: TransactionTypeToggle
               : option.colorClass
           )}
         >
-          <option.icon className="h-5 w-5" />
           <span>{option.label}</span>
         </Button>
       ))}
