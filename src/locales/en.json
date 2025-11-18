@@ -166,8 +166,8 @@
   "paymentMethodAddedSuccess": "Payment method added.",
   "paymentMethodUpdatedSuccess": "Payment method updated.",
   "paymentMethodInUseError": "Cannot rename a payment method that is currently in use.",
-  "cardClosingDay": "Closing Day",
-  "cardClosingDayDesc": "Day of the month when the statement closes.",
+  "cardClosingDay": "Card Closing Day",
+  "cardClosingDayDesc": "Day of the month your card statement closes.",
   "closingDay": "Closing Day",
   "installments": "Installments",
   "manualInstallments": "Number of Installments",
@@ -329,5 +329,7 @@
   "amountToPay": "Amount to Pay",
   "summaryPaymentSuccess": "Card summary paid successfully.",
   "summaryPaymentError": "Failed to pay card summary.",
-  "paymentForCardSummary": "Payment for card summary: {cardName}"
+  "paymentForCardSummary": "Payment for card summary: {cardName}",
+  "paymentHistory": "Payment History",
+  "noPaymentHistory": "No payment history for the last 6 months."
 }

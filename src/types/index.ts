@@ -1,4 +1,5 @@
 
+
 import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense" | "deposit" | "withdrawal" | "transfer";
@@ -63,9 +64,10 @@ export interface Transaction {
   isCardPayment?: boolean;
   cardId?: string;
   isPaid?: boolean;
+  isSummaryPayment?: boolean;
 }
 
-export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "groupId" | "billingCycleId" | "date" | "isCardPayment" | "cardId" | "isPaid"> & {
+export type TransactionFormValues = Omit<Transaction, "id" | "userId" | "groupId" | "billingCycleId" | "date" | "isCardPayment" | "cardId" | "isPaid" | "isSummaryPayment"> & {
   date: Date; // Form uses Date object, but it's converted to string for backend
 };
 
@@ -121,6 +123,15 @@ export interface CardSummary {
     cardBank?: string;
     totalAmount: number;
     transactions: Transaction[];
+    cycleStartDate?: string;
+    cycleEndDate?: string;
+}
+
+export interface PaidSummary {
+  id: string;
+  cardName: string;
+  paymentDate: string;
+  amount: number;
 }
 
 export type Language = "en" | "es" | "pt";
@@ -487,6 +498,8 @@ export interface Translations {
   summaryPaymentSuccess: string;
   summaryPaymentError: string;
   paymentForCardSummary: string;
+  paymentHistory: string;
+  noPaymentHistory: string;
 }
 
 export type DateRange = ReactDayPickerDateRange;

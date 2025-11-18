@@ -166,8 +166,8 @@
   "paymentMethodAddedSuccess": "Método de pagamento adicionado.",
   "paymentMethodUpdatedSuccess": "Método de pagamento atualizado.",
   "paymentMethodInUseError": "Não é possível renomear um método de pagamento que está em uso.",
-  "cardClosingDay": "Dia de Fechamento",
-  "cardClosingDayDesc": "Dia do mês em que a fatura fecha.",
+  "cardClosingDay": "Dia de Fechamento do Cartão",
+  "cardClosingDayDesc": "Dia do mês em que a fatura do seu cartão fecha.",
   "closingDay": "Dia Fech.",
   "installments": "Parcelas",
   "manualInstallments": "Número de Parcelas",
@@ -329,5 +329,7 @@
   "amountToPay": "Valor a Pagar",
   "summaryPaymentSuccess": "Fatura do cartão paga com sucesso.",
   "summaryPaymentError": "Falha ao pagar a fatura do cartão.",
-  "paymentForCardSummary": "Pagamento da fatura do cartão: {cardName}"
+  "paymentForCardSummary": "Pagamento da fatura do cartão: {cardName}",
+  "paymentHistory": "Histórico de Pagamentos",
+  "noPaymentHistory": "Nenhum histórico de pagamento nos últimos 6 meses."
 }

@@ -106,18 +106,16 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     const { transactionsCollection, paymentMethodsCollection } = await getDb();
     const { installments, ...transactionData } = data;
     
-    const currentCycle = await getCurrentBillingCycle(userId);
-
-    const paymentMethod = await paymentMethodsCollection.findOne({ _id: new ObjectId(data.paymentMethodId) });
+    const paymentMethodDoc = await paymentMethodsCollection.findOne({ _id: new ObjectId(data.paymentMethodId), userId });
+    const paymentMethod = paymentMethodDoc ? mapMongoDocumentPaymentMethod(paymentMethodDoc) : null;
     const isCardPayment = data.type === 'expense' && paymentMethod?.type === 'Credit Card';
 
     const baseTransaction = {
       ...transactionData,
       date: new Date(transactionData.date),
       userId,
-      billingCycleId: currentCycle?.id,
       isCardPayment,
-      isPaid: !isCardPayment, // Paid if it's not a card payment
+      isPaid: !isCardPayment,
       cardId: isCardPayment ? data.paymentMethodId : undefined,
     };
 
@@ -132,7 +130,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
           ...baseTransaction,
           amount: installmentAmount,
           date: addMonths(originalDate, i),
-          description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
+          description: `${baseTransaction.description} (${i + 1}/${installments})`,
           groupId: groupId.toString(),
         });
       }
@@ -146,7 +144,7 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     revalidateTag(`savingsFunds_${userId}`);
     revalidateTag(`cardSummaries_${userId}`);
 
-    const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (Cuota 1/${installments})` : transactionData.description }, { sort: { date: 1 } });
+    const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (1/${installments})` : transactionData.description }, { sort: { date: 1 } });
     
     if (!firstTransaction) {
       throw new Error('Could not find the newly created transaction.');
@@ -274,7 +272,7 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
     let totalForCurrentMonth = 0;
     const now = new Date();
 
-    const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+    const installmentRegex = /^(.*) \(\d+\/\d+\)$/;
 
     groupedInstallments.forEach((group) => {
       group.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -384,7 +382,7 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
       const firstInstallment = groupTransactions[0];
       const totalAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
       const totalInstallments = groupTransactions.length;
-      const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+      const installmentRegex = /^(.*) \(\d+\/\d+\)$/;
       const baseDescriptionMatch = firstInstallment.description.match(installmentRegex);
       const baseDescription = baseDescriptionMatch ? baseDescriptionMatch[1].trim() : firstInstallment.description;
   
@@ -433,7 +431,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
                     ...baseTransaction,
                     amount: installmentAmount,
                     date: addMonths(originalDate, i),
-                    description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
+                    description: `${baseTransaction.description} (${i + 1}/${installments})`,
                     groupId: newGroupId.toString(),
                 });
             }

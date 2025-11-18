@@ -83,7 +83,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: initialData?.type || undefined,
+      type: initialData?.type || 'expense',
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialData?.installments || 1,
     },
@@ -107,17 +107,18 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: initialData?.type || undefined,
+      type: initialData?.type || 'expense',
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialInstallments,
     });
   }, [initialData, form]);
 
   const selectedPaymentMethodId = form.watch("paymentMethodId");
+  const transactionType = form.watch("type");
 
   useEffect(() => {
     const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethodId);
-    if (paymentMethod && paymentMethod.type === 'Credit Card') {
+    if (paymentMethod && paymentMethod.type === 'Credit Card' && transactionType === 'expense') {
       setShowInstallments(true);
     } else {
       setShowInstallments(false);
@@ -125,7 +126,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       form.setValue('installments', 1);
       setIsManualInstallments(false);
     }
-  }, [selectedPaymentMethodId, paymentMethods, form]);
+  }, [selectedPaymentMethodId, transactionType, paymentMethods, form]);
   
   const locales = {
     en: enUS,
