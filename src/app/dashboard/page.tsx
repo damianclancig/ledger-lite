@@ -91,7 +91,16 @@ export default function DashboardPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-        const cycleId = cycle ? cycle.id : null;
+        let cycleId = cycle ? cycle.id : null;
+        
+        // If no specific cycle is requested (initial load), check for a saved preference
+        if (!cycleId) {
+            const savedCycleId = sessionStorage.getItem('selectedCycleId');
+            if (savedCycleId) {
+                cycleId = savedCycleId;
+            }
+        }
+
         const data = await getDashboardData(user.uid, cycleId);
 
         if (!data.currentCycle && data.totalCyclesCount === 0) {
@@ -108,12 +117,14 @@ export default function DashboardPage() {
         setSavingsFunds(data.savingsFunds);
         setBillingCycles(data.billingCycles);
         
-        const savedCycleId = sessionStorage.getItem('selectedCycleId');
-        if (savedCycleId && !selectedCycle) {
-            const cycleToSelect = data.billingCycles.find(c => c.id === savedCycleId) || (savedCycleId === ALL_CYCLES_ID ? { id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() } : null);
-            setSelectedCycle(cycleToSelect || data.currentCycle);
-        } else if (!selectedCycle) {
-            setSelectedCycle(data.currentCycle);
+        // Update selected cycle state based on what we loaded
+        if (cycleId) {
+             const loadedCycle = data.billingCycles.find(c => c.id === cycleId) || 
+                                (cycleId === ALL_CYCLES_ID ? { id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() } : null) ||
+                                data.currentCycle;
+             setSelectedCycle(loadedCycle);
+        } else {
+             setSelectedCycle(data.currentCycle);
         }
 
     } catch (error) {
@@ -122,7 +133,7 @@ export default function DashboardPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user, router, toast, translations, selectedCycle]);
+  }, [user, router, toast, translations]);
 
   useEffect(() => {
     if (user && !selectedCycle) {

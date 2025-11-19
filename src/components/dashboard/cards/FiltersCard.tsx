@@ -21,11 +21,11 @@ interface FiltersCardProps {
   dateRange: DateRange | undefined;
   searchTerm: string;
   selectedCategory: string | 'all';
-  selectedType: TransactionType | "all";
+  selectedType: TransactionType | "all" | "savings";
   onDateChange: (range: DateRange | undefined) => void;
   onSearchTermChange: (term: string) => void;
   onSelectedCategoryChange: (category: string | 'all') => void;
-  onSelectedTypeChange: (type: TransactionType | "all") => void;
+  onSelectedTypeChange: (type: TransactionType | "all" | "savings") => void;
   onClearFilters: () => void;
   isAnyFilterActive: boolean;
   currentCycleStartDate?: Date;
@@ -47,10 +47,10 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
 }, ref) => {
   const { translations, language, translateCategory } = useTranslations();
   const isMobile = useIsMobile();
-  
+
   const locales = { en: enUS, es, pt };
   const currentLocale = locales[language] || enUS;
-  
+
   const getCategoryDisplay = (cat: Category) => {
     if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
       return `Taxes (${translateCategory(cat)})`;
@@ -153,15 +153,15 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             </Popover>
           </div>
           {isMobile && isAnyFilterActive && (
-              <Button
-                variant="outline"
-                onClick={onClearFilters}
-                className="w-full md:hidden"
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                {translations.clearFilters}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={onClearFilters}
+              className="w-full md:hidden"
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              {translations.clearFilters}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
