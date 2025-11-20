@@ -155,7 +155,10 @@ export async function addTransaction(data: TransactionFormValues, userId: string
     revalidateTag(`savingsFunds_${userId}`);
     revalidateTag(`cardSummaries_${userId}`);
 
-    const firstTransaction = await transactionsCollection.findOne({ userId, description: installments && installments > 1 ? `${transactionData.description} (Cuota 1/${installments})` : transactionData.description }, { sort: { date: 1 } });
+    const firstTransaction = await transactionsCollection.findOne({ 
+      userId, 
+      description: installments && installments > 1 ? `${transactionData.description} (1/${installments})` : transactionData.description 
+    }, { sort: { date: 1 } });
 
     if (!firstTransaction) {
       throw new Error('Could not find the newly created transaction.');
