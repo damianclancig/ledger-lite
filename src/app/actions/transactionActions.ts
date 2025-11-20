@@ -5,7 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
 import type { Transaction, TransactionFormValues, InstallmentDetail, PaymentMethod, CompletedInstallmentDetail, BillingCycle, InstallmentProjection } from '@/types';
-import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, format, startOfYear, endOfYear, getYear, isPast } from 'date-fns';
+import { addMonths, isFuture, isSameMonth, startOfMonth, endOfMonth, format, startOfYear, endOfYear, isPast } from 'date-fns';
 import { getCurrentBillingCycle } from './billingCycleActions';
 
 interface GetTransactionsOptions {
@@ -51,16 +51,18 @@ export async function getInstallmentProjections(userId: string): Promise<Install
   try {
     const { transactionsCollection } = await getDb();
     const now = new Date();
-    const yearStart = startOfYear(now);
-    const yearEnd = endOfYear(now);
+    
+    // Calculate range: 6 months back and 6 months forward from current month
+    const rangeStart = startOfMonth(addMonths(now, -6));
+    const rangeEnd = endOfMonth(addMonths(now, 6));
 
     const query = {
       userId,
       type: 'expense',
       groupId: { $exists: true },
       date: {
-        $gte: yearStart,
-        $lte: yearEnd
+        $gte: rangeStart,
+        $lte: rangeEnd
       }
     };
 
@@ -80,10 +82,10 @@ export async function getInstallmentProjections(userId: string): Promise<Install
 
     const projectionMap = new Map(result.map((item: any) => [item.month, item.total]));
     const finalProjection: InstallmentProjection[] = [];
-    const currentYear = getYear(now);
 
-    for (let i = 0; i < 12; i++) {
-      const monthDate = new Date(currentYear, i, 1);
+    // Generate 12 months: from -6 to +5 months relative to current month
+    for (let i = -6; i <= 5; i++) {
+      const monthDate = addMonths(startOfMonth(now), i);
       const monthKey = format(monthDate, 'yyyy-MM');
       finalProjection.push({
         month: monthKey,
