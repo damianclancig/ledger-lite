@@ -54,7 +54,7 @@ export async function getBudgetInsights(userId: string, startDate: Date, endDate
   }
 }
 
-async function getExpensesByCategory(userId: string, startDate: Date, endDate: Date) {
+async function getExpensesByCategory(userId: string, startDate: Date, endDate: Date): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number }>> {
   if (!userId) return [];
   try {
     const { transactionsCollection } = await getDb();
@@ -104,7 +104,12 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
     ];
 
     const result = await transactionsCollection.aggregate(pipeline).toArray();
-    return result.map(item => ({ ...item, categoryId: item.categoryId.toString() }));
+    return result.map(item => ({
+      categoryId: item.categoryId.toString(),
+      name: item.name as string,
+      isSystem: item.isSystem as boolean,
+      total: item.total as number,
+    }));
 
   } catch (error) {
     console.error('Error fetching expenses by category:', error);

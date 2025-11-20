@@ -17,7 +17,7 @@ export default function EditTaxPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [tax, setTax] = useState<Tax | null>(null);
   const [taxNames, setTaxNames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,13 +28,14 @@ export default function EditTaxPage() {
     if (!id || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedTax, uniqueNames] = await Promise.all([
           getTaxById(id, user.uid),
           getUniqueTaxNames(user.uid)
         ]);
-        
+
         if (fetchedTax) {
           if (fetchedTax.isPaid) {
             toast({ title: translations.errorTitle, description: translations.paidTaxEditError, variant: "destructive" });
@@ -48,8 +49,8 @@ export default function EditTaxPage() {
           router.push("/taxes");
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load tax data.", variant: "destructive" });
-         router.push("/taxes");
+        toast({ title: translations.errorTitle, description: "Failed to load tax data.", variant: "destructive" });
+        router.push("/taxes");
       } finally {
         setIsLoading(false);
       }
@@ -61,10 +62,10 @@ export default function EditTaxPage() {
     if (!user || !tax) return;
 
     const result = await updateTax(tax.id, {
-        name: values.name,
-        amount: values.amount,
-        month: values.month,
-        year: values.year,
+      name: values.name,
+      amount: values.amount,
+      month: values.month,
+      year: values.year,
     }, user.uid, translations);
 
     if (result && 'error' in result) {
@@ -74,7 +75,7 @@ export default function EditTaxPage() {
       router.push("/taxes");
     }
   };
-  
+
   if (isLoading || !tax) {
     return <EditPageLoader />;
   }

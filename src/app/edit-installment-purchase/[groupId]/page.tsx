@@ -19,18 +19,19 @@ export default function EditInstallmentPurchasePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [purchase, setPurchase] = useState<Partial<Transaction> | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const groupId = params.groupId as string;
-  
+
   useEffect(() => {
     if (!groupId || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedPurchase, userCategories, userPaymentMethods] = await Promise.all([
@@ -38,7 +39,7 @@ export default function EditInstallmentPurchasePage() {
           getCategories(user.uid),
           getPaymentMethods(user.uid),
         ]);
-        
+
         if (fetchedPurchase) {
           setPurchase(fetchedPurchase);
           setCategories(userCategories);
@@ -48,8 +49,8 @@ export default function EditInstallmentPurchasePage() {
           router.push('/dashboard');
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load purchase data.", variant: "destructive" });
-         router.push('/dashboard');
+        toast({ title: translations.errorTitle, description: "Failed to load purchase data.", variant: "destructive" });
+        router.push('/dashboard');
       } finally {
         setIsLoading(false);
       }
@@ -60,16 +61,22 @@ export default function EditInstallmentPurchasePage() {
   const handleFormSubmit = async (values: TransactionFormValues) => {
     if (!user || !purchase?.groupId) return;
 
-    const result = await updateInstallmentPurchase(purchase.groupId, values, user.uid);
+    // Convert date string to Date object for the action
+    const formattedValues = {
+      ...values,
+      date: new Date(values.date),
+    };
+
+    const result = await updateInstallmentPurchase(purchase.groupId, formattedValues, user.uid);
 
     if (result.success) {
-        toast({ title: translations.transactionUpdatedTitle, description: "The installment purchase has been successfully updated." });
-        router.push('/dashboard');
+      toast({ title: translations.transactionUpdatedTitle, description: "The installment purchase has been successfully updated." });
+      router.push('/dashboard');
     } else {
-        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     }
   };
-  
+
   if (isLoading || !purchase) {
     return <EditPageLoader />;
   }

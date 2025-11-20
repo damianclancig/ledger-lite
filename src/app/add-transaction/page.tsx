@@ -47,14 +47,14 @@ export default function AddTransactionPage() {
   const description = searchParams.get('description');
   const amount = searchParams.get('amount');
   const taxCategoryName = searchParams.get('category');
-  
+
   let initialData: Partial<TransactionFormValues> | undefined;
   if (isTaxPayment && description && amount && taxCategoryName) {
     const taxCategory = categories.find(c => c.name === taxCategoryName);
     initialData = {
       description,
       amount: parseFloat(amount),
-      date: new Date(),
+      date: new Date().toISOString(),
       categoryId: taxCategory?.id,
       type: 'expense',
       paymentMethodId: undefined,
@@ -67,7 +67,13 @@ export default function AddTransactionPage() {
       return;
     }
 
-    const result = await addTransaction(values, user.uid);
+    // Convert date string to Date object for the action
+    const formattedValues = {
+      ...values,
+      date: new Date(values.date),
+    };
+
+    const result = await addTransaction(formattedValues, user.uid);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -79,26 +85,32 @@ export default function AddTransactionPage() {
       router.push(redirectPath);
     }
   };
-  
+
   const handleSaveAndAddAnother = async (values: TransactionFormValues) => {
     if (!user) {
-        toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
-        return;
+      toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
+      return;
     }
 
-    const result = await addTransaction(values, user.uid);
+    // Convert date string to Date object for the action
+    const formattedValues = {
+      ...values,
+      date: new Date(values.date),
+    };
+
+    const result = await addTransaction(formattedValues, user.uid);
 
     if (result && 'error' in result) {
-        toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
+      toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
-        toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
-        setFormKey(Date.now());
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
+      setFormKey(Date.now());
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   if (isLoading) {
-     return <EditPageLoader />;
+    return <EditPageLoader />;
   }
 
   return (

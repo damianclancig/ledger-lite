@@ -19,18 +19,19 @@ export default function EditTransactionPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const id = params.id as string;
-  
+
   useEffect(() => {
     if (!id || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedTransaction, userCategories, userPaymentMethods] = await Promise.all([
@@ -38,7 +39,7 @@ export default function EditTransactionPage() {
           getCategories(user.uid),
           getPaymentMethods(user.uid),
         ]);
-        
+
         if (fetchedTransaction) {
           setTransaction(fetchedTransaction);
           setCategories(userCategories);
@@ -48,8 +49,8 @@ export default function EditTransactionPage() {
           router.back();
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load data.", variant: "destructive" });
-         router.back();
+        toast({ title: translations.errorTitle, description: "Failed to load data.", variant: "destructive" });
+        router.back();
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +61,13 @@ export default function EditTransactionPage() {
   const handleFormSubmit = async (values: TransactionFormValues) => {
     if (!user || !transaction) return;
 
-    const result = await updateTransaction(transaction.id, values, user.uid);
+    // Convert date string to Date object for the action
+    const formattedValues = {
+      ...values,
+      date: new Date(values.date),
+    };
+
+    const result = await updateTransaction(transaction.id, formattedValues, user.uid);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -69,7 +76,7 @@ export default function EditTransactionPage() {
       router.back();
     }
   };
-  
+
   if (isLoading || !transaction) {
     return <EditPageLoader />;
   }
