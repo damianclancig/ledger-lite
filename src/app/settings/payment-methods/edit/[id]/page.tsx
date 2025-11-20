@@ -17,7 +17,7 @@ export default function EditPaymentMethodPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,10 +27,11 @@ export default function EditPaymentMethodPage() {
     if (!id || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const fetchedMethod = await getPaymentMethodById(id, user.uid);
-        
+
         if (fetchedMethod) {
           setPaymentMethod(fetchedMethod);
         } else {
@@ -38,8 +39,8 @@ export default function EditPaymentMethodPage() {
           router.push("/settings/payment-methods");
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load payment method data.", variant: "destructive" });
-         router.push("/settings/payment-methods");
+        toast({ title: translations.errorTitle, description: "Failed to load payment method data.", variant: "destructive" });
+        router.push("/settings/payment-methods");
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +60,7 @@ export default function EditPaymentMethodPage() {
       router.push("/settings/payment-methods");
     }
   };
-  
+
   if (isLoading || !paymentMethod) {
     return <EditPageLoader />;
   }

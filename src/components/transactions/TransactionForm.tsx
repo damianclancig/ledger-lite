@@ -41,6 +41,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 
 
+// Form schema type for validation
+type TransactionFormSchema = {
+  description: string;
+  amount: number;
+  date: Date;
+  categoryId: string;
+  type: "income" | "expense";
+  paymentMethodId: string;
+  installments?: number;
+};
+
 export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
 
 interface TransactionFormProps {
@@ -76,24 +87,24 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
 
   const formSchema = getFormSchema(translations);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<TransactionFormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: initialData?.description || "",
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: initialData?.type || 'expense',
+      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : 'expense',
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialData?.installments || 1,
     },
   });
-  
+
   useEffect(() => {
     if (initialData?.amount) {
       setDisplayAmount(formatNumberForDisplay(String(initialData.amount.toFixed(2))));
     }
-    
+
     const initialInstallments = initialData?.installments || 1;
     setInstallments(initialInstallments);
     if (initialInstallments > 24) {
@@ -107,7 +118,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: initialData?.type || 'expense',
+      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : 'expense',
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialInstallments,
     });
@@ -127,7 +138,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       setIsManualInstallments(false);
     }
   }, [selectedPaymentMethodId, transactionType, paymentMethods, form]);
-  
+
   const locales = {
     en: enUS,
     es: es,
@@ -135,13 +146,23 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   };
   const currentLocale = locales[language] || enUS;
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit(values);
+  const handleSubmit = (values: TransactionFormSchema) => {
+    // Convert Date to string for TransactionFormValues
+    const formValues: TransactionFormValues = {
+      ...values,
+      date: values.date.toISOString(),
+    };
+    onSubmit(formValues);
   };
-  
-  const handleSaveAndAddAnother = (values: z.infer<typeof formSchema>) => {
+
+  const handleSaveAndAddAnother = (values: TransactionFormSchema) => {
     if (onSaveAndAddAnother) {
-      onSaveAndAddAnother(values);
+      // Convert Date to string for TransactionFormValues
+      const formValues: TransactionFormValues = {
+        ...values,
+        date: values.date.toISOString(),
+      };
+      onSaveAndAddAnother(formValues);
     }
   };
 
@@ -149,7 +170,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
     const rawValue = e.target.value;
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parts = numericValue.split('.');
-    
+
     if (parts.length > 2) {
       numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
     }
@@ -158,21 +179,21 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       parts[1] = parts[1].substring(0, 2);
       numericValue = parts.join('.');
     }
-    
+
     const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
-    
+
     const valueForForm = numericValue.replace(/,/g, '');
     const parsedNumber = parseFloat(valueForForm);
-    form.setValue('amount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
+    form.setValue('amount', isNaN(parsedNumber) ? 0 : parsedNumber, { shouldValidate: true });
   };
-  
+
   const handleInstallmentsChange = (value: number[]) => {
     const newInstallmentValue = value[0];
     if (newInstallmentValue >= 25) {
       setIsManualInstallments(true);
       if (installments < 25) {
-        form.setValue('installments', undefined); 
+        form.setValue('installments', undefined);
       }
     } else {
       setIsManualInstallments(false);
@@ -184,14 +205,14 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   const handleManualInstallmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const numValue = parseInt(value, 10);
-    
+
     if (value === '') {
       form.setValue('installments', undefined);
       setInstallments(25);
     } else if (!isNaN(numValue) && numValue >= 2 && numValue <= 120) {
       form.setValue('installments', numValue);
       setInstallments(numValue);
-    } else if (value.length <= 3) { 
+    } else if (value.length <= 3) {
       form.setValue('installments', undefined, { shouldValidate: true });
     }
   };
@@ -289,7 +310,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="type"
@@ -309,7 +330,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                     </FormControl>
                     <FormLabel
                       htmlFor="income"
-                       className={cn(
+                      className={cn(
                         "flex flex-col items-center justify-center rounded-md border-2 p-2 cursor-pointer transition-colors duration-300 text-base",
                         field.value === 'income'
                           ? "bg-green-800 border-green-800 text-white font-semibold dark:bg-green-600 dark:border-green-600 dark:text-white"
@@ -326,9 +347,9 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                     </FormControl>
                     <FormLabel
                       htmlFor="expense"
-                       className={cn(
+                      className={cn(
                         "flex flex-col items-center justify-center rounded-md border-2 p-2 cursor-pointer transition-colors duration-300 text-base",
-                         field.value === 'expense'
+                        field.value === 'expense'
                           ? "bg-red-800 border-red-800 text-white font-semibold dark:bg-red-600 dark:border-red-600 dark:text-white"
                           : "font-normal bg-red-100 border-red-600 text-red-800 hover:bg-red-200 dark:bg-red-950 dark:border-red-950 dark:hover:bg-red-900 dark:text-red-300"
                       )}
@@ -395,50 +416,50 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
             )}
           />
         </div>
-        
+
         {showInstallments && (
-            <div className="space-y-4 rounded-lg border p-4 shadow-sm">
-                <FormField
-                control={form.control}
-                name="installments"
-                render={({ field }) => (
-                    <FormItem>
-                    <div className="grid grid-cols-1">
-                        <FormLabel className="flex items-center mb-2">
-                        <Layers className="inline-block mr-2 h-4 w-4" />
-                        {translations.installments}: {isManualInstallments ? (form.getValues('installments') || '...') : installments}
-                        </FormLabel>
-                        <FormControl>
-                        <Slider
-                            value={[isManualInstallments ? 25 : installments]}
-                            min={1}
-                            max={25}
-                            step={1}
-                            onValueChange={handleInstallmentsChange}
-                            className="w-full"
+          <div className="space-y-4 rounded-lg border p-4 shadow-sm">
+            <FormField
+              control={form.control}
+              name="installments"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="grid grid-cols-1">
+                    <FormLabel className="flex items-center mb-2">
+                      <Layers className="inline-block mr-2 h-4 w-4" />
+                      {translations.installments}: {isManualInstallments ? (form.getValues('installments') || '...') : installments}
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        value={[isManualInstallments ? 25 : installments]}
+                        min={1}
+                        max={25}
+                        step={1}
+                        onValueChange={handleInstallmentsChange}
+                        className="w-full"
+                      />
+                    </FormControl>
+                  </div>
+                  {isManualInstallments && (
+                    <div className="pt-2 md:grid md:grid-cols-2 md:gap-4 md:items-start">
+                      <div className="md:col-start-2">
+                        <FormLabel>{translations.manualInstallments}</FormLabel>
+                        <Input
+                          type="number"
+                          placeholder="2-120"
+                          min="2"
+                          max="120"
+                          onChange={handleManualInstallmentChange}
+                          defaultValue={installments > 24 ? installments : ''}
                         />
-                        </FormControl>
+                        <FormMessage className="mt-2" />
+                      </div>
                     </div>
-                    {isManualInstallments && (
-                        <div className="pt-2 md:grid md:grid-cols-2 md:gap-4 md:items-start">
-                        <div className="md:col-start-2">
-                            <FormLabel>{translations.manualInstallments}</FormLabel>
-                            <Input
-                                type="number"
-                                placeholder="2-120"
-                                min="2"
-                                max="120"
-                                onChange={handleManualInstallmentChange}
-                                defaultValue={installments > 24 ? installments : ''}
-                            />
-                            <FormMessage className="mt-2" />
-                        </div>
-                        </div>
-                    )}
-                    </FormItem>
-                )}
-                />
-            </div>
+                  )}
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         <div className="pt-2 flex flex-col md:flex-row md:justify-end gap-3">

@@ -37,6 +37,7 @@ export default function ManageCategoriesPage() {
   useEffect(() => {
     if (!user) return;
     async function loadCategories() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       const userCategories = await getCategories(user.uid);
       setCategories(userCategories);
@@ -66,7 +67,7 @@ export default function ManageCategoriesPage() {
   if (isLoading) {
     return <Skeleton className="h-96 w-full" />;
   }
-  
+
   const CategoryNameCell = ({ category }: { category: Category }) => (
     <div className="flex items-center gap-2">
       <span className="font-medium text-base">{translateCategory(category)}</span>
@@ -87,26 +88,26 @@ export default function ManageCategoriesPage() {
     <div className="space-y-4">
       {categories.map((category) => (
         <Card key={category.id} className="shadow-lg border-2 border-primary/20 overflow-hidden">
-            <CardContent className="p-4 space-y-3">
-              <CategoryNameCell category={category} />
-              <Separator />
-              <div className="flex items-center justify-between pt-1">
-                <div className="w-12 h-6">
-                    {!category.isSystem && (
-                        <Switch
-                        checked={category.isEnabled}
-                        onCheckedChange={() => handleToggleEnabled(category)}
-                        aria-label={`Toggle category ${category.name}`}
-                        />
-                    )}
-                </div>
-                 {!category.isSystem && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(category)}>
-                        <Edit className="h-5 w-5" />
-                    </Button>
-                 )}
+          <CardContent className="p-4 space-y-3">
+            <CategoryNameCell category={category} />
+            <Separator />
+            <div className="flex items-center justify-between pt-1">
+              <div className="w-12 h-6">
+                {!category.isSystem && (
+                  <Switch
+                    checked={category.isEnabled}
+                    onCheckedChange={() => handleToggleEnabled(category)}
+                    aria-label={`Toggle category ${category.name}`}
+                  />
+                )}
               </div>
-            </CardContent>
+              {!category.isSystem && (
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(category)}>
+                  <Edit className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -130,9 +131,9 @@ export default function ManageCategoriesPage() {
             <TableCell className="text-center">
               {!category.isSystem && (
                 <Switch
-                    checked={category.isEnabled}
-                    onCheckedChange={() => handleToggleEnabled(category)}
-                    aria-label={`Toggle category ${category.name}`}
+                  checked={category.isEnabled}
+                  onCheckedChange={() => handleToggleEnabled(category)}
+                  aria-label={`Toggle category ${category.name}`}
                 />
               )}
             </TableCell>
@@ -155,8 +156,8 @@ export default function ManageCategoriesPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-                <List className="h-6 w-6 mr-3 text-primary" />
-                <CardTitle>{translations.manageCategories}</CardTitle>
+              <List className="h-6 w-6 mr-3 text-primary" />
+              <CardTitle>{translations.manageCategories}</CardTitle>
             </div>
           </div>
         </CardHeader>

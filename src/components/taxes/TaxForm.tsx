@@ -52,13 +52,13 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
   const { translations, translateMonth } = useTranslations();
   const [displayAmount, setDisplayAmount] = useState<string>("");
   const formSchema = getFormSchema(translations);
-  
+
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const currentYear = new Date().getFullYear();
-  const years = [currentYear -1, currentYear, currentYear + 1];
+  const years = [currentYear - 1, currentYear, currentYear + 1];
 
   const form = useForm<TaxFormSubmitValues>({
     resolver: zodResolver(formSchema),
@@ -98,7 +98,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
     const value = e.target.value;
     form.setValue("name", value);
     if (value) {
-      const filtered = existingTaxNames.filter(name => 
+      const filtered = existingTaxNames.filter(name =>
         name.toLowerCase().includes(value.toLowerCase()) && name.toLowerCase() !== value.toLowerCase()
       );
       setSuggestions(filtered);
@@ -112,34 +112,34 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
     form.setValue("name", name);
     setShowSuggestions(false);
   };
-  
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parts = numericValue.split('.');
-  
+
     if (parts.length > 2) {
       numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
     }
-  
+
     if (parts[1] && parts[1].length > 2) {
       parts[1] = parts[1].substring(0, 2);
       numericValue = parts.join('.');
     }
-    
+
     const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
-    
+
     const valueForForm = numericValue.endsWith('.') ? numericValue.slice(0, -1) : numericValue;
     const parsedNumber = parseFloat(valueForForm);
 
     if (!isNaN(parsedNumber)) {
-        form.setValue('amount', parsedNumber, { shouldValidate: true });
+      form.setValue('amount', parsedNumber, { shouldValidate: true });
     } else {
-        form.setValue('amount', undefined, { shouldValidate: true });
+      form.setValue('amount', 0, { shouldValidate: true });
     }
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -150,32 +150,32 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
             <FormItem ref={suggestionsRef} className="relative">
               <FormLabel><Landmark className="inline-block mr-2 h-4 w-4" />{translations.taxName}</FormLabel>
               <FormControl>
-                <Input 
+                <Input
                   {...field}
-                  placeholder={translations.newTax} 
+                  placeholder={translations.newTax}
                   onChange={handleNameChange}
                   autoComplete="off"
                 />
               </FormControl>
               {showSuggestions && suggestions.length > 0 && (
-                 <div className="absolute w-full mt-1 bg-background border border-border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                    {suggestions.map(suggestion => (
+                <div className="absolute w-full mt-1 bg-background border border-border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {suggestions.map(suggestion => (
                     <button
-                        type="button"
-                        key={suggestion}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="w-full text-left px-3 py-2 text-base hover:bg-accent"
+                      type="button"
+                      key={suggestion}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="w-full text-left px-3 py-2 text-base hover:bg-accent"
                     >
-                        {suggestion}
+                      {suggestion}
                     </button>
-                    ))}
+                  ))}
                 </div>
               )}
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="year"
@@ -206,7 +206,7 @@ export function TaxForm({ onSubmit, onClose, initialData, existingTaxNames = [] 
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-        <FormField
+          <FormField
             control={form.control}
             name="month"
             render={({ field }) => (

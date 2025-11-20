@@ -70,7 +70,7 @@ export function SavingsFundForm({ onSubmit, onClose, initialData }: SavingsFundF
     const rawValue = e.target.value;
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parts = numericValue.split('.');
-    
+
     if (parts.length > 2) {
       numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
     }
@@ -79,13 +79,13 @@ export function SavingsFundForm({ onSubmit, onClose, initialData }: SavingsFundF
       parts[1] = parts[1].substring(0, 2);
       numericValue = parts.join('.');
     }
-    
+
     const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
-    
+
     const valueForForm = numericValue.replace(/,/g, '');
     const parsedNumber = parseFloat(valueForForm);
-    form.setValue('targetAmount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
+    form.setValue('targetAmount', isNaN(parsedNumber) ? 0 : parsedNumber, { shouldValidate: true });
   };
 
   return (

@@ -10,12 +10,12 @@ import { es, pt, enUS } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -36,12 +36,12 @@ interface PayCardSummaryDialogProps {
 }
 
 const getFormSchema = (translations: Translations, maxAmount: number) => z.object({
-  amount: z.coerce
-    .number({ required_error: translations.amountRequired })
-    .positive({ message: translations.amountPositive })
-    .max(maxAmount, { message: `${translations.amountToPay} ${formatCurrency(maxAmount)}` }),
-  paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
-  date: z.date({ required_error: translations.dateRequired }),
+    amount: z.coerce
+        .number({ required_error: translations.amountRequired })
+        .positive({ message: translations.amountPositive })
+        .max(maxAmount, { message: `${translations.amountToPay} ${formatCurrency(maxAmount)}` }),
+    paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
+    date: z.date({ required_error: translations.dateRequired }),
 });
 
 
@@ -71,7 +71,7 @@ export function PayCardSummaryDialog({ isOpen, onClose, summary, paymentMethods,
             setIsSubmitting(false);
         }
     }, [isOpen, summary, form]);
-    
+
     const locales = { en: enUS, es, pt };
     const currentLocale = locales[language] || enUS;
 
@@ -79,22 +79,22 @@ export function PayCardSummaryDialog({ isOpen, onClose, summary, paymentMethods,
         const rawValue = e.target.value;
         let numericValue = rawValue.replace(/[^0-9.]/g, '');
         const parts = numericValue.split('.');
-        
+
         if (parts.length > 2) {
             numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
         }
-    
+
         if (parts[1] && parts[1].length > 2) {
             parts[1] = parts[1].substring(0, 2);
             numericValue = parts.join('.');
         }
-        
+
         const formattedDisplay = formatNumberForDisplay(numericValue);
         setDisplayAmount(formattedDisplay);
-        
+
         const valueForForm = numericValue.replace(/,/g, '');
         const parsedNumber = parseFloat(valueForForm);
-        form.setValue('amount', isNaN(parsedNumber) ? undefined : parsedNumber, { shouldValidate: true });
+        form.setValue('amount', isNaN(parsedNumber) ? 0 : parsedNumber, { shouldValidate: true });
     };
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -161,37 +161,37 @@ export function PayCardSummaryDialog({ isOpen, onClose, summary, paymentMethods,
                             name="date"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                <FormLabel>{translations.paymentDate}</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP", { locale: currentLocale })
-                                            ) : (
-                                                <span>{translations.date}</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
+                                    <FormLabel>{translations.paymentDate}</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value ? (
+                                                        format(field.value, "PPP", { locale: currentLocale })
+                                                    ) : (
+                                                        <span>{translations.date}</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -212,4 +212,3 @@ export function PayCardSummaryDialog({ isOpen, onClose, summary, paymentMethods,
     );
 }
 
-    

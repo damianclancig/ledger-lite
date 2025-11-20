@@ -37,6 +37,7 @@ export default function ManagePaymentMethodsPage() {
   useEffect(() => {
     if (!user) return;
     async function loadData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       const userMethods = await getPaymentMethods(user.uid);
       setPaymentMethods(userMethods);
@@ -51,12 +52,12 @@ export default function ManagePaymentMethodsPage() {
 
   const handleToggleEnabled = async (method: PaymentMethod) => {
     if (!user) return;
-    const values: PaymentMethodFormValues = { 
-      name: method.name, 
-      type: method.type, 
+    const values: PaymentMethodFormValues = {
+      name: method.name,
+      type: method.type,
       bank: method.bank,
       closingDay: method.closingDay,
-      isEnabled: !method.isEnabled 
+      isEnabled: !method.isEnabled
     };
     const result = await updatePaymentMethod(method.id, values, user.uid);
 
@@ -74,44 +75,44 @@ export default function ManagePaymentMethodsPage() {
   }
 
   const renderMobileView = () => (
-     <div className="space-y-4">
+    <div className="space-y-4">
       {paymentMethods.map((method) => (
         <Card key={method.id} className="shadow-lg border-2 border-primary/20 overflow-hidden">
           <CardContent className="p-4 flex-grow space-y-3">
-              <span className="font-semibold text-base break-all pr-4 block">{method.name}</span>
-               <div className="space-y-2 text-sm text-muted-foreground">
+            <span className="font-semibold text-base break-all pr-4 block">{method.name}</span>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <Banknote className="mr-3 h-4 w-4" />
+                <span className="text-base">{translatePaymentType(method.type)}</span>
+              </div>
+              {method.bank && (
                 <div className="flex items-center">
-                  <Banknote className="mr-3 h-4 w-4" />
-                  <span className="text-base">{translatePaymentType(method.type)}</span>
+                  <Building className="mr-3 h-4 w-4" />
+                  <span className="text-base">{method.bank}</span>
                 </div>
-                {method.bank && (
-                  <div className="flex items-center">
-                    <Building className="mr-3 h-4 w-4" />
-                    <span className="text-base">{method.bank}</span>
-                  </div>
-                )}
-                 {method.type === 'Credit Card' && method.closingDay && (
-                  <div className="flex items-center">
-                    <CalendarDays className="mr-3 h-4 w-4" />
-                    <span className="text-base">{translations.closingDay}: {method.closingDay}</span>
-                  </div>
-                )}
-              </div>
-              <Separator/>
-              <div className="flex items-center justify-between pt-1">
-                <Switch
-                  checked={method.isEnabled}
-                  onCheckedChange={() => handleToggleEnabled(method)}
-                  aria-label={`Toggle payment method ${method.name}`}
-                />
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(method)}>
-                    <Edit className="h-5 w-5" />
-                 </Button>
-              </div>
+              )}
+              {method.type === 'Credit Card' && method.closingDay && (
+                <div className="flex items-center">
+                  <CalendarDays className="mr-3 h-4 w-4" />
+                  <span className="text-base">{translations.closingDay}: {method.closingDay}</span>
+                </div>
+              )}
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between pt-1">
+              <Switch
+                checked={method.isEnabled}
+                onCheckedChange={() => handleToggleEnabled(method)}
+                aria-label={`Toggle payment method ${method.name}`}
+              />
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => handleEditClick(method)}>
+                <Edit className="h-5 w-5" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}
-     </div>
+    </div>
   );
 
   const renderDesktopView = () => (
@@ -133,7 +134,7 @@ export default function ManagePaymentMethodsPage() {
             <TableCell className="text-base">{translatePaymentType(method.type)}</TableCell>
             <TableCell className="text-base">{method.bank || "N/A"}</TableCell>
             <TableCell className="text-center text-base">
-                {method.type === 'Credit Card' && method.closingDay ? method.closingDay : 'N/A'}
+              {method.type === 'Credit Card' && method.closingDay ? method.closingDay : 'N/A'}
             </TableCell>
             <TableCell className="text-center">
               <Switch
@@ -157,12 +158,12 @@ export default function ManagePaymentMethodsPage() {
     <>
       <Card className="shadow-xl border-2 border-primary">
         <CardHeader>
-           <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                  <CreditCard className="h-6 w-6 mr-3 text-primary" />
-                  <CardTitle>{translations.managePaymentMethods}</CardTitle>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <CreditCard className="h-6 w-6 mr-3 text-primary" />
+              <CardTitle>{translations.managePaymentMethods}</CardTitle>
             </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isMobile ? renderMobileView() : renderDesktopView()}
