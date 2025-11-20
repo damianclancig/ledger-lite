@@ -123,7 +123,8 @@ const calculateCycleBudgetInsights = (transactions: Transaction[], currentCycle:
   const relevantTransactions = transactions.filter(t => t.type === 'income' || t.type === 'expense');
 
   const income = relevantTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const expenses = relevantTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  // Exclude credit card purchases from expenses (they're counted when the summary is paid)
+  const expenses = relevantTransactions.filter(t => t.type === 'expense' && t.isCardPayment !== true).reduce((sum, t) => sum + t.amount, 0);
   const balance = income - expenses;
 
   let weeklyBudget = 0;
@@ -226,7 +227,8 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
       const previousCycle = billingCycles[selectedCycleIndex + 1];
       const transactionsForPreviousCycle = await getTransactions(userId, { cycle: previousCycle });
       const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-      const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+      // Exclude credit card purchases from previous cycle expenses
+      const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense' && t.isCardPayment !== true).reduce((sum, t) => sum + t.amount, 0);
 
       budgetInsights.previousCycleIncome = prevIncome;
       budgetInsights.previousCycleExpenses = prevExpenses;
