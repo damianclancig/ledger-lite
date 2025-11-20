@@ -41,16 +41,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 
 
-// Form schema type for validation
-type TransactionFormSchema = {
-  description: string;
-  amount: number;
-  date: Date;
-  categoryId: string;
-  type: "income" | "expense";
-  paymentMethodId: string;
-  installments?: number;
-};
+// Form schema type for validation (inferred from Zod schema)
+type TransactionFormSchema = z.infer<ReturnType<typeof getFormSchema>>;
 
 export type TransactionFormValues = Omit<Transaction, "id" | "userId">;
 
@@ -71,7 +63,7 @@ const getFormSchema = (translations: Translations) => z.object({
     .positive({ message: translations.amountPositive }),
   date: z.date({ required_error: translations.dateRequired }),
   categoryId: z.string({ required_error: translations.categoryRequired }),
-  type: z.enum(["income", "expense"], { required_error: translations.typeRequired }),
+  type: z.union([z.enum(["income", "expense"]), z.undefined()]),
   paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
   installments: z.number().min(1).max(120).optional(),
 });
@@ -94,7 +86,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : 'expense',
+      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : undefined,
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialData?.installments || 1,
     },
@@ -118,7 +110,7 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
       amount: initialData?.amount,
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       categoryId: initialData?.categoryId || undefined,
-      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : 'expense',
+      type: (initialData?.type === 'income' || initialData?.type === 'expense') ? initialData.type : undefined,
       paymentMethodId: initialData?.paymentMethodId || undefined,
       installments: initialInstallments,
     });
@@ -147,9 +139,15 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
   const currentLocale = locales[language] || enUS;
 
   const handleSubmit = (values: TransactionFormSchema) => {
+    // Validate that type is selected
+    if (!values.type) {
+      form.setError('type', { message: translations.typeRequired });
+      return;
+    }
     // Convert Date to string for TransactionFormValues
     const formValues: TransactionFormValues = {
       ...values,
+      type: values.type,
       date: values.date.toISOString(),
     };
     onSubmit(formValues);
@@ -157,9 +155,15 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
 
   const handleSaveAndAddAnother = (values: TransactionFormSchema) => {
     if (onSaveAndAddAnother) {
+      // Validate that type is selected
+      if (!values.type) {
+        form.setError('type', { message: translations.typeRequired });
+        return;
+      }
       // Convert Date to string for TransactionFormValues
       const formValues: TransactionFormValues = {
         ...values,
+        type: values.type,
         date: values.date.toISOString(),
       };
       onSaveAndAddAnother(formValues);
