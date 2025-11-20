@@ -290,7 +290,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center">
-                            <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)} aria-label={translations.editTransaction} className="text-primary hover:text-accent-foreground" disabled={isTransfer}>
+                            <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)} aria-label={translations.editTransaction} className="text-accent hover:text-white" disabled={isTransfer}>
                               <Edit3 className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => onDelete(transaction)} aria-label={translations.deleteTransaction} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
