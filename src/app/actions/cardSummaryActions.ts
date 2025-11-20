@@ -3,47 +3,91 @@
 
 import { revalidateTag } from 'next/cache';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
-import type { CardSummary, PaymentMethod, Transaction } from '@/types';
+import type { CardSummary, PaymentMethod, Transaction, PaidSummary } from '@/types';
 import { ObjectId } from 'mongodb';
+import { subMonths, setDate, startOfDay, endOfDay, isAfter } from 'date-fns';
 
-export async function getCardSummaries(userId: string): Promise<CardSummary[]> {
-    if (!userId) return [];
+export async function getCardSummaries(userId: string): Promise<{ pendingSummaries: CardSummary[], paidSummaries: PaidSummary[] }> {
+    if (!userId) return { pendingSummaries: [], paidSummaries: [] };
     try {
         const { transactionsCollection, paymentMethodsCollection } = await getDb();
 
-        const creditCards = await paymentMethodsCollection.find({ userId, type: 'Credit Card' }).toArray();
-        if (creditCards.length === 0) return [];
+        const creditCards: PaymentMethod[] = (await paymentMethodsCollection.find({ userId, type: 'Credit Card' }).toArray()).map(mapMongoDocumentPaymentMethod);
+        
+        const pendingSummaries: CardSummary[] = [];
+        if (creditCards.length > 0) {
+            const now = new Date();
 
-        // Fetch unpaid card transactions with a date up to the end of today
-        const unpaidCardTransactions = await transactionsCollection.find({
+            for (const card of creditCards) {
+                let startDate: Date;
+                let endDate: Date;
+
+                if (card.closingDay) {
+                    const closingDay = card.closingDay;
+                    
+                    endDate = setDate(now, closingDay);
+                    endDate = endOfDay(endDate);
+
+                    if (isAfter(now, endDate)) {
+                        startDate = setDate(now, closingDay + 1);
+                        startDate = startOfDay(startDate);
+                        endDate = setDate(subMonths(now, -1), closingDay);
+                        endDate = endOfDay(endDate);
+                    } else {
+                        startDate = setDate(subMonths(now, 1), closingDay + 1);
+                        startDate = startOfDay(startDate);
+                    }
+                } else {
+                    endDate = now;
+                    startDate = new Date(0); 
+                }
+                
+                const transactionsForCycle = await transactionsCollection.find({
+                    userId,
+                    cardId: card.id,
+                    isPaid: false,
+                    isCardPayment: true,
+                    date: { $gte: startDate, $lte: endDate }
+                }).sort({ date: 1 }).toArray();
+
+                if (transactionsForCycle.length > 0) {
+                    const totalAmount = transactionsForCycle.reduce((sum, t) => sum + t.amount, 0);
+                    pendingSummaries.push({
+                        cardId: card.id,
+                        cardName: card.name,
+                        cardBank: card.bank,
+                        totalAmount,
+                        transactions: transactionsForCycle.map(mapMongoDocument),
+                        cycleStartDate: startDate.toISOString(),
+                        cycleEndDate: endDate.toISOString(),
+                    });
+                }
+            }
+        }
+        
+        // Fetch paid summaries
+        const sixMonthsAgo = subMonths(new Date(), 6);
+        const paidSummaryPayments = await transactionsCollection.find({
             userId,
-            isCardPayment: true,
-            isPaid: false,
-            date: { $lte: new Date() } // Only include transactions due today or in the past
-        }).sort({ date: 1 }).toArray();
+            isSummaryPayment: true,
+            date: { $gte: sixMonthsAgo }
+        }).sort({ date: -1 }).limit(10).toArray();
 
-        const summaries: CardSummary[] = creditCards.map(card => {
-            const cardIdStr = card._id.toString();
-            const transactionsForCard = unpaidCardTransactions
-                .filter(t => t.cardId === cardIdStr)
-                .map(mapMongoDocument);
-            
-            const totalAmount = transactionsForCard.reduce((sum, t) => sum + t.amount, 0);
+        const paidSummaries: PaidSummary[] = paidSummaryPayments.map(tx => ({
+            id: tx._id.toString(),
+            cardName: tx.description.replace('Payment for card summary: ', ''),
+            paymentDate: new Date(tx.date).toISOString(),
+            amount: tx.amount
+        }));
 
-            return {
-                cardId: cardIdStr,
-                cardName: card.name,
-                cardBank: card.bank,
-                totalAmount,
-                transactions: transactionsForCard,
-            };
-        }).filter(summary => summary.transactions.length > 0);
-
-        return summaries;
+        return { 
+            pendingSummaries: pendingSummaries.sort((a,b) => b.totalAmount - a.totalAmount),
+            paidSummaries
+        };
 
     } catch (error) {
         console.error('Error fetching card summaries:', error);
-        return [];
+        return { pendingSummaries: [], paidSummaries: [] };
     }
 }
 
@@ -53,24 +97,22 @@ export async function payCardSummary(
     paymentAmount: number,
     paymentDate: Date,
     paymentMethodId: string,
-    description: string
+    description: string,
+    cycleStartDate?: string,
+    cycleEndDate?: string
 ): Promise<{ success: boolean; error?: string }> {
     if (!userId) return { success: false, error: 'User not authenticated.' };
 
     try {
         const { transactionsCollection, categoriesCollection } = await getDb();
 
-        // 1. Find the 'Taxes' category to assign the payment to. Fallback to 'Other'.
         let paymentCategory = await categoriesCollection.findOne({ userId, name: "Taxes" });
         if (!paymentCategory) {
             paymentCategory = await categoriesCollection.findOne({ userId, name: "Other" });
-            if (!paymentCategory) {
-                throw new Error("Default categories 'Taxes' or 'Other' not found.");
-            }
+            if (!paymentCategory) throw new Error("Default categories 'Taxes' or 'Other' not found.");
         }
         const paymentCategoryId = paymentCategory._id.toString();
 
-        // 2. Create the actual expense transaction for the payment
         const paymentTransaction = {
             userId,
             description,
@@ -81,19 +123,27 @@ export async function payCardSummary(
             paymentMethodId,
             isCardPayment: false,
             isPaid: true,
+            isSummaryPayment: true,
         };
         const insertResult = await transactionsCollection.insertOne(paymentTransaction);
         
-        if(!insertResult.insertedId) {
-            throw new Error('Failed to create payment transaction.');
-        }
-
-        // 3. Find and mark individual card transactions as paid
-        const transactionsToPay = await transactionsCollection.find({
+        if(!insertResult.insertedId) throw new Error('Failed to create payment transaction.');
+        
+        const filter: any = {
             userId,
             cardId,
-            isPaid: false
-        }).sort({ date: 1 }).toArray();
+            isPaid: false,
+            isCardPayment: true,
+        };
+        
+        if (cycleStartDate && cycleEndDate) {
+            filter.date = {
+                $gte: new Date(cycleStartDate),
+                $lte: new Date(cycleEndDate)
+            };
+        }
+
+        const transactionsToPay = await transactionsCollection.find(filter).sort({ date: 1 }).toArray();
 
         let remainingAmountToPay = paymentAmount;
         const transactionIdsToUpdate: ObjectId[] = [];
@@ -105,9 +155,6 @@ export async function payCardSummary(
                 transactionIdsToUpdate.push(transaction._id);
                 remainingAmountToPay -= transaction.amount;
             } else {
-                // Partial payment case: This logic can be complex.
-                // For simplicity, we only mark full transactions as paid.
-                // A more advanced version could split the transaction.
                 break;
             }
         }
@@ -129,5 +176,3 @@ export async function payCardSummary(
         return { success: false, error: `Failed to pay card summary. ${errorMessage}` };
     }
 }
-
-    

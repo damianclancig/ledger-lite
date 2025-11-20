@@ -166,8 +166,8 @@
   "paymentMethodAddedSuccess": "Método de pago añadido.",
   "paymentMethodUpdatedSuccess": "Método de pago actualizado.",
   "paymentMethodInUseError": "No se puede renombrar un método de pago que está en uso.",
-  "cardClosingDay": "Día de Cierre",
-  "cardClosingDayDesc": "Día del mes en que cierra el resumen.",
+  "cardClosingDay": "Día de Cierre de la Tarjeta",
+  "cardClosingDayDesc": "Día del mes en que cierra el resumen de tu tarjeta.",
   "closingDay": "Día Cierre",
   "installments": "Cuotas",
   "manualInstallments": "Número de Cuotas",
@@ -329,5 +329,7 @@
   "amountToPay": "Monto a Pagar",
   "summaryPaymentSuccess": "Resumen de tarjeta pagado con éxito.",
   "summaryPaymentError": "Error al pagar el resumen de la tarjeta.",
-  "paymentForCardSummary": "Pago de resumen de tarjeta: {cardName}"
+  "paymentForCardSummary": "Pago de resumen de tarjeta: {cardName}",
+  "paymentHistory": "Historial de Pagos",
+  "noPaymentHistory": "No hay historial de pagos para los últimos 6 meses."
 }

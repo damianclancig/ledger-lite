@@ -39,9 +39,9 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
     const startDateLabel = format(startDate, "dd MMM ''yy", { locale: currentLocale });
 
     if (!cycle.endDate) {
-        return startDateLabel;
+      return startDateLabel;
     }
-    
+
     const endDate = new Date(cycle.endDate);
     if (isSameDay(startDate, endDate)) {
       return startDateLabel;
@@ -60,7 +60,7 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
       };
 
       container.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll(); 
+      handleScroll();
 
       return () => container.removeEventListener('scroll', handleScroll);
     }
@@ -78,35 +78,37 @@ export function CycleSelector({ cycles, selectedCycle, onSelectCycle }: CycleSel
         });
       }
     } else if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTo({
-            left: 0,
-            behavior: "smooth",
-        })
+      scrollContainerRef.current.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      })
     }
   }, [selectedCycle]);
 
   return (
     <div className="relative">
-       {showGradient && (
+      {showGradient && (
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
       )}
-      <div 
-        ref={scrollContainerRef} 
+      <div
+        ref={scrollContainerRef}
         className="flex space-x-2 overflow-x-auto pb-2 -mb-2 scrollbar-hide"
       >
         {cycles.map((cycle) => {
-           const cycleKey = cycle.id;
-           return (
-              <Button
-                key={cycleKey}
-                ref={(el) => cycleRefs.current.set(cycleKey, el)}
-                variant={selectedCycle?.id === cycle.id ? "default" : "outline"}
-                onClick={() => onSelectCycle(cycle)}
-                className="capitalize shrink-0"
-              >
-                {getCycleLabel(cycle)}
-              </Button>
-            )
+          const cycleKey = cycle.id;
+          return (
+            <Button
+              key={cycleKey}
+              ref={(el) => {
+                cycleRefs.current.set(cycleKey, el);
+              }}
+              variant={selectedCycle?.id === cycle.id ? "default" : "outline"}
+              onClick={() => onSelectCycle(cycle)}
+              className="capitalize shrink-0"
+            >
+              {getCycleLabel(cycle)}
+            </Button>
+          )
         })}
       </div>
       <style jsx>{`

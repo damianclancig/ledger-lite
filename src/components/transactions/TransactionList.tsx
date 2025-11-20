@@ -196,8 +196,10 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                               <span className="text-sm font-normal">{typeInfo.label}</span>
                             </div>
                             <div className={cn("flex items-center gap-2", {
-                              'text-green-600': transaction.type === 'income' || transaction.type === 'deposit',
-                              'text-red-600': transaction.type === 'expense' || transaction.type === 'withdrawal',
+                              'text-green-600': transaction.type === 'income',
+                              'text-red-600': transaction.type === 'expense',
+                              'text-blue-600': transaction.type === 'deposit',
+                              'text-orange-600': transaction.type === 'withdrawal',
                             })}>
                               <span>
                                 {(transaction.type === 'income' || transaction.type === 'deposit') ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount))}
@@ -283,8 +285,10 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                           </Tooltip>
                         </TableCell>
                         <TableCell className={cn('text-right text-base font-mono', {
-                          'text-green-600 dark:text-green-400': transaction.type === 'income' || transaction.type === 'deposit',
-                          'text-red-600 dark:text-red-400': transaction.type === 'expense' || transaction.type === 'withdrawal',
+                          'text-green-600 dark:text-green-400': transaction.type === 'income',
+                          'text-red-600 dark:text-red-400': transaction.type === 'expense',
+                          'text-blue-600 dark:text-blue-400': transaction.type === 'deposit',
+                          'text-orange-600 dark:text-orange-400': transaction.type === 'withdrawal',
                         })}>
                           {formatCurrency(transaction.amount)}
                         </TableCell>

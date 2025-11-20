@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidateTag } from 'next/cache';
@@ -9,7 +10,7 @@ async function seedDefaultPaymentMethods(userId: string) {
   const { paymentMethodsCollection } = await getDb();
   const defaultMethods = [
     { name: 'Cash', type: 'Cash', isEnabled: true, userId },
-    { name: 'Main Credit Card', type: 'Credit Card', isEnabled: true, userId },
+    { name: 'Main Credit Card', type: 'Credit Card', bank: 'Default Bank', closingDay: 25, isEnabled: true, userId },
     { name: 'Main Debit Card', type: 'Debit Card', isEnabled: true, userId },
   ];
   await paymentMethodsCollection.insertMany(defaultMethods);
@@ -78,10 +79,15 @@ export async function updatePaymentMethod(id: string, data: PaymentMethodFormVal
   if (!userId) return { error: 'User not authenticated.' };
   try {
     const { paymentMethodsCollection } = await getDb();
+    
+    const updateData: Partial<PaymentMethodFormValues> = { ...data };
+    if (data.type !== 'Credit Card') {
+      updateData.closingDay = undefined;
+    }
 
     const result = await paymentMethodsCollection.updateOne(
       { _id: new ObjectId(id), userId },
-      { $set: data }
+      { $set: updateData }
     );
     
     if (result.matchedCount === 0) {

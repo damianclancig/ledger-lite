@@ -7,12 +7,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getCardSummaries, payCardSummary } from "@/app/actions/cardSummaryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
-import type { CardSummary, PaymentMethod, Transaction } from "@/types";
+import type { CardSummary, PaymentMethod, Transaction, PaidSummary } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreditCard, Banknote, Calendar, Info, DollarSign, Wallet } from "lucide-react";
+import { CreditCard, Banknote, Calendar, Info, DollarSign, Wallet, History } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { es, pt, enUS } from 'date-fns/locale';
@@ -26,6 +26,7 @@ export default function CardSummariesPage() {
     const { toast } = useToast();
     
     const [summaries, setSummaries] = useState<CardSummary[]>([]);
+    const [paidSummaries, setPaidSummaries] = useState<PaidSummary[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,12 +39,12 @@ export default function CardSummariesPage() {
         if (!user) return;
         setIsLoading(true);
         try {
-            const [fetchedSummaries, fetchedPaymentMethods] = await Promise.all([
+            const [{ pendingSummaries, paidSummaries }, fetchedPaymentMethods] = await Promise.all([
                 getCardSummaries(user.uid),
                 getPaymentMethods(user.uid),
             ]);
-            setSummaries(fetchedSummaries);
-            // Filter out credit cards as payment methods for the summary
+            setSummaries(pendingSummaries);
+            setPaidSummaries(paidSummaries);
             setPaymentMethods(fetchedPaymentMethods.filter(pm => pm.type !== 'Credit Card'));
         } catch (error) {
             console.error("Failed to load card summaries:", error);
@@ -67,7 +68,16 @@ export default function CardSummariesPage() {
 
         const description = translations.paymentForCardSummary.replace('{cardName}', selectedSummary.cardName);
 
-        const result = await payCardSummary(user.uid, selectedSummary.cardId, values.amount, values.date, values.paymentMethodId, description);
+        const result = await payCardSummary(
+            user.uid, 
+            selectedSummary.cardId, 
+            values.amount, 
+            values.date, 
+            values.paymentMethodId, 
+            description,
+            selectedSummary.cycleStartDate,
+            selectedSummary.cycleEndDate
+        );
         
         if (result.success) {
             toast({ title: translations.summaryPaymentSuccess });
@@ -127,8 +137,12 @@ export default function CardSummariesPage() {
                                             {summary.cardBank && <p className="text-xs sm:text-sm text-muted-foreground">{summary.cardBank}</p>}
                                         </div>
                                     </div>
-                                    <div className="w-full sm:w-auto pt-2 sm:pt-0 text-right">
-                                        <p className="text-xs sm:text-sm text-muted-foreground">{translations.totalAmount}</p>
+                                    <div className="w-full sm:w-auto text-right">
+                                        {summary.cycleStartDate && summary.cycleEndDate && (
+                                            <p className="text-xs sm:text-sm text-muted-foreground">
+                                                {format(new Date(summary.cycleStartDate), 'dd/MM')} - {format(new Date(summary.cycleEndDate), 'dd/MM/yy')}
+                                            </p>
+                                        )}
                                         <p className="text-lg sm:text-2xl font-bold font-mono text-red-500">{formatCurrency(summary.totalAmount)}</p>
                                     </div>
                                 </div>
@@ -165,6 +179,38 @@ export default function CardSummariesPage() {
                         </Card>
                     ))}
                 </div>
+            )}
+            
+            {paidSummaries.length > 0 && (
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="paid-history">
+                        <Card className="shadow-xl border-2 border-primary/20">
+                            <AccordionTrigger className="p-4 hover:no-underline">
+                                <CardHeader className="p-0 flex-1">
+                                <CardTitle className="flex items-center text-primary text-left">
+                                    <History className="h-5 w-5 mr-3" />
+                                    {translations.paymentHistory}
+                                </CardTitle>
+                                </CardHeader>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <CardContent>
+                                    <ul className="space-y-3">
+                                        {paidSummaries.map(summary => (
+                                            <li key={summary.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-base border-b pb-2">
+                                                <div className="flex-1 mb-1 sm:mb-0">
+                                                    <p className="font-semibold">{summary.cardName}</p>
+                                                    <p className="text-sm text-muted-foreground">{format(new Date(summary.paymentDate), "PPP, p", { locale: currentLocale })}</p>
+                                                </div>
+                                                <p className="font-mono font-semibold text-green-600 dark:text-green-400 self-end sm:self-center">{formatCurrency(summary.amount)}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </AccordionContent>
+                        </Card>
+                    </AccordionItem>
+                </Accordion>
             )}
 
             {selectedSummary && (

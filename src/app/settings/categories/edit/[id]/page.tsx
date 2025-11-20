@@ -17,7 +17,7 @@ export default function EditCategoryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [category, setCategory] = useState<Category | null>(null);
   const [isDeletable, setIsDeletable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,13 +28,14 @@ export default function EditCategoryPage() {
     if (!id || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedCategory, inUse] = await Promise.all([
           getCategoryById(id, user.uid),
           isCategoryInUse(id, user.uid),
         ]);
-        
+
         if (fetchedCategory) {
           if (fetchedCategory.isSystem) {
             toast({ title: translations.errorTitle, description: "System categories cannot be modified.", variant: "destructive" });
@@ -48,8 +49,8 @@ export default function EditCategoryPage() {
           router.push("/settings/categories");
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load category data.", variant: "destructive" });
-         router.push("/settings/categories");
+        toast({ title: translations.errorTitle, description: "Failed to load category data.", variant: "destructive" });
+        router.push("/settings/categories");
       } finally {
         setIsLoading(false);
       }
@@ -81,7 +82,7 @@ export default function EditCategoryPage() {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     }
   }
-  
+
   if (isLoading || !category) {
     return <EditPageLoader />;
   }
