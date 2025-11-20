@@ -186,21 +186,15 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                             </div>
                           </div>
                           <div className="flex items-center justify-between text-lg font-semibold font-mono">
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <div className={cn("flex items-center gap-2", {
-                                  'text-green-600': transaction.type === 'income',
-                                  'text-red-600': transaction.type === 'expense',
-                                  'text-blue-600': transaction.type === 'deposit',
-                                  'text-orange-600': transaction.type === 'withdrawal',
-                                })}>
-                                  {typeInfo.icon}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{typeInfo.label}</p>
-                              </TooltipContent>
-                            </Tooltip>
+                            <div className={cn("flex items-center gap-2", {
+                              'text-green-600': transaction.type === 'income',
+                              'text-red-600': transaction.type === 'expense',
+                              'text-blue-600': transaction.type === 'deposit',
+                              'text-orange-600': transaction.type === 'withdrawal',
+                            })}>
+                              {typeInfo.icon}
+                              <span className="text-sm font-normal">{typeInfo.label}</span>
+                            </div>
                             <div className={cn("flex items-center gap-2", {
                               'text-green-600': transaction.type === 'income' || transaction.type === 'deposit',
                               'text-red-600': transaction.type === 'expense' || transaction.type === 'withdrawal',
