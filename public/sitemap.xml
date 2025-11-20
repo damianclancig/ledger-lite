@@ -1,28 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://caja.clancig.com.ar/</loc>
-    <lastmod>2024-07-28</lastmod>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://caja.clancig.com.ar/login</loc>
-    <lastmod>2024-07-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://caja.clancig.com.ar/add-transaction</loc>
-    <lastmod>2024-07-28</lastmod>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://caja.clancig.com.ar/add-tax</loc>
-    <lastmod>2024-07-28</lastmod>
-    <priority>0.5</priority>
-  </url>
-   <url>
-    <loc>https://caja.clancig.com.ar/taxes</loc>
-    <lastmod>2024-07-28</lastmod>
-    <priority>0.7</priority>
-  </url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap><loc>https://caja.clancig.com.ar/sitemap-0.xml</loc></sitemap>
+</sitemapindex>

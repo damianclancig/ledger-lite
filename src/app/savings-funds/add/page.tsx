@@ -20,7 +20,15 @@ export default function AddSavingsFundPage() {
       return;
     }
 
-    const result = await addSavingsFund(values, user.uid);
+    // Convert Date to ISO string for the action
+    const formattedValues = {
+      name: values.name,
+      description: values.description,
+      targetAmount: values.targetAmount,
+      targetDate: values.targetDate ? values.targetDate.toISOString() : undefined,
+    };
+
+    const result = await addSavingsFund(formattedValues as any, user.uid);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

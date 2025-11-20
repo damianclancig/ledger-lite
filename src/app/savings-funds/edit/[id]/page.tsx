@@ -17,7 +17,7 @@ export default function EditSavingsFundPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
-  
+
   const [fund, setFund] = useState<SavingsFund | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,10 +27,11 @@ export default function EditSavingsFundPage() {
     if (!id || !user) return;
 
     async function fetchData() {
+      if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const fetchedFund = await getSavingsFundById(id, user.uid);
-        
+
         if (fetchedFund) {
           setFund(fetchedFund);
         } else {
@@ -38,8 +39,8 @@ export default function EditSavingsFundPage() {
           router.push("/savings-funds");
         }
       } catch (error) {
-         toast({ title: translations.errorTitle, description: "Failed to load savings fund data.", variant: "destructive" });
-         router.push("/savings-funds");
+        toast({ title: translations.errorTitle, description: "Failed to load savings fund data.", variant: "destructive" });
+        router.push("/savings-funds");
       } finally {
         setIsLoading(false);
       }
@@ -50,7 +51,15 @@ export default function EditSavingsFundPage() {
   const handleFormSubmit = async (values: SavingsFundFormSubmitValues) => {
     if (!user || !fund) return;
 
-    const result = await updateSavingsFund(fund.id, values, user.uid);
+    // Convert Date to ISO string for the action
+    const formattedValues = {
+      name: values.name,
+      description: values.description,
+      targetAmount: values.targetAmount,
+      targetDate: values.targetDate ? values.targetDate.toISOString() : undefined,
+    };
+
+    const result = await updateSavingsFund(fund.id, formattedValues as any, user.uid);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -59,7 +68,7 @@ export default function EditSavingsFundPage() {
       router.push("/savings-funds");
     }
   };
-  
+
   if (isLoading || !fund) {
     return <EditPageLoader />;
   }

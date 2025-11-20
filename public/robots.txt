@@ -1,4 +1,9 @@
+# *
 User-agent: *
 Allow: /
 
+# Host
+Host: https://caja.clancig.com.ar
+
+# Sitemaps
 Sitemap: https://caja.clancig.com.ar/sitemap.xml
