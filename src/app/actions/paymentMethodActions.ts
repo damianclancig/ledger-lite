@@ -1,9 +1,11 @@
 
 'use server';
 
-import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
+import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { handleActionError } from '@/lib/error-helpers';
+import { revalidateUserTag, CacheTag } from '@/lib/cache-helpers';
 import type { PaymentMethod, PaymentMethodFormValues } from '@/types';
 
 async function seedDefaultPaymentMethods(userId: string) {
@@ -49,8 +51,8 @@ export async function getPaymentMethodById(id: string, userId: string): Promise<
 }
 
 export async function addPaymentMethod(data: PaymentMethodFormValues, userId: string): Promise<PaymentMethod | { error: string }> {
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserId(userId);
     const { paymentMethodsCollection } = await getDb();
     const documentToInsert = { ...data, userId };
     const result = await paymentMethodsCollection.insertOne(documentToInsert);
@@ -59,25 +61,20 @@ export async function addPaymentMethod(data: PaymentMethodFormValues, userId: st
       throw new Error('Failed to insert payment method.');
     }
 
-    revalidateTag(`paymentMethods_${userId}`);
+    revalidateUserTag(userId, CacheTag.PAYMENT_METHODS);
     const newMethod = await paymentMethodsCollection.findOne({ _id: result.insertedId });
     if (!newMethod) {
       throw new Error('Could not find the newly created payment method.');
     }
     return mapMongoDocumentPaymentMethod(newMethod);
   } catch (error) {
-    console.error('Error adding payment method:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to add payment method. ${errorMessage}` };
+    return handleActionError(error, 'add payment method');
   }
 }
 
 export async function updatePaymentMethod(id: string, data: PaymentMethodFormValues, userId: string): Promise<PaymentMethod | { error: string }> {
-  if (!ObjectId.isValid(id)) {
-    return { error: 'Invalid payment method ID.' };
-  }
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserAndId(userId, id, 'payment method ID');
     const { paymentMethodsCollection } = await getDb();
     
     const updateData: Partial<PaymentMethodFormValues> = { ...data };
@@ -94,15 +91,13 @@ export async function updatePaymentMethod(id: string, data: PaymentMethodFormVal
       return { error: 'Payment method not found or you do not have permission to edit it.' };
     }
 
-    revalidateTag(`paymentMethods_${userId}`);
+    revalidateUserTag(userId, CacheTag.PAYMENT_METHODS);
     const updatedMethod = await paymentMethodsCollection.findOne({ _id: new ObjectId(id) });
     if (!updatedMethod) {
       throw new Error('Could not find the updated payment method.');
     }
     return mapMongoDocumentPaymentMethod(updatedMethod);
   } catch (error) {
-    console.error('Error updating payment method:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to update payment method. ${errorMessage}` };
+    return handleActionError(error, 'update payment method');
   }
 }

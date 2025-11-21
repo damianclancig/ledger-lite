@@ -398,7 +398,7 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
     const firstInstallment = groupTransactions[0];
     const totalAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalInstallments = groupTransactions.length;
-    const installmentRegex = /^(.*) \(Cuota \d+\/\d+\)$/;
+    const installmentRegex = /^(.*) \(\d+\/\d+\)$/;
     const baseDescriptionMatch = firstInstallment.description.match(installmentRegex);
     const baseDescription = baseDescriptionMatch ? baseDescriptionMatch[1].trim() : firstInstallment.description;
 
@@ -447,7 +447,7 @@ export async function updateInstallmentPurchase(groupId: string, data: Transacti
           ...baseTransaction,
           amount: installmentAmount,
           date: addMonths(originalDate, i),
-          description: `${baseTransaction.description} (Cuota ${i + 1}/${installments})`,
+          description: `${baseTransaction.description} (${i + 1}/${installments})`,
           groupId: newGroupId.toString(),
         });
       }

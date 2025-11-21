@@ -1,8 +1,11 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentCategory } from '@/lib/actions-helpers';
+import { isCategoryInUse as checkCategoryInUse } from '@/lib/database-helpers';
+import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { handleActionError } from '@/lib/error-helpers';
+import { revalidateUserTag, CacheTag } from '@/lib/cache-helpers';
 import type { Category, CategoryFormValues, Translations } from '@/types';
 import { CATEGORIES } from "@/types";
 
@@ -89,8 +92,8 @@ export async function getCategoryById(id: string, userId: string): Promise<Categ
 }
 
 export async function addCategory(data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserId(userId);
     const { categoriesCollection } = await getDb();
     
     // Check for duplicates (case-insensitive)
@@ -110,25 +113,20 @@ export async function addCategory(data: CategoryFormValues, userId: string, tran
       throw new Error('Failed to insert category.');
     }
 
-    revalidateTag(`categories_${userId}`);
+    revalidateUserTag(userId, CacheTag.CATEGORIES);
     const newCategory = await categoriesCollection.findOne({ _id: result.insertedId });
      if (!newCategory) {
         throw new Error('Could not find the newly created category.');
     }
     return mapMongoDocumentCategory(newCategory);
   } catch (error) {
-    console.error('Error adding category:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to add category. ${errorMessage}` };
+    return handleActionError(error, 'add category');
   }
 }
 
 export async function updateCategory(id: string, data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
-  if (!ObjectId.isValid(id)) {
-    return { error: 'Invalid category ID.' };
-  }
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserAndId(userId, id, 'category ID');
     const { categoriesCollection } = await getDb();
 
     // Prevent updating system categories
@@ -159,16 +157,14 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
       return { error: 'Category not found or you do not have permission to edit it.' };
     }
 
-    revalidateTag(`categories_${userId}`);
+    revalidateUserTag(userId, CacheTag.CATEGORIES);
     const updatedCategory = await categoriesCollection.findOne({ _id: new ObjectId(id) });
      if (!updatedCategory) {
         throw new Error('Could not find the updated category.');
     }
     return mapMongoDocumentCategory(updatedCategory);
   } catch (error) {
-    console.error('Error updating category:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to update category. ${errorMessage}` };
+    return handleActionError(error, 'update category');
   }
 }
 
@@ -178,8 +174,7 @@ export async function isCategoryInUse(categoryId: string, userId: string): Promi
   }
   try {
     const { transactionsCollection } = await getDb();
-    const count = await transactionsCollection.countDocuments({ categoryId, userId });
-    return count > 0;
+    return await checkCategoryInUse(categoryId, userId, transactionsCollection);
   } catch (error) {
     console.error('Error checking if category is in use:', error);
     return true; // Fail safe
@@ -187,13 +182,8 @@ export async function isCategoryInUse(categoryId: string, userId: string): Promi
 }
 
 export async function deleteCategory(id: string, userId: string, translations: Translations): Promise<{ success: boolean; error?: string }> {
-  if (!ObjectId.isValid(id)) {
-    return { success: false, error: 'Invalid category ID.' };
-  }
-  if (!userId) {
-    return { success: false, error: 'User not authenticated.' };
-  }
   try {
+    validateUserAndId(userId, id, 'category ID');
     const { categoriesCollection } = await getDb();
 
     const categoryToDelete = await categoriesCollection.findOne({ _id: new ObjectId(id), userId });
@@ -216,12 +206,10 @@ export async function deleteCategory(id: string, userId: string, translations: T
       return { success: false, error: 'Category not found during deletion.' };
     }
     
-    revalidateTag(`categories_${userId}`);
+    revalidateUserTag(userId, CacheTag.CATEGORIES);
     return { success: true };
 
   } catch (error) {
-    console.error('Error deleting category:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { success: false, error: `Failed to delete category. ${errorMessage}` };
+    return { success: false, ...handleActionError(error, 'delete category') };
   }
 }

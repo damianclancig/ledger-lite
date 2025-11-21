@@ -1,9 +1,12 @@
 
 'use server';
 
-import { revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentSavingsFund } from '@/lib/actions-helpers';
+import { calculateFundCurrentAmount } from '@/lib/database-helpers';
+import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { handleActionError } from '@/lib/error-helpers';
+import { revalidateUserTags, revalidateUserTag, CacheTag, TagGroups } from '@/lib/cache-helpers';
 import type { SavingsFund, SavingsFundFormValues, Translations, Transaction } from '@/types';
 import { addTransaction } from './transactionActions';
 
@@ -15,23 +18,7 @@ export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
 
     const fundsWithCurrentAmount = await Promise.all(funds.map(async (fund) => {
         const fundIdStr = fund._id.toString();
-        
-        const pipeline = [
-          { $match: { userId, savingsFundId: fundIdStr } },
-          {
-            $group: {
-              _id: '$savingsFundId',
-              total: { 
-                $sum: {
-                  $cond: [ { $eq: ['$type', 'deposit'] }, '$amount', { $multiply: ['$amount', -1] } ]
-                }
-              }
-            }
-          }
-        ];
-        
-        const result = await transactionsCollection.aggregate(pipeline).toArray();
-        const currentAmount = result.length > 0 ? result[0].total : 0;
+        const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
         
         return {
             ...mapMongoDocumentSavingsFund(fund),
@@ -46,6 +33,7 @@ export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
   }
 }
 
+
 export async function getSavingsFundById(id: string, userId: string): Promise<SavingsFund | null> {
     if (!ObjectId.isValid(id) || !userId) {
       return null;
@@ -56,22 +44,7 @@ export async function getSavingsFundById(id: string, userId: string): Promise<Sa
       if (!fund) return null;
   
       const fundIdStr = fund._id.toString();
-      const pipeline = [
-        { $match: { userId, savingsFundId: fundIdStr } },
-        {
-          $group: {
-            _id: '$savingsFundId',
-            total: { 
-              $sum: {
-                $cond: [ { $eq: ['$type', 'deposit'] }, '$amount', { $multiply: ['$amount', -1] } ]
-              }
-            }
-          }
-        }
-      ];
-      
-      const result = await transactionsCollection.aggregate(pipeline).toArray();
-      const currentAmount = result.length > 0 ? result[0].total : 0;
+      const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
       
       return {
         ...mapMongoDocumentSavingsFund(fund),
@@ -84,8 +57,8 @@ export async function getSavingsFundById(id: string, userId: string): Promise<Sa
 }
 
 export async function addSavingsFund(data: SavingsFundFormValues, userId: string): Promise<SavingsFund | { error: string }> {
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserId(userId);
     const { savingsFundsCollection } = await getDb();
     
     const documentToInsert = { 
@@ -100,25 +73,20 @@ export async function addSavingsFund(data: SavingsFundFormValues, userId: string
       throw new Error('Failed to insert savings fund.');
     }
 
-    revalidateTag(`savingsFunds_${userId}`);
+    revalidateUserTag(userId, CacheTag.SAVINGS_FUNDS);
     const newFund = await savingsFundsCollection.findOne({ _id: result.insertedId });
      if (!newFund) {
         throw new Error('Could not find the newly created savings fund.');
     }
     return { ...mapMongoDocumentSavingsFund(newFund), currentAmount: 0 };
   } catch (error) {
-    console.error('Error adding savings fund:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to add savings fund. ${errorMessage}` };
+    return handleActionError(error, 'add savings fund');
   }
 }
 
 export async function updateSavingsFund(id: string, data: SavingsFundFormValues, userId: string): Promise<SavingsFund | { error: string }> {
-  if (!ObjectId.isValid(id)) {
-    return { error: 'Invalid savings fund ID.' };
-  }
-  if (!userId) return { error: 'User not authenticated.' };
   try {
+    validateUserAndId(userId, id, 'savings fund ID');
     const { savingsFundsCollection } = await getDb();
     
     const documentToUpdate = { 
@@ -135,16 +103,14 @@ export async function updateSavingsFund(id: string, data: SavingsFundFormValues,
       return { error: 'Savings fund not found or you do not have permission to edit it.' };
     }
 
-    revalidateTag(`savingsFunds_${userId}`);
+    revalidateUserTag(userId, CacheTag.SAVINGS_FUNDS);
     const updatedFund = await savingsFundsCollection.findOne({ _id: new ObjectId(id) });
      if (!updatedFund) {
         throw new Error('Could not find the updated savings fund.');
     }
     return mapMongoDocumentSavingsFund(updatedFund);
   } catch (error) {
-    console.error('Error updating savings fund:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { error: `Failed to update savings fund. ${errorMessage}` };
+    return handleActionError(error, 'update savings fund');
   }
 }
 
@@ -187,8 +153,7 @@ export async function deleteSavingsFund(id: string, userId: string, translations
         return { success: false, error: 'Savings fund not found or you do not have permission to delete it.' };
       }
   
-      revalidateTag(`savingsFunds_${userId}`);
-      revalidateTag(`transactions_${userId}`);
+      revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
       return { success: true };
     } catch (error) {
       console.error('Error deleting savings fund:', error);
@@ -214,8 +179,7 @@ export async function transferToFund(
             savingsFundId: values.fundId,
         }, userId);
 
-        revalidateTag(`savingsFunds_${userId}`);
-        revalidateTag(`transactions_${userId}`);
+        revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
         return { success: true };
 
     } catch (error) {
@@ -241,8 +205,7 @@ export async function withdrawFromFund(
             savingsFundId: values.fundId,
         }, userId);
 
-        revalidateTag(`savingsFunds_${userId}`);
-        revalidateTag(`transactions_${userId}`);
+        revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
         return { success: true };
 
     } catch (error) {

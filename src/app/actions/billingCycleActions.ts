@@ -1,8 +1,10 @@
 
 'use server';
 
-import { revalidateTag } from 'next/cache';
 import { getDb, mapMongoDocumentBillingCycle } from '@/lib/actions-helpers';
+import { validateUserId } from '@/lib/validation-helpers';
+import { handleActionError } from '@/lib/error-helpers';
+import { revalidateUserTag, revalidateUserTags, CacheTag, TagGroups } from '@/lib/cache-helpers';
 import type { BillingCycle } from '@/types';
 
 export async function getBillingCycles(userId: string): Promise<BillingCycle[]> {
@@ -39,7 +41,7 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
             { $set: { endDate: endDateForOldCycle } }
         );
         
-        revalidateTag(`billingCycles_${userId}`);
+        revalidateUserTag(userId, CacheTag.BILLING_CYCLES);
         return mapMongoDocumentBillingCycle(mostRecentCycle);
 
       } else if (activeCycles.length === 1) {
@@ -61,12 +63,10 @@ export async function getCurrentBillingCycle(userId: string): Promise<BillingCyc
 }
 
 export async function startNewCycle(userId: string, startDate: Date): Promise<BillingCycle | { error: string }> {
-    if (!userId) return { error: 'User not authenticated.' };
-
-    const newCycleStartDate = startDate;
-    const endDateForOldCycles = new Date(newCycleStartDate.getTime() - 1);
-
     try {
+        validateUserId(userId);
+        const newCycleStartDate = startDate;
+        const endDateForOldCycles = new Date(newCycleStartDate.getTime() - 1);
         const { billingCyclesCollection } = await getDb();
         
         const activeCycles = await billingCyclesCollection.find({ 
@@ -97,8 +97,7 @@ export async function startNewCycle(userId: string, startDate: Date): Promise<Bi
             throw new Error('Failed to insert new billing cycle.');
         }
 
-        revalidateTag(`billingCycles_${userId}`);
-        revalidateTag(`transactions_${userId}`);
+        revalidateUserTags(userId, TagGroups.BILLING_CYCLE_MUTATION);
 
         const newCycle = await billingCyclesCollection.findOne({ _id: result.insertedId });
         if (!newCycle) {
@@ -108,8 +107,6 @@ export async function startNewCycle(userId: string, startDate: Date): Promise<Bi
         return mapMongoDocumentBillingCycle(newCycle);
 
     } catch (error) {
-        console.error('Error starting new billing cycle:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return { error: `Failed to add billing cycle. ${errorMessage}` };
+        return handleActionError(error, 'add billing cycle');
     }
 }
