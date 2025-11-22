@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getCardSummaries, payCardSummary } from "@/app/actions/cardSummaryActions";
+import { isErrorResponse } from "@/lib/error-types";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import type { CardSummary, PaymentMethod, Transaction, PaidSummary } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -39,12 +40,21 @@ export default function CardSummariesPage() {
         if (!user) return;
         setIsLoading(true);
         try {
-            const [{ pendingSummaries, paidSummaries }, fetchedPaymentMethods] = await Promise.all([
+            const [summariesResult, fetchedPaymentMethods] = await Promise.all([
                 getCardSummaries(user.uid),
                 getPaymentMethods(user.uid),
             ]);
-            setSummaries(pendingSummaries);
-            setPaidSummaries(paidSummaries);
+            
+            if (isErrorResponse(summariesResult)) {
+                console.error('Error loading card summaries:', summariesResult.error);
+                toast({ title: translations.errorTitle, description: summariesResult.error, variant: "destructive" });
+                setSummaries([]);
+                setPaidSummaries([]);
+            } else {
+                setSummaries(summariesResult.pendingSummaries);
+                setPaidSummaries(summariesResult.paidSummaries);
+            }
+            
             setPaymentMethods(fetchedPaymentMethods.filter(pm => pm.type !== 'Credit Card'));
         } catch (error) {
             console.error("Failed to load card summaries:", error);
@@ -79,13 +89,13 @@ export default function CardSummariesPage() {
             selectedSummary.cycleEndDate
         );
         
-        if (result.success) {
+        if (isErrorResponse(result)) {
+            toast({ title: translations.summaryPaymentError, description: result.error, variant: "destructive" });
+        } else {
             toast({ title: translations.summaryPaymentSuccess });
             setDialogOpen(false);
             setSelectedSummary(null);
             loadData(); // Re-fetch data to update the view
-        } else {
-            toast({ title: translations.summaryPaymentError, description: result.error, variant: "destructive" });
         }
     };
 
