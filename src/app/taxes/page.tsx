@@ -7,7 +7,7 @@ import type { Tax } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getTaxes } from "@/app/actions/taxActions";
-import { isErrorResponse } from "@/lib/error-helpers";
+import { isErrorResponse } from "@/lib/error-types";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";

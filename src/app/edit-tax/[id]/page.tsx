@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { getTaxById, updateTax, getUniqueTaxNames } from "@/app/actions/taxActions";
-import { isErrorResponse } from "@/lib/error-helpers";
+import { isErrorResponse } from "@/lib/error-types";
 import { FormPageLayout } from "@/components/layout/FormPageLayout";
 import { EditPageLoader } from "@/components/common/EditPageLoader";
 import { useTranslations } from "@/contexts/LanguageContext";
