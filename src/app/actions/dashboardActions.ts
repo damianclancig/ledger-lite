@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getTransactions, getInstallmentProjections } from './transactionActions';
+import { getTransactions, getInstallmentProjections } from './transactions';
 import { getCategories } from './categoryActions';
 import { getPaymentMethods } from './paymentMethodActions';
 import { getSavingsFunds } from './savingsFundActions';

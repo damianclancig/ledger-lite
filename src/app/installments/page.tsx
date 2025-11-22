@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getInstallmentDetails } from "@/app/actions/transactionActions";
+import { getInstallmentDetails } from "@/app/actions/transactions";
 import type { InstallmentDetail, CompletedInstallmentDetail } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";

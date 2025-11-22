@@ -8,7 +8,7 @@ import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfir
 import { LayoutDashboard, Plus } from "lucide-react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { deleteTransaction } from "@/app/actions/transactionActions";
+import { deleteTransaction } from "@/app/actions/transactions";
 import { getDashboardData } from "@/app/actions/dashboardActions";
 import { startNewCycle } from "@/app/actions/billingCycleActions";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -8,7 +8,7 @@ import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
 import { revalidateUserTags, revalidateUserTag, CacheTag, TagGroups } from '@/lib/cache-helpers';
 import type { SavingsFund, SavingsFundFormValues, Translations, Transaction } from '@/types';
-import { addTransaction } from './transactionActions';
+import { addTransaction } from './transactions';
 
 export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
   if (!userId) return [];

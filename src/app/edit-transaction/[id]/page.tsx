@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getTransactionById, updateTransaction } from "@/app/actions/transactionActions";
+import { getTransactionById, updateTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categoryActions";
 import { getPaymentMethods } from "@/app/actions/paymentMethodActions";
 import { FormPageLayout } from "@/components/layout/FormPageLayout";
