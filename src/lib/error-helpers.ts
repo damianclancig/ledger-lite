@@ -63,7 +63,7 @@ export async function withDatabaseErrorHandling<T>(
  * Type guard to check if a response is an error
  */
 export function isErrorResponse<T>(
-  response: T | ErrorResponse
+  response: T | ErrorResponse | null | undefined
 ): response is ErrorResponse {
-  return (response as ErrorResponse).error !== undefined;
+  return response != null && (response as ErrorResponse).error !== undefined;
 }
