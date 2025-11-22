@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { getTaxById, updateTax, getUniqueTaxNames } from "@/app/actions/taxActions";
+import { isErrorResponse } from "@/lib/error-helpers";
 import { FormPageLayout } from "@/components/layout/FormPageLayout";
 import { EditPageLoader } from "@/components/common/EditPageLoader";
 import { useTranslations } from "@/contexts/LanguageContext";
@@ -31,22 +32,30 @@ export default function EditTaxPage() {
       if (!user) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
-        const [fetchedTax, uniqueNames] = await Promise.all([
+        const [taxResult, namesResult] = await Promise.all([
           getTaxById(id, user.uid),
           getUniqueTaxNames(user.uid)
         ]);
 
-        if (fetchedTax) {
-          if (fetchedTax.isPaid) {
-            toast({ title: translations.errorTitle, description: translations.paidTaxEditError, variant: "destructive" });
-            router.push("/taxes");
-            return;
-          }
-          setTax(fetchedTax);
-          setTaxNames(uniqueNames.filter(name => name !== fetchedTax.name));
-        } else {
-          toast({ title: translations.errorTitle, description: "Tax not found.", variant: "destructive" });
+        if (isErrorResponse(taxResult)) {
+          toast({ title: translations.errorTitle, description: taxResult.error, variant: "destructive" });
           router.push("/taxes");
+          return;
+        }
+
+        if (taxResult.isPaid) {
+          toast({ title: translations.errorTitle, description: translations.paidTaxEditError, variant: "destructive" });
+          router.push("/taxes");
+          return;
+        }
+
+        setTax(taxResult);
+
+        if (isErrorResponse(namesResult)) {
+          console.error('Error loading tax names:', namesResult.error);
+          setTaxNames([]);
+        } else {
+          setTaxNames(namesResult.filter(name => name !== taxResult.name));
         }
       } catch (error) {
         toast({ title: translations.errorTitle, description: "Failed to load tax data.", variant: "destructive" });
@@ -68,7 +77,7 @@ export default function EditTaxPage() {
       year: values.year,
     }, user.uid, translations);
 
-    if (result && 'error' in result) {
+    if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.taxUpdatedSuccess });

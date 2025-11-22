@@ -5,6 +5,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { addTax, getUniqueTaxNames } from "@/app/actions/taxActions";
+import { isErrorResponse } from "@/lib/error-helpers";
 import { TaxForm, type TaxFormSubmitValues } from "@/components/taxes/TaxForm";
 import { FormPageLayout } from "@/components/layout/FormPageLayout";
 import { EditPageLoader } from "@/components/common/EditPageLoader";
@@ -36,9 +37,14 @@ export default function AddTaxPage() {
     if (!user) return;
     setIsLoading(true);
     getUniqueTaxNames(user.uid)
-      .then(names => {
-        const filteredNames = initialData?.name ? names.filter(n => n !== initialData.name) : names;
-        setTaxNames(filteredNames);
+      .then(result => {
+        if (isErrorResponse(result)) {
+          console.error('Error loading tax names:', result.error);
+          setTaxNames([]);
+        } else {
+          const filteredNames = initialData?.name ? result.filter(n => n !== initialData.name) : result;
+          setTaxNames(filteredNames);
+        }
       })
       .finally(() => setIsLoading(false));
   }, [user, initialData]);
@@ -51,7 +57,7 @@ export default function AddTaxPage() {
 
     const result = await addTax(values, user.uid, translations);
 
-    if (result && !result.success) {
+    if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.taxAddedTitle, description: translations.taxAddedDesc });
