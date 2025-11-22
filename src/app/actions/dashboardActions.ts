@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getTransactions, getInstallmentProjections } from './transactions';
@@ -9,14 +8,17 @@ import { getCurrentBillingCycle, getBillingCycles } from './billingCycleActions'
 import { endOfMonth, isPast, differenceInDays, startOfDay, format, startOfToday, subDays } from 'date-fns';
 import type { Transaction, BudgetInsights, BillingCycle, InstallmentProjection } from '@/types';
 import { getDb } from '@/lib/actions-helpers';
-import { ObjectId } from 'mongodb';
+import { validateUserId } from '@/lib/validation-helpers';
+import { type ErrorResponse, isErrorResponse } from '@/lib/error-types';
+import { handleActionError } from '@/lib/error-helpers';
 
-export async function getBudgetInsights(userId: string, startDate: Date, endDate: Date): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'weeklyAverage28Days' | 'dailyExpenses'>> {
-  if (!userId) {
-    return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] };
-  }
-
+export async function getBudgetInsights(
+  userId: string, 
+  startDate: Date, 
+  endDate: Date
+): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'weeklyAverage28Days' | 'dailyExpenses'> | ErrorResponse> {
   try {
+    validateUserId(userId);
     const { transactionsCollection } = await getDb();
     const twentyEightDaysAgoStart = subDays(startOfToday(), 27);
 
@@ -49,14 +51,17 @@ export async function getBudgetInsights(userId: string, startDate: Date, endDate
     return { dailyAverage7Days, weeklyExpensesTotal, weeklyAverage28Days, dailyExpenses };
 
   } catch (error) {
-    console.error('Error fetching budget insights:', error);
-    return { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] };
+    return handleActionError(error, 'fetch budget insights');
   }
 }
 
-async function getExpensesByCategory(userId: string, startDate: Date, endDate: Date): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number }>> {
-  if (!userId) return [];
+async function getExpensesByCategory(
+  userId: string, 
+  startDate: Date, 
+  endDate: Date
+): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number }> | ErrorResponse> {
   try {
+    validateUserId(userId);
     const { transactionsCollection } = await getDb();
     const pipeline = [
       {
@@ -112,8 +117,7 @@ async function getExpensesByCategory(userId: string, startDate: Date, endDate: D
     }));
 
   } catch (error) {
-    console.error('Error fetching expenses by category:', error);
-    return [];
+    return handleActionError(error, 'fetch expenses by category');
   }
 }
 
@@ -184,7 +188,7 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     currentCycle,
     billingCycles,
     categories,
-    weeklyInsights,
+    weeklyInsightsResult,
     installmentProjection,
   ] = await Promise.all([
     getPaymentMethods(userId),
@@ -195,6 +199,11 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     getBudgetInsights(userId, sevenDaysAgoStart, todayEnd),
     getInstallmentProjections(userId),
   ]);
+
+  // Handle potential errors from getBudgetInsights
+  const weeklyInsights = isErrorResponse(weeklyInsightsResult) 
+    ? { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] }
+    : weeklyInsightsResult;
 
   let activeCycle = currentCycle;
   if (cycleId) {
@@ -217,7 +226,12 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     cycleEndDate = endOfMonth(new Date());
   }
 
-  const expensesByCategory = await getExpensesByCategory(userId, cycleStartDate, cycleEndDate);
+  const expensesByCategoryResult = await getExpensesByCategory(userId, cycleStartDate, cycleEndDate);
+  
+  // Handle potential errors from getExpensesByCategory
+  const expensesByCategory = isErrorResponse(expensesByCategoryResult)
+    ? []
+    : expensesByCategoryResult;
 
   let budgetInsights = calculateCycleBudgetInsights(transactionsForCycle, activeCycle);
 

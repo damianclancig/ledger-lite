@@ -1,5 +1,6 @@
-
 # FinanClan: Tu Gestor de Finanzas Personales
+
+![CI](https://github.com/damianclancig/financlan/workflows/CI/badge.svg)
 
 FinanClan es una aplicación web moderna y segura diseñada para ayudarte a llevar un control claro y sencillo de tus ingresos y gastos. Con una interfaz intuitiva y potentes funcionalidades, gestionar tus finanzas nunca ha sido tan fácil.
 
@@ -64,8 +65,8 @@ Sigue estos pasos para clonar, configurar y ejecutar el proyecto en tu entorno l
 Abre tu terminal y clona este repositorio en tu máquina local:
 
 ```bash
-git clone https://github.com/damianclancig/ledger-lite.git
-cd ledger-lite
+git clone https://github.com/damianclancig/financlan.git
+cd financlan
 ```
 
 ### 2. Instalar Dependencias
