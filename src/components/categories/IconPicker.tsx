@@ -50,6 +50,11 @@ export function IconPicker({ selectedIcon, onSelectIcon, label }: IconPickerProp
     return filtered;
   }, [searchTerm]);
 
+  const allUniqueIcons = useMemo(() => {
+    const icons = Object.values(filteredGroups).flatMap(group => group.icons);
+    return Array.from(new Set(icons));
+  }, [filteredGroups]);
+
   const handleSelectIcon = (iconName: string) => {
     onSelectIcon(iconName);
     setOpen(false);
@@ -99,7 +104,7 @@ export function IconPicker({ selectedIcon, onSelectIcon, label }: IconPickerProp
           <ScrollArea className="h-[300px]">
             <TabsContent value="all" className="m-0 p-3">
               <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
-                {Array.from(new Set(Object.values(filteredGroups).flatMap(group => group.icons))).map(iconName => {
+                {allUniqueIcons.map(iconName => {
                     const IconComponent = getLucideIcon(iconName);
                     if (!IconComponent) return null;
 
