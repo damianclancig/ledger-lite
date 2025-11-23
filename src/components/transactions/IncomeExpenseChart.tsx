@@ -24,10 +24,10 @@ interface IncomeExpenseChartProps {
 const CustomLegend = () => {
     const { translations } = useTranslations();
     const chartConfig = {
-        current_cycle: { label: "Ciclo Seleccionado", color: "hsl(var(--chart-2))" },
-        previous_cycle: { label: "Ciclo Anterior", color: "hsl(var(--chart-2) / 0.5)" },
-        expense_current: { label: "Ciclo Seleccionado", color: "hsl(var(--destructive))" },
-        expense_previous: { label: "Ciclo Anterior", color: "hsl(var(--destructive) / 0.5)" },
+        current_cycle: { label: translations.selectedCycle, color: "hsl(var(--chart-2))" },
+        previous_cycle: { label: translations.previousCycle, color: "hsl(var(--chart-2) / 0.5)" },
+        expense_current: { label: translations.selectedCycle, color: "hsl(var(--destructive))" },
+        expense_previous: { label: translations.previousCycle, color: "hsl(var(--destructive) / 0.5)" },
     };
 
     return (
@@ -72,11 +72,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="mb-2 font-medium">{title}</p>
         <div className="space-y-1">
             <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Ciclo Seleccionado:</span>
+                <span className="text-muted-foreground">{translations.selectedCycle}:</span>
                 <span className="font-mono font-medium">{formatCurrency(currentValue)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Ciclo Anterior:</span>
+                <span className="text-muted-foreground">{translations.previousCycle}:</span>
                 <span className="font-mono font-medium">{formatCurrency(previousValue)}</span>
             </div>
         </div>
