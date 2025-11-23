@@ -8,6 +8,7 @@ import { handleActionError } from '@/lib/error-helpers';
 import { revalidateUserTag, CacheTag } from '@/lib/cache-helpers';
 import type { Category, CategoryFormValues, Translations } from '@/types';
 import { CATEGORIES } from "@/types";
+import { DEFAULT_CATEGORY_ICONS, isValidCategoryIcon } from '@/lib/category-icons';
 
 async function seedDefaultCategories(userId: string) {
   const { categoriesCollection } = await getDb();
@@ -16,6 +17,7 @@ async function seedDefaultCategories(userId: string) {
     userId,
     isEnabled: true,
     isSystem: cat.isSystem,
+    icon: DEFAULT_CATEGORY_ICONS[cat.key], // Assign default icon if available
   }));
   await categoriesCollection.insertMany(defaultCategories);
 }
@@ -58,7 +60,19 @@ export async function getCategories(userId: string): Promise<Category[]> {
               userId,
               isEnabled: true,
               isSystem: true,
+              icon: DEFAULT_CATEGORY_ICONS[sysCatDef.key], // Assign default icon
            });
+        }
+      }
+
+      // Migrate existing system categories to have default icons if they don't have one
+      for (const sysCatKey of systemCategoryKeys) {
+        const defaultIcon = DEFAULT_CATEGORY_ICONS[sysCatKey];
+        if (defaultIcon) {
+          await categoriesCollection.updateOne(
+            { userId, name: sysCatKey, icon: { $exists: false } },
+            { $set: { icon: defaultIcon } }
+          );
         }
       }
 
@@ -106,6 +120,11 @@ export async function addCategory(data: CategoryFormValues, userId: string, tran
         return { error: translations.categoryExistsError };
     }
 
+    // Validate icon if provided
+    if (data.icon && !isValidCategoryIcon(data.icon)) {
+      return { error: 'Invalid icon selected.' };
+    }
+
     const documentToInsert = { ...data, userId, isSystem: false }; // User-added categories are not system categories
     const result = await categoriesCollection.insertOne(documentToInsert);
     
@@ -146,6 +165,11 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
       if (existingCategory) {
           return { error: translations.categoryExistsError };
       }
+    }
+
+    // Validate icon if provided
+    if (data.icon && !isValidCategoryIcon(data.icon)) {
+      return { error: 'Invalid icon selected.' };
     }
 
     const result = await categoriesCollection.updateOne(

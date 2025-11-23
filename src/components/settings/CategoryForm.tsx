@@ -20,6 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/transactions/DeleteConfirmationDialog";
+import { IconPicker } from "@/components/categories/IconPicker";
+import { getCategoryIcon } from "@/lib/icon-utils";
 import type { Category, CategoryFormValues, Translations } from "@/types";
 import { useTranslations } from "@/contexts/LanguageContext";
 
@@ -34,6 +36,7 @@ interface CategoryFormProps {
 
 const getFormSchema = (translations: Translations) => z.object({
   name: z.string().min(1, { message: translations.categoryNameRequired }),
+  icon: z.string().optional(),
   isEnabled: z.boolean().default(true),
 });
 
@@ -53,6 +56,7 @@ export function CategoryForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      icon: undefined,
       isEnabled: true,
       ...initialData,
     },
@@ -61,6 +65,7 @@ export function CategoryForm({
   useEffect(() => {
     form.reset({
       name: "",
+      icon: undefined,
       isEnabled: true,
       ...initialData,
     });
@@ -93,6 +98,37 @@ export function CategoryForm({
               <FormMessage />
             </FormItem>
           )}
+        />
+        <FormField
+          control={form.control}
+          name="icon"
+          render={({ field }) => {
+            const IconComponent = getCategoryIcon(field.value);
+            return (
+              <FormItem>
+                <FormLabel>Icon (Optional)</FormLabel>
+                <div className="flex items-center gap-3">
+                  <FormControl>
+                    <IconPicker
+                      selectedIcon={field.value}
+                      onSelectIcon={field.onChange}
+                      label={translations.iconPicker.selectIcon}
+                    />
+                  </FormControl>
+                  {IconComponent && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Preview:</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border bg-muted/50">
+                        <IconComponent size={16} />
+                        <span>{form.watch('name') || 'Category Name'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}

@@ -59,7 +59,7 @@ async function getExpensesByCategory(
   userId: string, 
   startDate: Date, 
   endDate: Date
-): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number }> | ErrorResponse> {
+): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number; icon?: string }> | ErrorResponse> {
   try {
     validateUserId(userId);
     const { transactionsCollection } = await getDb();
@@ -103,6 +103,7 @@ async function getExpensesByCategory(
           categoryId: '$_id',
           name: { $ifNull: ["$categoryInfo.name", "Uncategorized"] },
           isSystem: { $ifNull: ["$categoryInfo.isSystem", false] },
+          icon: "$categoryInfo.icon",
           total: "$total"
         }
       }
@@ -113,6 +114,7 @@ async function getExpensesByCategory(
       categoryId: item.categoryId.toString(),
       name: item.name as string,
       isSystem: item.isSystem as boolean,
+      icon: item.icon as string | undefined,
       total: item.total as number,
     }));
 

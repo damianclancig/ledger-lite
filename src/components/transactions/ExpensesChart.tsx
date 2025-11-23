@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/chart";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { ListTree } from "lucide-react";
+import { getCategoryIcon } from "@/lib/icon-utils";
 
 interface ExpenseData {
     categoryId: string;
     name: string;
     isSystem: boolean;
     total: number;
+    icon?: string;
 }
 
 interface ExpensesChartProps {
@@ -42,6 +44,7 @@ export function ExpensesChart({ expensesByCategory }: ExpensesChartProps) {
       .map((item) => ({
         category: translateCategory({ id: item.categoryId, name: item.name, isSystem: item.isSystem, isEnabled: true, userId: '' }),
         amount: item.total,
+        icon: item.icon,
         fill: COLORS[Math.floor(Math.random() * COLORS.length)]
       }))
       .sort((a, b) => b.amount - a.amount);
@@ -87,8 +90,12 @@ export function ExpensesChart({ expensesByCategory }: ExpensesChartProps) {
                 formatter={(value, name) => {
                     const categoryName = chartConfig[name as string]?.label || name;
                     const formattedValue = formatCurrency(value as number);
+                    const categoryData = chartData.find(d => d.category === name);
+                    const IconComponent = getCategoryIcon(categoryData?.icon);
+                    
                     return (
                         <div className="flex items-center gap-2">
+                            {IconComponent && <IconComponent size={16} className="text-muted-foreground" />}
                             <span className="font-semibold">{`${categoryName}:`}</span>
                             <span className="text-muted-foreground">{formattedValue}</span>
                         </div>

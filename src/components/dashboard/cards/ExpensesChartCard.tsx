@@ -13,6 +13,7 @@ interface ExpensesChartCardProps {
         name: string;
         isSystem: boolean;
         total: number;
+        icon?: string;
     }[];
 }
 

@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslations } from '@/contexts/LanguageContext';
 import type { Category, TransactionType, DateRange } from '@/types';
+import { getCategoryIcon } from "@/lib/icon-utils";
 
 interface FiltersCardProps {
   categories: Category[];
@@ -52,10 +53,17 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   const currentLocale = locales[language] || enUS;
 
   const getCategoryDisplay = (cat: Category) => {
-    if (cat.isSystem && cat.name === "Taxes" && language !== "en") {
-      return `Taxes (${translateCategory(cat)})`;
-    }
-    return translateCategory(cat);
+    const IconComponent = getCategoryIcon(cat.icon);
+    const name = cat.isSystem && cat.name === "Taxes" && language !== "en" 
+      ? `Taxes (${translateCategory(cat)})`
+      : translateCategory(cat);
+
+    return (
+      <div className="flex items-center gap-2">
+        {IconComponent && <IconComponent size={16} className="text-muted-foreground" />}
+        <span>{name}</span>
+      </div>
+    );
   };
 
   return (
@@ -101,7 +109,12 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             onValueChange={(value: string) => onSelectedCategoryChange(value as string | "all")}
           >
             <SelectTrigger className="text-base" aria-label={translations.category}>
-              <SelectValue placeholder={translations.category} />
+              <SelectValue placeholder={translations.category}>
+                 {selectedCategory !== 'all' && categories.find(c => c.id === selectedCategory) && (
+                    getCategoryDisplay(categories.find(c => c.id === selectedCategory)!)
+                 )}
+                 {selectedCategory === 'all' && translations.allCategories}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{translations.allCategories}</SelectItem>

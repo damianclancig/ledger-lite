@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getCategoryIcon } from "@/lib/icon-utils";
 
 export default function ManageCategoriesPage() {
   const { user } = useAuth();
@@ -53,7 +54,7 @@ export default function ManageCategoriesPage() {
 
   const handleToggleEnabled = async (category: Category) => {
     if (!user || category.isSystem) return;
-    const result = await updateCategory(category.id, { name: category.name, isEnabled: !category.isEnabled }, user.uid, translations);
+    const result = await updateCategory(category.id, { name: category.name, icon: category.icon, isEnabled: !category.isEnabled }, user.uid, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -68,21 +69,25 @@ export default function ManageCategoriesPage() {
     return <Skeleton className="h-96 w-full" />;
   }
 
-  const CategoryNameCell = ({ category }: { category: Category }) => (
-    <div className="flex items-center gap-2">
-      <span className="font-medium text-base">{translateCategory(category)}</span>
-      {category.isSystem && (
-        <Tooltip>
-          <TooltipTrigger>
-            <Lock className="h-4 w-4 text-muted-foreground" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{translations.systemCategoryTooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-    </div>
-  );
+  const CategoryNameCell = ({ category }: { category: Category }) => {
+    const IconComponent = getCategoryIcon(category.icon);
+    return (
+      <div className="flex items-center gap-2">
+        {IconComponent && <IconComponent size={22} />}
+        <span className="font-medium text-base">{translateCategory(category)}</span>
+        {category.isSystem && (
+          <Tooltip>
+            <TooltipTrigger>
+              <Lock className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{translations.systemCategoryTooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+  };
 
   const renderMobileView = () => (
     <div className="space-y-4">

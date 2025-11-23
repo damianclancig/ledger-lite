@@ -22,6 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getCategoryIcon } from "@/lib/icon-utils";
 import {
   Tooltip,
   TooltipContent,
@@ -178,7 +179,13 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center">
                               <Tag className="mr-3 h-4 w-4" />
-                              <span className="text-base">{category ? translateCategory(category) : 'N/A'}</span>
+                              <div className="flex items-center gap-2">
+                                {(() => {
+                                  const IconComponent = getCategoryIcon(category?.icon);
+                                  return IconComponent ? <IconComponent size={18} /> : null;
+                                })()}
+                                <span className="text-base">{category ? translateCategory(category) : 'N/A'}</span>
+                              </div>
                             </div>
                             <div className="flex items-center">
                               <CreditCard className="mr-3 h-4 w-4" />
@@ -266,7 +273,13 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
                         </TableCell>
                         <TableCell className="text-base break-words whitespace-pre-wrap">{transaction.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-base">{category ? translateCategory(category) : 'N/A'}</Badge>
+                          <Badge variant="outline" className="text-base gap-2">
+                            {(() => {
+                              const IconComponent = getCategoryIcon(category?.icon);
+                              return IconComponent ? <IconComponent size={18} /> : null;
+                            })()}
+                            {category ? translateCategory(category) : 'N/A'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-base">{paymentMethodMap.get(transaction.paymentMethodId) || transaction.paymentMethodId}</Badge>

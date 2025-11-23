@@ -171,6 +171,24 @@
   "closingDay": "Closing Day",
   "installments": "Installments",
   "installmentAmount": "Installment amount",
+  "iconPicker": {
+    "searchPlaceholder": "Search icons...",
+    "noResults": "No icons found",
+    "selectIcon": "Select Icon",
+    "groups": {
+      "all": "All",
+      "home": "Home",
+      "transport": "Transport",
+      "food": "Food",
+      "shopping": "Shopping",
+      "health": "Health",
+      "entertainment": "Entertainment",
+      "education": "Education",
+      "finance": "Finance",
+      "other": "Other",
+      "pets": "Pets & Animals"
+    }
+  },
   "manualInstallments": "Number of Installments",
   "pendingInstallments": "Pending Installments",
   "noInstallments": "No pending or completed installments found.",
