@@ -499,6 +499,8 @@ export interface Translations {
   historicCycleData: string;
   avgDailyExpenseCycle: string;
   avgWeeklyExpenseCycle: string;
+  selectedCycle: string;
+  previousCycle: string;
   // Card Summaries
   cardSummaries: string;
   cardSummariesIntroTitle: string;

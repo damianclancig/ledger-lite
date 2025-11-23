@@ -332,6 +332,8 @@
   "historicCycleData": "Dados Históricos do Ciclo",
   "avgDailyExpenseCycle": "Gasto Diário Méd. (Ciclo)",
   "avgWeeklyExpenseCycle": "Gasto Semanal Méd. (Ciclo)",
+  "selectedCycle": "Ciclo Selecionado",
+  "previousCycle": "Ciclo Anterior",
   "cardSummaries": "Faturas do Cartão",
   "cardSummariesIntroTitle": "Como funcionam as Faturas do Cartão:",
   "cardSummariesIntroText1": "Esta seção consolida todas as despesas não pagas dos seus cartões de crédito que estão para vencer.",

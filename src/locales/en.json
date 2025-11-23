@@ -332,6 +332,8 @@
   "historicCycleData": "Historic Cycle Data",
   "avgDailyExpenseCycle": "Avg. Daily Expense (Cycle)",
   "avgWeeklyExpenseCycle": "Avg. Weekly Expense (Cycle)",
+  "selectedCycle": "Selected Cycle",
+  "previousCycle": "Previous Cycle",
   "cardSummaries": "Card Summaries",
   "cardSummariesIntroTitle": "How Card Summaries Work:",
   "cardSummariesIntroText1": "This section consolidates all unpaid expenses from your credit cards that are due for payment.",
