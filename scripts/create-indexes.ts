@@ -22,6 +22,11 @@ if (!MONGODB_URI) {
 }
 
 async function createIndexes() {
+  if (!MONGODB_URI) {
+    console.error('❌ MONGODB_URI not found in environment variables');
+    process.exit(1);
+  }
+
   const client = new MongoClient(MONGODB_URI);
 
   try {
