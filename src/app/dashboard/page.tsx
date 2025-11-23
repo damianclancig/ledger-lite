@@ -158,6 +158,7 @@ export default function DashboardPage() {
     if (cycle) {
       setSelectedCycle(cycle);
       sessionStorage.setItem('selectedCycleId', cycle.id);
+      clearFilters(); // Clear filters when changing cycles
       loadDataForCycle(cycle);
     }
   };
@@ -334,7 +335,7 @@ export default function DashboardPage() {
             setCurrentPage(1);
           }}
           isAnyFilterActive={isAnyFilterActive}
-          currentCycleStartDate={cycleDateRange?.start}
+          cycleDateRange={cycleDateRange}
         />
 
         <div>

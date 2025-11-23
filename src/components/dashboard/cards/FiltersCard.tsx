@@ -28,7 +28,7 @@ interface FiltersCardProps {
   onSelectedTypeChange: (type: TransactionType | "all" | "savings") => void;
   onClearFilters: () => void;
   isAnyFilterActive: boolean;
-  currentCycleStartDate?: Date;
+  cycleDateRange?: { start: Date; end: Date } | null;
 }
 
 export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
@@ -43,7 +43,7 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
   onSelectedTypeChange,
   onClearFilters,
   isAnyFilterActive,
-  currentCycleStartDate,
+  cycleDateRange,
 }, ref) => {
   const { translations, language, translateCategory } = useTranslations();
   const isMobile = useIsMobile();
@@ -143,11 +143,16 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
                   initialFocus
                   mode="range"
                   locale={currentLocale}
-                  month={currentCycleStartDate}
-                  defaultMonth={dateRange?.from}
+                  defaultMonth={cycleDateRange?.start || dateRange?.from}
                   selected={dateRange}
                   onSelect={onDateChange}
                   numberOfMonths={2}
+                  disabled={(date) => {
+                    if (!cycleDateRange) return false;
+                    return date < cycleDateRange.start || date > cycleDateRange.end;
+                  }}
+                  fromDate={cycleDateRange?.start}
+                  toDate={cycleDateRange?.end}
                 />
               </PopoverContent>
             </Popover>
