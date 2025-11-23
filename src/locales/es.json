@@ -170,6 +170,7 @@
   "cardClosingDayDesc": "Día del mes en que cierra el resumen de tu tarjeta.",
   "closingDay": "Día Cierre",
   "installments": "Cuotas",
+  "installmentAmount": "Importe cuota",
   "manualInstallments": "Número de Cuotas",
   "pendingInstallments": "Cuotas Pendientes",
   "noInstallments": "No se encontraron cuotas pendientes o finalizadas.",

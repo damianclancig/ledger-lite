@@ -170,6 +170,7 @@
   "cardClosingDayDesc": "Dia do mês em que a fatura do seu cartão fecha.",
   "closingDay": "Dia Fech.",
   "installments": "Parcelas",
+  "installmentAmount": "Valor da parcela",
   "manualInstallments": "Número de Parcelas",
   "pendingInstallments": "Parcelas Pendentes",
   "noInstallments": "Nenhuma parcela pendente ou finalizada encontrada.",

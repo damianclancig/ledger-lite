@@ -170,6 +170,7 @@
   "cardClosingDayDesc": "Day of the month your card statement closes.",
   "closingDay": "Closing Day",
   "installments": "Installments",
+  "installmentAmount": "Installment amount",
   "manualInstallments": "Number of Installments",
   "pendingInstallments": "Pending Installments",
   "noInstallments": "No pending or completed installments found.",

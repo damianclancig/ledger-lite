@@ -126,7 +126,7 @@ export default function InstallmentsPage() {
                         <Progress value={(item.currentInstallment / item.totalInstallments) * 100} className="h-4"/>
                         <div className="flex justify-between items-center mt-1 text-sm text-muted-foreground">
                             <span>{item.currentInstallment} / {item.totalInstallments}</span>
-                            <span className="font-semibold text-cyan-600 dark:text-cyan-400">{translations.installmentAmount || 'Importe cuota'}: {formatCurrency(item.totalAmount / item.totalInstallments)}</span>
+                            <span className="font-semibold text-muted-foreground">{translations.installmentAmount}: {formatCurrency(item.totalAmount / item.totalInstallments)}</span>
                             <span>{translations.total}: {formatCurrency(item.totalAmount)}</span>
                         </div>
                     </div>
@@ -163,7 +163,7 @@ export default function InstallmentsPage() {
                         <span>{item.currentInstallment} / {item.totalInstallments} {translations.installments.toLowerCase()}</span>
                         <span>{translations.total}: {formatCurrency(item.totalAmount)}</span>
                     </div>
-                    <div className="text-center text-xs font-semibold text-cyan-600 dark:text-cyan-400">
+                    <div className="text-center text-xs font-semibold text-muted-foreground">
                         {translations.installmentAmount || 'Importe cuota'}: {formatCurrency(item.totalAmount / item.totalInstallments)}
                     </div>
                 </div>
