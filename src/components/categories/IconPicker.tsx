@@ -73,7 +73,7 @@ export function IconPicker({ selectedIcon, onSelectIcon, label }: IconPickerProp
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent className="w-[300px] sm:w-[400px] p-0" align="start">
         <div className="p-3 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -98,7 +98,7 @@ export function IconPicker({ selectedIcon, onSelectIcon, label }: IconPickerProp
 
           <ScrollArea className="h-[300px]">
             <TabsContent value="all" className="m-0 p-3">
-              <div className="grid grid-cols-8 gap-2">
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
                 {Array.from(new Set(Object.values(filteredGroups).flatMap(group => group.icons))).map(iconName => {
                     const IconComponent = getLucideIcon(iconName);
                     if (!IconComponent) return null;
@@ -126,7 +126,7 @@ export function IconPicker({ selectedIcon, onSelectIcon, label }: IconPickerProp
 
             {Object.entries(filteredGroups).map(([key, group]) => (
               <TabsContent key={key} value={key} className="m-0 p-3">
-                <div className="grid grid-cols-8 gap-2">
+                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
                   {group.icons.map(iconName => {
                     const IconComponent = getLucideIcon(iconName);
                     if (!IconComponent) return null;
