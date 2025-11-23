@@ -170,6 +170,25 @@
   "cardClosingDayDesc": "Dia do mês em que a fatura do seu cartão fecha.",
   "closingDay": "Dia Fech.",
   "installments": "Parcelas",
+  "installmentAmount": "Valor da Parcela",
+  "iconPicker": {
+    "searchPlaceholder": "Pesquisar ícones...",
+    "noResults": "Nenhum ícone encontrado",
+    "selectIcon": "Selecionar Ícone",
+    "groups": {
+      "all": "Todos",
+      "home": "Casa",
+      "transport": "Transporte",
+      "food": "Comida",
+      "shopping": "Compras",
+      "health": "Saúde",
+      "entertainment": "Entretenimento",
+      "education": "Educação",
+      "finance": "Finanças",
+      "other": "Outros",
+      "pets": "Pets e Animais"
+    }
+  },
   "manualInstallments": "Número de Parcelas",
   "pendingInstallments": "Parcelas Pendentes",
   "noInstallments": "Nenhuma parcela pendente ou finalizada encontrada.",

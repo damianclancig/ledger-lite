@@ -39,6 +39,7 @@ import type { Transaction, Category, PaymentMethod, Translations } from "@/types
 import { useTranslations } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { getCategoryIcon } from "@/lib/icon-utils";
 
 
 // Form schema type for validation (inferred from Zod schema)
@@ -223,7 +224,13 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
 
 
   const getCategoryDisplay = (cat: Category) => {
-    return translateCategory(cat);
+    const IconComponent = getCategoryIcon(cat.icon);
+    return (
+      <div className="flex items-center gap-2">
+        {IconComponent && <IconComponent size={16} className="text-muted-foreground" />}
+        <span>{translateCategory(cat)}</span>
+      </div>
+    );
   };
 
   return (
@@ -379,7 +386,12 @@ export function TransactionForm({ onSubmit, onSaveAndAddAnother, initialData, on
                 <Select onValueChange={field.onChange} value={field.value} disabled={isTaxPayment}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={translations.category} />
+                      <SelectValue placeholder={translations.category}>
+                        {field.value && categories.find(c => c.id === field.value) && (
+                          getCategoryDisplay(categories.find(c => c.id === field.value)!)
+                        )}
+                        {!field.value && translations.category}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

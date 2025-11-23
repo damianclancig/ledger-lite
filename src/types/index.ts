@@ -41,6 +41,7 @@ export interface Category {
   id: string;
   userId: string;
   name: string;
+  icon?: string; // Lucide icon name (e.g., "Home", "Car")
   isEnabled: boolean;
   isSystem: boolean;
 }
@@ -144,7 +145,25 @@ export type Month = (typeof MONTHS)[number];
 
 
 export interface Translations {
-  [key: string]: string; // Add index signature
+  [key: string]: string | any; // Allow nested objects for iconPicker
+  iconPicker: {
+    searchPlaceholder: string;
+    noResults: string;
+    selectIcon: string;
+    groups: {
+      all: string;
+      home: string;
+      transport: string;
+      food: string;
+      shopping: string;
+      health: string;
+      entertainment: string;
+      education: string;
+      finance: string;
+      other: string;
+      pets: string;
+    }
+  };
   appName: string;
   addTransaction: string;
   editTransaction: string;

@@ -170,6 +170,25 @@
   "cardClosingDayDesc": "Día del mes en que cierra el resumen de tu tarjeta.",
   "closingDay": "Día Cierre",
   "installments": "Cuotas",
+  "installmentAmount": "Importe cuota",
+  "iconPicker": {
+    "searchPlaceholder": "Buscar íconos...",
+    "noResults": "No se encontraron íconos",
+    "selectIcon": "Seleccionar Ícono",
+    "groups": {
+      "all": "Todos",
+      "home": "Hogar",
+      "transport": "Transporte",
+      "food": "Comida",
+      "shopping": "Compras",
+      "health": "Salud",
+      "entertainment": "Entretenimiento",
+      "education": "Educación",
+      "finance": "Finanzas",
+      "other": "Otros",
+      "pets": "Mascotas y Animales"
+    }
+  },
   "manualInstallments": "Número de Cuotas",
   "pendingInstallments": "Cuotas Pendientes",
   "noInstallments": "No se encontraron cuotas pendientes o finalizadas.",
