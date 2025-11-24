@@ -1,6 +1,7 @@
+
 import { useMemo } from 'react';
 import { parseISO, differenceInDays, startOfDay, format as formatDate, startOfToday, subDays } from 'date-fns';
-import type { BudgetInsights } from '@/types';
+import type { BudgetInsights, Translations } from '@/types';
 
 interface DailyExpenseData {
     name: string;
@@ -9,10 +10,11 @@ interface DailyExpenseData {
 }
 
 export const useDailyExpensesChartData = (
-    budgetInsights: BudgetInsights | null
+    budgetInsights: BudgetInsights | null,
+    translations: Translations
 ): DailyExpenseData[] => {
     return useMemo(() => {
-        if (!budgetInsights?.dailyExpenses) return [];
+        if (!budgetInsights?.dailyExpenses || !translations) return [];
 
         const now = new Date();
         const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
@@ -33,7 +35,8 @@ export const useDailyExpensesChartData = (
         });
 
         const getDayName = (date: Date): string => {
-            return date.toLocaleDateString(userLocale, { weekday: 'long' });
+            const dayOfWeek = formatDate(date, 'EEEE'); // "Monday", "Tuesday", etc.
+            return translations[dayOfWeek as keyof Translations] || dayOfWeek;
         };
 
         return Array.from(dailyTotals.entries())
@@ -42,8 +45,8 @@ export const useDailyExpensesChartData = (
                 let dayLabel: string;
                 const diff = differenceInDays(startOfDay(now), startOfDay(itemDate));
 
-                if (diff === 0) dayLabel = 'today';
-                else if (diff === 1) dayLabel = 'yesterday';
+                if (diff === 0) dayLabel = translations.today;
+                else if (diff === 1) dayLabel = translations.yesterday;
                 else dayLabel = getDayName(itemDate);
 
                 return {
@@ -53,5 +56,5 @@ export const useDailyExpensesChartData = (
                 };
             })
             .reverse();
-    }, [budgetInsights?.dailyExpenses]);
+    }, [budgetInsights?.dailyExpenses, translations]);
 };
