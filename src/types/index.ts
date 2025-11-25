@@ -574,3 +574,77 @@ export interface BudgetInsights {
   previousCycleIncome: number;
   previousCycleExpenses: number;
 }
+
+// Telegram Bot types
+export interface TelegramUser {
+  id: string;
+  telegramId: string;
+  firebaseUid: string;
+  username?: string;
+  firstName?: string;
+  linkedAt: string;
+  isActive: boolean;
+  preferences?: {
+    defaultCategory?: string;
+    defaultPaymentMethod?: string;
+    language?: string;
+  };
+}
+
+export interface TelegramMessage {
+  messageId: number;
+  chatId: number;
+  text: string;
+  userId: number;
+  username?: string;
+  firstName?: string;
+}
+
+export interface ParsedTransaction {
+  type: TransactionType;
+  amount: number;
+  category?: string;
+  description: string;
+  date?: Date;
+  paymentMethod?: string;
+  confidence: number; // 0-1, how confident the AI is
+}
+
+export interface TelegramUpdate {
+  update_id: number;
+  message?: {
+    message_id: number;
+    from: {
+      id: number;
+      is_bot: boolean;
+      first_name: string;
+      username?: string;
+      language_code?: string;
+    };
+    chat: {
+      id: number;
+      first_name: string;
+      username?: string;
+      type: string;
+    };
+    date: number;
+    text?: string;
+  };
+  callback_query?: {
+    id: string;
+    from: {
+      id: number;
+      is_bot: boolean;
+      first_name: string;
+      username?: string;
+    };
+    message?: {
+      message_id: number;
+      chat: {
+        id: number;
+      };
+    };
+    data?: string;
+  };
+}
+
