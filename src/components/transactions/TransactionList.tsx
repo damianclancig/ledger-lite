@@ -178,7 +178,7 @@ export const TransactionList = React.forwardRef<HTMLDivElement, TransactionListP
 
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center">
-                              <Tag className="mr-3 h-4 w-4" />
+
                               <div className="flex items-center gap-2">
                                 {(() => {
                                   const IconComponent = getCategoryIcon(category?.icon);
