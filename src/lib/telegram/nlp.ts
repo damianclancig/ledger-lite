@@ -1,11 +1,16 @@
-import { ai } from '@genkit-ai/core';
-import { gemini15Flash } from '@genkit-ai/googleai';
+import { genkit } from 'genkit';
+import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 import type { ParsedTransaction, TransactionType } from '@/types';
 
 /**
  * Natural Language Processing for Telegram messages
  * Uses Gemini AI to parse transaction information from natural language
  */
+
+// Initialize Genkit with Google AI
+const ai = genkit({
+  plugins: [googleAI()],
+});
 
 const transactionParserPrompt = `Eres un asistente que ayuda a extraer información de transacciones financieras de mensajes en lenguaje natural en español.
 
