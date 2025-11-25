@@ -4,7 +4,7 @@ import type { TransactionType, DateRange } from '@/types';
 export interface DashboardFilters {
     searchTerm: string;
     selectedType: TransactionType | "all" | "savings";
-    selectedCategory: string | "all";
+    selectedCategory: string[] | "all";
     dateRange: DateRange | undefined;
 }
 
@@ -26,7 +26,7 @@ export const useDashboardFilters = () => {
         setFilters(prev => ({ ...prev, selectedType }));
     }, []);
 
-    const updateSelectedCategory = useCallback((selectedCategory: string | "all") => {
+    const updateSelectedCategory = useCallback((selectedCategory: string[] | "all") => {
         setFilters(prev => ({ ...prev, selectedCategory }));
     }, []);
 
@@ -41,7 +41,7 @@ export const useDashboardFilters = () => {
     const isAnyFilterActive =
         filters.searchTerm !== "" ||
         filters.selectedType !== "all" ||
-        filters.selectedCategory !== "all" ||
+        (Array.isArray(filters.selectedCategory) && filters.selectedCategory.length > 0) ||
         filters.dateRange?.from !== undefined;
 
     return {

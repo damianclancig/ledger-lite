@@ -25,7 +25,7 @@ export function FloatingActionButton({ onClick, label, icon: Icon }: FloatingAct
     <Button
       onClick={onClick}
       className={cn(
-        "group fixed bottom-6 right-6 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-transform duration-300 ease-in-out hover:w-auto hover:pr-6 hover:bg-primary/90 gap-0 hover:gap-2",
+        "group fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full bg-primary p-0 shadow-lg transition-transform duration-300 ease-in-out hover:w-auto hover:pr-6 hover:bg-primary/90 gap-0 hover:gap-2",
         // The scale is now controlled by a data attribute on the body
         "data-[scroll-direction='down']:scale-0 data-[scroll-direction='up']:scale-100"
       )}

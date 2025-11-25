@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useMemo, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransactionTypeToggle } from '@/components/transactions/TransactionTypeToggle';
 import { Filter, CalendarIcon, Search, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -16,16 +15,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslations } from '@/contexts/LanguageContext';
 import type { Category, TransactionType, DateRange } from '@/types';
 import { getCategoryIcon } from "@/lib/icon-utils";
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
 interface FiltersCardProps {
   categories: Category[];
   dateRange: DateRange | undefined;
   searchTerm: string;
-  selectedCategory: string | 'all';
+  selectedCategory: string[] | 'all';
   selectedType: TransactionType | "all" | "savings";
   onDateChange: (range: DateRange | undefined) => void;
   onSearchTermChange: (term: string) => void;
-  onSelectedCategoryChange: (category: string | 'all') => void;
+  onSelectedCategoryChange: (category: string[] | 'all') => void;
   onSelectedTypeChange: (type: TransactionType | "all" | "savings") => void;
   onClearFilters: () => void;
   isAnyFilterActive: boolean;
@@ -66,6 +67,32 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
     );
   };
 
+  const handleCategoryToggle = (categoryId: string) => {
+    if (selectedCategory === 'all') {
+      onSelectedCategoryChange([categoryId]);
+    } else {
+      const currentSelection = selectedCategory as string[];
+      if (currentSelection.includes(categoryId)) {
+        const newSelection = currentSelection.filter(id => id !== categoryId);
+        onSelectedCategoryChange(newSelection.length === 0 ? 'all' : newSelection);
+      } else {
+        onSelectedCategoryChange([...currentSelection, categoryId]);
+      }
+    }
+  };
+
+  const handleSelectAll = () => {
+    onSelectedCategoryChange('all');
+  };
+
+  const getCategoryButtonText = () => {
+    if (selectedCategory === 'all') {
+      return translations.allCategories;
+    }
+    const count = selectedCategory.length;
+    return `${count} ${translations.categoriesSelected}`;
+  };
+
   return (
     <div ref={ref} className="scroll-mt-24" data-testid="filters-card">
       <Card className="shadow-xl border-2 border-primary">
@@ -104,27 +131,51 @@ export const FiltersCard = forwardRef<HTMLDivElement, FiltersCardProps>(({
             value={selectedType}
             onChange={onSelectedTypeChange}
           />
-          <Select
-            value={selectedCategory}
-            onValueChange={(value: string) => onSelectedCategoryChange(value as string | "all")}
-          >
-            <SelectTrigger className="text-base" aria-label={translations.category}>
-              <SelectValue placeholder={translations.category}>
-                 {selectedCategory !== 'all' && categories.find(c => c.id === selectedCategory) && (
-                    getCategoryDisplay(categories.find(c => c.id === selectedCategory)!)
-                 )}
-                 {selectedCategory === 'all' && translations.allCategories}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{translations.allCategories}</SelectItem>
-              {categories.filter(c => c.isEnabled).map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {getCategoryDisplay(cat)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between text-base h-10"
+                aria-label={translations.category}
+              >
+                <span className="truncate">{getCategoryButtonText()}</span>
+                <Filter className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+              <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="all-categories"
+                    checked={selectedCategory === 'all'}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <label
+                    htmlFor="all-categories"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {translations.allCategories}
+                  </label>
+                </div>
+                <Separator />
+                {categories.filter(c => c.isEnabled).map((cat) => (
+                  <div key={cat.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`category-${cat.id}`}
+                      checked={Array.isArray(selectedCategory) && selectedCategory.includes(cat.id)}
+                      onCheckedChange={() => handleCategoryToggle(cat.id)}
+                    />
+                    <label
+                      htmlFor={`category-${cat.id}`}
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                    >
+                      {getCategoryDisplay(cat)}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <div className="relative">
             <Popover>
               <PopoverTrigger asChild>

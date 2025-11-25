@@ -223,7 +223,7 @@ export default function DashboardPage() {
     };
   }, [selectedCycle]);
 
-  const dailyExpensesChartData = useDailyExpensesChartData(budgetInsights);
+  const dailyExpensesChartData = useDailyExpensesChartData(budgetInsights, translations);
 
 
 

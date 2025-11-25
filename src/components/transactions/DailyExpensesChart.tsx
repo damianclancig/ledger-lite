@@ -20,10 +20,9 @@ interface DailyExpensesChartProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const translatedLabel = payload[0].payload.name;
     return (
       <div className="rounded-lg border bg-background p-2.5 shadow-xl">
-        <p className="mb-2 font-medium capitalize">{translatedLabel}</p>
+        <p className="mb-2 font-medium capitalize">{label}</p>
         <div className="flex items-center justify-between gap-4">
             <span className="font-mono font-medium">{formatCurrency(payload[0].value)}</span>
         </div>
@@ -49,17 +48,6 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
 
   const noData = chartData.every(d => d.amount === 0);
 
-  const getTranslatedDay = (dayKey: string) => {
-    const key = dayKey as keyof typeof translations;
-    if (translations[key]) {
-      return translations[key];
-    }
-    return dayKey;
-  }
-
-  const processedChartData = chartData.map(d => ({...d, name: getTranslatedDay(d.name)}));
-
-
   if (noData) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-muted-foreground text-center">
@@ -74,7 +62,7 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
       <ChartContainer config={chartConfig} className="w-full h-full">
         <BarChart 
             accessibilityLayer
-            data={processedChartData}
+            data={chartData}
             margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
             barSize={60}
         >
@@ -95,7 +83,7 @@ export function DailyExpensesChart({ chartData }: DailyExpensesChartProps) {
             content={<CustomTooltip />}
           />
           <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-            {processedChartData.map((entry) => (
+            {chartData.map((entry) => (
                 <Cell 
                     key={`cell-${entry.name}`} 
                     fill={entry.isToday ? chartConfig.today.color : chartConfig.amount.color}
