@@ -161,10 +161,10 @@ export default function TelegramLinkingCard() {
         <div className="pt-4 border-t">
           <h4 className="font-medium mb-2">Ejemplos de uso:</h4>
           <div className="space-y-1 text-sm text-muted-foreground">
-            <p>• "Gasté 1500 en supermercado"</p>
-            <p>• "Compré ropa por 3000"</p>
-            <p>• "Ingreso de 50000 por salario"</p>
-            <p>• "500 de comida en mcdonalds"</p>
+            <p>• &quot;Gasté 1500 en supermercado&quot;</p>
+            <p>• &quot;Compré ropa por 3000&quot;</p>
+            <p>• &quot;Ingreso de 50000 por salario&quot;</p>
+            <p>• &quot;500 de comida en mcdonalds&quot;</p>
           </div>
         </div>
       </CardContent>
