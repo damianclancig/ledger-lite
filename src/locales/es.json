@@ -33,6 +33,7 @@
   "startDate": "Fecha de Inicio",
   "endDate": "Fecha de Fin",
   "allCategories": "Todas las Categorías",
+  "categoriesSelected": "categorías seleccionadas",
   "allCycles": "Todos los Ciclos",
   "allMonths": "Todos los Meses",
   "currentMonth": "Mes Actual",

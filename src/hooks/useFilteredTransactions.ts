@@ -4,7 +4,7 @@ import type { Transaction, TransactionType, DateRange } from '@/types';
 interface FilterOptions {
     searchTerm: string;
     selectedType: TransactionType | "all" | "savings";
-    selectedCategory: string | "all";
+    selectedCategory: string[] | "all";
     dateRange: DateRange | undefined;
 }
 
@@ -26,7 +26,9 @@ export const useFilteredTransactions = (
                 matchesType = t.type === filters.selectedType;
             }
 
-            const matchesCategory = filters.selectedCategory === "all" || t.categoryId === filters.selectedCategory;
+            const matchesCategory = 
+                filters.selectedCategory === "all" || 
+                (Array.isArray(filters.selectedCategory) && filters.selectedCategory.includes(t.categoryId));
 
             let matchesDateRange = true;
             if (filters.dateRange?.from) {
