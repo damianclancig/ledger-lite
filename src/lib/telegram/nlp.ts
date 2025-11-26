@@ -1,6 +1,7 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import type { ParsedTransaction, TransactionType } from '@/types';
+import { parseDateExpression, formatDateForDisplay } from './dateParser';
 
 /**
  * Natural Language Processing for Telegram messages
@@ -26,6 +27,7 @@ EXTRAE:
 - description: descripción breve y clara
 - category: categoría sugerida (opcional)
 - paymentMethod: método de pago (opcional)
+- dateExpression: expresión de fecha si se menciona (opcional, ejemplos: "hoy", "ayer", "el lunes", "hace 3 días")
 - confidence: 0 a 1 (qué tan seguro estás)
 
 CATEGORÍAS DISPONIBLES:
@@ -47,7 +49,7 @@ MÉTODOS DE PAGO:
 
 EJEMPLOS DE MENSAJES QUE DEBES ENTENDER:
 1. "gasté 2800 en yerba" → expense, 2800, "yerba", Groceries
-2. "ayer gasté 2800 en yerba en dietética con tarjeta lemon" → expense, 2800, "yerba en dietética", Groceries, Credit Card
+2. "ayer gasté 2800 en yerba en dietética con tarjeta lemon" → expense, 2800, "yerba en dietética", Groceries, Credit Card, dateExpression: "ayer"
 3. "compré ropa por 5000" → expense, 5000, "ropa", Clothing
 4. "500 de comida" → expense, 500, "comida", Food
 5. "ingreso de 50000 por salario" → income, 50000, "salario", Salary
@@ -56,6 +58,10 @@ EJEMPLOS DE MENSAJES QUE DEBES ENTENDER:
 8. "gaste 1500 supermercado" → expense, 1500, "supermercado", Groceries
 9. "800 nafta con débito" → expense, 800, "nafta", Other, Debit Card
 10. "compre yerba 2800" → expense, 2800, "yerba", Groceries
+11. "el lunes compré ropa por 5000" → expense, 5000, "ropa", Clothing, dateExpression: "el lunes"
+12. "hace 3 días pagué 3000 de luz" → expense, 3000, "luz", Other, dateExpression: "hace 3 días"
+13. "el día 20 gasté 1500 en supermercado" → expense, 1500, "supermercado", Groceries, dateExpression: "el día 20"
+14. "anteayer compré 800 de nafta" → expense, 800, "nafta", Other, dateExpression: "anteayer"
 
 REGLAS IMPORTANTES:
 - SÉ MUY FLEXIBLE: acepta cualquier orden de palabras
@@ -70,6 +76,7 @@ REGLAS IMPORTANTES:
 - Si dicen "débito", es Debit Card
 - Si dicen "transferencia", es Bank Transfer
 - Si dicen "mercadopago", "ualá", "brubank", es VirtualWallet
+- Si mencionan "hoy", "ayer", "anteayer", día de la semana, o "hace X días", extrae como dateExpression
 - Confidence alto (0.8-1.0) si está claro, medio (0.5-0.7) si falta info, bajo (<0.5) si muy ambiguo
 - SIEMPRE responde con JSON válido, nunca con texto explicativo
 
@@ -80,6 +87,7 @@ FORMATO DE RESPUESTA (SOLO JSON, SIN MARKDOWN):
   "description": "yerba en dietética",
   "category": "Groceries",
   "paymentMethod": "Credit Card",
+  "dateExpression": "ayer",
   "confidence": 0.9
 }`;
 
@@ -172,6 +180,21 @@ export async function parseTransactionMessage(
       return null;
     }
 
+    // Parse date expression if provided
+    let transactionDate = new Date(); // Default to now
+    
+    if (parsed.dateExpression) {
+      console.log('📅 Parsing date expression:', parsed.dateExpression);
+      const parsedDate = parseDateExpression(parsed.dateExpression);
+      
+      if (parsedDate) {
+        transactionDate = parsedDate;
+        console.log(`✅ Parsed date from "${parsed.dateExpression}":`, transactionDate.toLocaleDateString('es-AR'));
+      } else {
+        console.warn(`⚠️ Could not parse date expression: "${parsed.dateExpression}", using today`);
+      }
+    }
+
     const parsedTransaction = {
       type: parsed.type,
       amount,
@@ -179,7 +202,7 @@ export async function parseTransactionMessage(
       category: parsed.category,
       paymentMethod: parsed.paymentMethod,
       confidence: Number(parsed.confidence) || 0.5,
-      date: new Date(), // Default to now
+      date: transactionDate,
     };
 
     console.log('✅ Successfully parsed transaction:', parsedTransaction);
@@ -200,7 +223,8 @@ export async function parseTransactionMessage(
  * Format a parsed transaction for user confirmation
  */
 export function formatTransactionForConfirmation(
-  transaction: ParsedTransaction
+  transaction: ParsedTransaction,
+  showEditHint: boolean = true
 ): string {
   const typeEmoji = transaction.type === 'income' ? '💰' : '💸';
   const typeText = transaction.type === 'income' ? 'Ingreso' : 'Gasto';
@@ -210,12 +234,18 @@ export function formatTransactionForConfirmation(
   message += `📝 Descripción: ${transaction.description}\n`;
   
   if (transaction.category) {
-    message += `🏷️ Categoría: ${transaction.category}\n`;
+    const defaultIndicator = transaction.wasDefaultCategory ? ' ⚙️ _(por defecto)_' : '';
+    message += `🏷️ Categoría: ${transaction.category}${defaultIndicator}\n`;
   }
   
   if (transaction.paymentMethod) {
-    message += `💳 Método de pago: ${transaction.paymentMethod}\n`;
+    const defaultIndicator = transaction.wasDefaultPaymentMethod ? ' ⚙️ _(por defecto)_' : '';
+    message += `💳 Método de pago: ${transaction.paymentMethod}${defaultIndicator}\n`;
   }
+  
+  // Add date display
+  const dateText = formatDateForDisplay(transaction.date);
+  message += `📅 Fecha: ${dateText}\n`;
   
   const confidencePercent = Math.round(transaction.confidence * 100);
   if (transaction.confidence < 0.7) {
@@ -223,6 +253,12 @@ export function formatTransactionForConfirmation(
   }
   
   message += `\n¿Confirmas esta transacción?`;
+  
+  if (showEditHint && (transaction.wasDefaultCategory || transaction.wasDefaultPaymentMethod)) {
+    message += `\n\n💡 _Puedes editar escribiendo:_\n`;
+    message += `_• "cambia la categoría por [nombre]"_\n`;
+    message += `_• "usé [método de pago]"_`;
+  }
   
   return message;
 }

@@ -7,6 +7,8 @@ import {
   unlinkTelegramAccount 
 } from '@/lib/telegram/userMapping';
 import { parseTransactionMessage } from '@/lib/telegram/nlp';
+import { parseEditCommand, isLikelyEditCommand } from '@/lib/telegram/editParser';
+import { parseDateExpression } from '@/lib/telegram/dateParser';
 import {
   handleStartCommand,
   handleHelpCommand,
@@ -25,8 +27,18 @@ import { getPaymentMethods } from '@/app/actions/paymentMethodActions';
  * Receives and processes messages from Telegram
  */
 
+// Conversation state for pending transactions
+interface PendingTransactionState {
+  transaction: ParsedTransaction;
+  chatId: number;
+  userId: string;
+  messageId?: number;
+  createdAt: number;
+  lastEditedAt: number;
+}
+
 // Store pending transactions temporarily (in production, use Redis or database)
-const pendingTransactions = new Map<string, ParsedTransaction>();
+const pendingTransactions = new Map<string, PendingTransactionState>();
 
 /**
  * Find best matching category by name or keywords
@@ -217,7 +229,26 @@ async function handleMessage(message: TelegramUpdate['message']) {
     return;
   }
 
-  // Parse natural language message
+  // Check if user has a pending transaction
+  const pendingKey = `${chatId}_pending`;
+  const pendingState = pendingTransactions.get(pendingKey);
+  
+  if (pendingState) {
+    // User has a pending transaction, check if this is an edit command
+    if (isLikelyEditCommand(text)) {
+      await handleEditCommand(chatId, text, telegramUser.firebaseUid, pendingState);
+      return;
+    } else {
+      // Not an edit command, inform user
+      await sendMessage({
+        chatId,
+        text: '❓ Tienes una transacción pendiente. Puedes:\n\n• Editarla: "cambia la categoría por [nombre]" o "usé [método]"\n• Confirmarla: Presiona el botón ✅\n• Cancelarla: Presiona el botón ❌ o escribe /cancelar',
+      });
+      return;
+    }
+  }
+
+  // No pending transaction, parse as new transaction
   await handleNaturalLanguageMessage(chatId, text, telegramUser.firebaseUid);
 }
 
@@ -381,27 +412,187 @@ async function handleNaturalLanguageMessage(
   }
 
   // If no category was detected, use fallback
+  let wasDefaultCategory = false;
   if (!parsed.category) {
-    const otherCategory = enabledCategories.find(c => c.name === 'Other');
+    const otherCategory = enabledCategories.find(c => c.name === 'Other' || c.name === 'Otros' || c.name === 'Varios');
     if (otherCategory) {
       parsed.category = otherCategory.name;
+      wasDefaultCategory = true;
+    } else if (enabledCategories.length > 0) {
+      parsed.category = enabledCategories[0].name;
+      wasDefaultCategory = true;
     }
   }
 
   // If no payment method, use fallback
+  let wasDefaultPaymentMethod = false;
   if (!parsed.paymentMethod) {
-    const cashMethod = enabledMethods.find(m => m.type === 'Cash');
+    const cashMethod = enabledMethods.find(m => 
+      m.type === 'Cash' || 
+      m.name.toLowerCase().includes('efectivo') || 
+      m.name.toLowerCase().includes('cash')
+    );
     if (cashMethod) {
       parsed.paymentMethod = cashMethod.name;
+      wasDefaultPaymentMethod = true;
+    } else if (enabledMethods.length > 0) {
+      parsed.paymentMethod = enabledMethods[0].name;
+      wasDefaultPaymentMethod = true;
     }
   }
 
-  // Store the pending transaction
-  const pendingId = `${chatId}_${Date.now()}`;
-  pendingTransactions.set(pendingId, parsed);
+  // Add default flags to transaction
+  parsed.wasDefaultCategory = wasDefaultCategory;
+  parsed.wasDefaultPaymentMethod = wasDefaultPaymentMethod;
+
+  // Store the pending transaction with state
+  const pendingKey = `${chatId}_pending`;
+  const now = Date.now();
+  pendingTransactions.set(pendingKey, {
+    transaction: parsed,
+    chatId,
+    userId,
+    createdAt: now,
+    lastEditedAt: now,
+  });
 
   // Show confirmation
-  await showTransactionConfirmation(chatId, parsed, `confirm_${pendingId}`);
+  await showTransactionConfirmation(chatId, parsed, `confirm_${pendingKey}`);
+}
+
+/**
+ * Handle edit commands for pending transactions
+ */
+async function handleEditCommand(
+  chatId: number,
+  text: string,
+  userId: string,
+  pendingState: PendingTransactionState
+) {
+  // Parse the edit command
+  const editCommand = parseEditCommand(text);
+  
+  if (!editCommand || editCommand.type === 'none') {
+    // Not a valid edit command
+    await sendMessage({
+      chatId,
+      text: '❓ No entendí el cambio. Intenta:\n\n• "cambia la categoría por [nombre]"\n• "usé [método de pago]"\n• "eran [monto]"\n• "cambia la descripción por [texto]"\n• "cambia la fecha a [expresión]"',
+    });
+    return;
+  }
+
+  // Get user's categories and payment methods for matching
+  const [categories, methods] = await Promise.all([
+    getCategories(userId),
+    getPaymentMethods(userId),
+  ]);
+
+  // Apply the edit
+  const updated = { ...pendingState.transaction };
+  let editApplied = false;
+  let editMessage = '';
+
+  switch (editCommand.type) {
+    case 'category':
+      const category = findMatchingCategory(editCommand.value, categories);
+      if (category) {
+        updated.category = category.name;
+        updated.wasDefaultCategory = false;
+        editApplied = true;
+        editMessage = `Categoría cambiada a: ${category.name}`;
+      } else {
+        await sendMessage({
+          chatId,
+          text: `❌ No encontré la categoría "${editCommand.value}". Usa /categorias para ver las disponibles.`,
+        });
+        return;
+      }
+      break;
+
+    case 'paymentMethod':
+      const method = findMatchingPaymentMethod(editCommand.value, methods);
+      if (method) {
+        updated.paymentMethod = method.name;
+        updated.wasDefaultPaymentMethod = false;
+        editApplied = true;
+        editMessage = `Método de pago cambiado a: ${method.name}`;
+      } else {
+        await sendMessage({
+          chatId,
+          text: `❌ No encontré el método de pago "${editCommand.value}". Usa /metodos para ver los disponibles.`,
+        });
+        return;
+      }
+      break;
+
+    case 'amount':
+      const newAmount = parseFloat(editCommand.value);
+      if (!isNaN(newAmount) && newAmount > 0) {
+        updated.amount = newAmount;
+        editApplied = true;
+        editMessage = `Monto cambiado a: $${newAmount.toLocaleString('es-AR')}`;
+      } else {
+        await sendMessage({
+          chatId,
+          text: '❌ Monto inválido. Debe ser un número positivo.',
+        });
+        return;
+      }
+      break;
+
+    case 'description':
+      if (editCommand.value.trim()) {
+        updated.description = editCommand.value.trim();
+        editApplied = true;
+        editMessage = `Descripción cambiada a: ${updated.description}`;
+      } else {
+        await sendMessage({
+          chatId,
+          text: '❌ La descripción no puede estar vacía.',
+        });
+        return;
+      }
+      break;
+
+    case 'date':
+      const parsedDate = parseDateExpression(editCommand.value);
+      if (parsedDate) {
+        updated.date = parsedDate;
+        editApplied = true;
+        const dateText = parsedDate.toLocaleDateString('es-AR');
+        editMessage = `Fecha cambiada a: ${dateText}`;
+      } else {
+        await sendMessage({
+          chatId,
+          text: `❌ No pude entender la fecha "${editCommand.value}". Intenta con "hoy", "ayer", "el lunes", etc.`,
+        });
+        return;
+      }
+      break;
+  }
+
+  if (editApplied) {
+    // Update pending state
+    pendingState.transaction = updated;
+    pendingState.lastEditedAt = Date.now();
+    const pendingKey = `${chatId}_pending`;
+    pendingTransactions.set(pendingKey, pendingState);
+
+    // Show updated confirmation
+    await sendMessage({
+      chatId,
+      text: `✅ ${editMessage}\n\n` + await import('@/lib/telegram/nlp').then(m => m.formatTransactionForConfirmation(updated)),
+      parseMode: 'Markdown',
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            { text: '✅ Confirmar', callback_data: `confirm_${pendingKey}` },
+            { text: '❌ Cancelar', callback_data: 'cancel' }
+          ]
+        ]
+      }
+    });
+  }
 }
 
 async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query']) {
@@ -417,6 +608,10 @@ async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query
   await answerCallbackQuery(callbackQuery.id);
 
   if (data === 'cancel') {
+    // Clear pending transaction
+    const pendingKey = `${chatId}_pending`;
+    pendingTransactions.delete(pendingKey);
+    
     await sendMessage({
       chatId,
       text: '❌ Transacción cancelada.',
@@ -425,16 +620,18 @@ async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query
   }
 
   if (data.startsWith('confirm_')) {
-    const pendingId = data.replace('confirm_', '');
-    const transaction = pendingTransactions.get(pendingId);
+    const pendingKey = data.replace('confirm_', '');
+    const pendingState = pendingTransactions.get(pendingKey);
 
-    if (!transaction) {
+    if (!pendingState) {
       await sendMessage({
         chatId,
         text: '❌ Transacción expirada. Por favor intenta nuevamente.',
       });
       return;
     }
+
+    const transaction = pendingState.transaction;
 
     // Get user
     const telegramUser = await getTelegramUser(telegramId);
@@ -497,6 +694,6 @@ async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query
     }
 
     // Clean up
-    pendingTransactions.delete(pendingId);
+    pendingTransactions.delete(pendingKey);
   }
 }

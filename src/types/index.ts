@@ -605,9 +605,11 @@ export interface ParsedTransaction {
   amount: number;
   category?: string;
   description: string;
-  date?: Date;
+  date: Date; // Always set, either from parsed expression or default to now
   paymentMethod?: string;
   confidence: number; // 0-1, how confident the AI is
+  wasDefaultCategory?: boolean; // True if category was set to default value
+  wasDefaultPaymentMethod?: boolean; // True if payment method was set to default value
 }
 
 export interface TelegramUpdate {
