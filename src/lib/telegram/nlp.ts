@@ -12,42 +12,71 @@ const ai = genkit({
   plugins: [googleAI()],
 });
 
-const transactionParserPrompt = `Eres un asistente que ayuda a extraer información de transacciones financieras de mensajes en lenguaje natural en español.
+const transactionParserPrompt = `Eres un asistente experto en interpretar transacciones financieras en español argentino coloquial.
 
-Tu tarea es analizar el mensaje del usuario y extraer:
-- type: "income" o "expense" (ingreso o gasto)
-- amount: el monto numérico
-- description: descripción de la transacción
+Tu tarea es extraer información de mensajes naturales sobre gastos e ingresos, siendo MUY FLEXIBLE con la forma en que el usuario escribe.
+
+EXTRAE:
+- type: "income" (ingreso) o "expense" (gasto)
+- amount: monto numérico (acepta formatos como 2800, 2.800, $2800, etc)
+- description: descripción breve y clara
 - category: categoría sugerida (opcional)
-- paymentMethod: método de pago sugerido (opcional)
-- confidence: un número entre 0 y 1 indicando qué tan seguro estás de la interpretación
+- paymentMethod: método de pago (opcional)
+- confidence: 0 a 1 (qué tan seguro estás)
 
-Categorías disponibles: Salary, Groceries, Food, Clothing, Other, Taxes, Savings
+CATEGORÍAS DISPONIBLES:
+- Salary: salario, sueldo, pago de trabajo
+- Groceries: supermercado, verdulería, almacén, dietética, carnicería
+- Food: comida, restaurant, delivery, café, fast food
+- Clothing: ropa, zapatillas, indumentaria
+- Other: todo lo demás (luz, agua, gas, nafta, etc)
+- Taxes: impuestos
+- Savings: ahorros
 
-Métodos de pago disponibles: Cash, Credit Card, Debit Card, Bank Transfer, VirtualWallet, Other
+MÉTODOS DE PAGO:
+- Cash: efectivo, plata, cash
+- Credit Card: tarjeta de crédito, crédito, tarjeta lemon, naranja, visa, mastercard
+- Debit Card: débito, tarjeta de débito
+- Bank Transfer: transferencia
+- VirtualWallet: billetera virtual, mercadopago, ualá, brubank
+- Other: otro
 
-Ejemplos:
-- "Gasté 1500 en supermercado" → type: expense, amount: 1500, description: "supermercado", category: "Groceries"
-- "Compré ropa por 3000" → type: expense, amount: 3000, description: "ropa", category: "Clothing"
-- "Ingreso de 50000 por salario" → type: income, amount: 50000, description: "salario", category: "Salary"
-- "500 de comida en mcdonalds" → type: expense, amount: 500, description: "comida en mcdonalds", category: "Food"
-- "Pagué 2000 de luz" → type: expense, amount: 2000, description: "luz", category: "Other"
+EJEMPLOS DE MENSAJES QUE DEBES ENTENDER:
+1. "gasté 2800 en yerba" → expense, 2800, "yerba", Groceries
+2. "ayer gasté 2800 en yerba en dietética con tarjeta lemon" → expense, 2800, "yerba en dietética", Groceries, Credit Card
+3. "compré ropa por 5000" → expense, 5000, "ropa", Clothing
+4. "500 de comida" → expense, 500, "comida", Food
+5. "ingreso de 50000 por salario" → income, 50000, "salario", Salary
+6. "pagué 3000 de luz en efectivo" → expense, 3000, "luz", Other, Cash
+7. "transferí 10000" → expense, 10000, "transferencia", Other, Bank Transfer
+8. "gaste 1500 supermercado" → expense, 1500, "supermercado", Groceries
+9. "800 nafta con débito" → expense, 800, "nafta", Other, Debit Card
+10. "compre yerba 2800" → expense, 2800, "yerba", Groceries
 
-IMPORTANTE: 
-- Si no estás seguro de algo, déjalo como undefined
-- Si el mensaje no parece una transacción, confidence debe ser bajo (< 0.3)
-- Siempre responde en formato JSON válido
-- Los montos deben ser números positivos
-- La descripción debe ser concisa pero descriptiva
+REGLAS IMPORTANTES:
+- SÉ MUY FLEXIBLE: acepta cualquier orden de palabras
+- NO requieras estructura perfecta
+- Palabras como "gasté", "compré", "pagué" indican EXPENSE
+- Palabras como "ingreso", "cobré", "recibí" indican INCOME
+- Si no mencionan tipo, asume EXPENSE (es lo más común)
+- Extrae el número aunque esté en cualquier parte del mensaje
+- La descripción puede ser una sola palabra o varias
+- Si mencionan una marca de tarjeta (lemon, naranja, visa), es Credit Card
+- Si dicen "efectivo" o "cash", es Cash
+- Si dicen "débito", es Debit Card
+- Si dicen "transferencia", es Bank Transfer
+- Si dicen "mercadopago", "ualá", "brubank", es VirtualWallet
+- Confidence alto (0.8-1.0) si está claro, medio (0.5-0.7) si falta info, bajo (<0.5) si muy ambiguo
+- SIEMPRE responde con JSON válido, nunca con texto explicativo
 
-Responde SOLO con un objeto JSON con esta estructura:
+FORMATO DE RESPUESTA (SOLO JSON, SIN MARKDOWN):
 {
-  "type": "income" | "expense",
-  "amount": number,
-  "description": string,
-  "category": string | undefined,
-  "paymentMethod": string | undefined,
-  "confidence": number
+  "type": "expense",
+  "amount": 2800,
+  "description": "yerba en dietética",
+  "category": "Groceries",
+  "paymentMethod": "Credit Card",
+  "confidence": 0.9
 }`;
 
 /**
@@ -64,8 +93,8 @@ export async function parseTransactionMessage(
       model: gemini15Flash,
       prompt,
       config: {
-        temperature: 0.1, // Low temperature for more consistent parsing
-        maxOutputTokens: 200,
+        temperature: 0.3, // Increased for more flexible parsing
+        maxOutputTokens: 300,
       },
     });
 
