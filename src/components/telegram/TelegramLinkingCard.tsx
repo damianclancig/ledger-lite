@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Copy, Check, MessageCircle } from 'lucide-react';
+import { Loader2, Copy, Check, MessageCircle, ExternalLink, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function TelegramLinkingCard() {
@@ -56,118 +56,185 @@ export default function TelegramLinkingCard() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5 text-blue-500" />
-          <CardTitle>Bot de Telegram</CardTitle>
-        </div>
-        <CardDescription>
-          Vincula tu cuenta de Telegram para agregar transacciones rápidamente desde tu móvil
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {!linkingCode ? (
-          <>
-            <div className="space-y-2">
-              <h4 className="font-medium">¿Cómo funciona?</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Genera un código de vinculación</li>
-                <li>Abre el bot de FinanClan en Telegram</li>
-                <li>Usa el comando <code className="bg-muted px-1 py-0.5 rounded">/vincular CODIGO</code></li>
-                <li>¡Listo! Ya puedes agregar transacciones desde Telegram</li>
-              </ol>
+    <div className="space-y-6">
+      {/* Info Cards */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className="border-2 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Súper rápido</h3>
+                <p className="text-sm text-muted-foreground">
+                  Escribe en lenguaje natural y el bot entiende
+                </p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Button
-              onClick={generateCode}
-              disabled={loading || !user}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generando código...
-                </>
-              ) : (
-                'Generar código de vinculación'
-              )}
-            </Button>
+        <Card className="border-2 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Desde cualquier lugar</h3>
+                <p className="text-sm text-muted-foreground">
+                  Móvil, tablet o computadora
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                <Check className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Seguro</h3>
+                <p className="text-sm text-muted-foreground">
+                  Código de un solo uso
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Card */}
+      <div className="flex justify-center">
+        <Card className="shadow-xl border-2 border-primary max-w-2xl w-full">
+          {!linkingCode ? (
+            <>
+              <CardHeader>
+                <CardTitle className="text-center text-xl">Vincular cuenta de Telegram</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex justify-center pt-2">
+                <Button
+                  onClick={generateCode}
+                  disabled={loading || !user}
+                  size="lg"
+                  className="text-base px-8"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generando código...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Generar código de vinculación
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
           </>
         ) : (
           <>
-            <Alert>
-              <AlertDescription>
-                <div className="space-y-2">
-                  <p className="font-medium">Tu código de vinculación:</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-muted px-4 py-2 rounded text-2xl font-mono text-center tracking-wider">
+            <CardHeader>
+              <CardTitle className="text-center text-xl">Código de vinculación</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="p-8 bg-muted rounded-xl border-2 border-primary/30">
+                    <code className="text-6xl font-mono font-bold tracking-[0.3em] block text-center">
                       {linkingCode}
                     </code>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={copyCode}
-                    >
-                      {copied ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Este código expira en 10 minutos
-                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyCode}
+                    className="absolute -top-3 -right-3"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="mr-1.5 h-4 w-4" />
+                        Copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-1.5 h-4 w-4" />
+                        Copiar
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </AlertDescription>
-            </Alert>
+              </div>
 
-            <div className="space-y-2">
-              <h4 className="font-medium">Próximos pasos:</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Abre el bot de FinanClan en Telegram</li>
-                <li>Escribe: <code className="bg-muted px-1 py-0.5 rounded">/vincular {linkingCode}</code></li>
-                <li>El bot confirmará la vinculación</li>
-              </ol>
-            </div>
+              <p className="text-center text-sm text-muted-foreground">
+                ⏱️ Este código expira en 10 minutos
+              </p>
 
-            <div className="flex gap-2">
-              <Button
-                onClick={openTelegram}
-                className="flex-1"
-                variant="default"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Abrir Telegram
-              </Button>
-              <Button
-                onClick={() => setLinkingCode(null)}
-                variant="outline"
-                className="flex-1"
-              >
-                Generar nuevo código
-              </Button>
-            </div>
+              <div className="space-y-3">
+                <h4 className="font-semibold text-base text-center">Pasos a seguir:</h4>
+                <ol className="space-y-3 max-w-md mx-auto">
+                  <li className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      1
+                    </span>
+                    <span className="text-base pt-0.5">Abre el bot de FinanClan en Telegram</span>
+                  </li>
+                  <li className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      2
+                    </span>
+                    <div className="pt-0.5">
+                      <span className="text-base">Escribe: </span>
+                      <code className="bg-muted px-2 py-1 rounded text-sm">
+                        /vincular {linkingCode}
+                      </code>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      3
+                    </span>
+                    <span className="text-base pt-0.5">Confirma la vinculación</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="flex justify-center gap-3 pt-2">
+                <Button
+                  onClick={openTelegram}
+                  size="lg"
+                  className="text-base"
+                >
+                  <ExternalLink className="mr-2 h-5 w-5" />
+                  Abrir Bot
+                </Button>
+                <Button
+                  onClick={() => setLinkingCode(null)}
+                  variant="outline"
+                  size="lg"
+                  className="text-base"
+                >
+                  Nuevo código
+                </Button>
+              </div>
+            </CardContent>
           </>
         )}
+      </Card>
+      </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <div className="pt-4 border-t">
-          <h4 className="font-medium mb-2">Ejemplos de uso:</h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <p>• &quot;Gasté 1500 en supermercado&quot;</p>
-            <p>• &quot;Compré ropa por 3000&quot;</p>
-            <p>• &quot;Ingreso de 50000 por salario&quot;</p>
-            <p>• &quot;500 de comida en mcdonalds&quot;</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription className="text-base">{error}</AlertDescription>
+        </Alert>
+      )}
+    </div>
   );
 }
