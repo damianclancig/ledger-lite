@@ -1,5 +1,5 @@
 import { genkit } from 'genkit';
-import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/googleai';
 import type { ParsedTransaction, TransactionType } from '@/types';
 
 /**
@@ -98,7 +98,7 @@ export async function parseTransactionMessage(
     
     console.log('Calling Gemini API...');
     const result = await ai.generate({
-      model: gemini15Flash,
+      model: 'googleai/gemini-2.0-flash',
       prompt,
       config: {
         temperature: 0.3, // Increased for more flexible parsing
