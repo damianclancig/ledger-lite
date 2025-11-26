@@ -9,7 +9,11 @@ import type { ParsedTransaction, TransactionType } from '@/types';
 
 // Initialize Genkit with Google AI
 const ai = genkit({
-  plugins: [googleAI()],
+  plugins: [
+    googleAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    }),
+  ],
 });
 
 const transactionParserPrompt = `Eres un asistente experto en interpretar transacciones financieras en español argentino coloquial.
