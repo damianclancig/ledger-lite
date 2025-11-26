@@ -360,7 +360,17 @@ async function handleNaturalLanguageMessage(
     text: '🤔 Procesando...',
   });
 
-  const parsed = await parseTransactionMessage(text);
+  // Get user's categories and payment methods FIRST
+  const [categories, methods] = await Promise.all([
+    getCategories(userId),
+    getPaymentMethods(userId),
+  ]);
+
+  const enabledCategories = categories.filter(c => c.isEnabled);
+  const enabledMethods = methods.filter(m => m.isEnabled);
+
+  // Parse with user's actual data
+  const parsed = await parseTransactionMessage(text, enabledCategories, enabledMethods);
 
   if (!parsed || parsed.confidence < 0.3) {
     await sendMessage({
@@ -370,19 +380,17 @@ async function handleNaturalLanguageMessage(
     return;
   }
 
-  // If no category was detected, try to get a default or ask
+  // If no category was detected, use fallback
   if (!parsed.category) {
-    const categories = await getCategories(userId);
-    const otherCategory = categories.find(c => c.name === 'Other' && c.isEnabled);
+    const otherCategory = enabledCategories.find(c => c.name === 'Other');
     if (otherCategory) {
       parsed.category = otherCategory.name;
     }
   }
 
-  // If no payment method, try to get a default
+  // If no payment method, use fallback
   if (!parsed.paymentMethod) {
-    const methods = await getPaymentMethods(userId);
-    const cashMethod = methods.find(m => m.type === 'Cash' && m.isEnabled);
+    const cashMethod = enabledMethods.find(m => m.type === 'Cash');
     if (cashMethod) {
       parsed.paymentMethod = cashMethod.name;
     }

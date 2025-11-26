@@ -85,16 +85,42 @@ FORMATO DE RESPUESTA (SOLO JSON, SIN MARKDOWN):
 
 /**
  * Parse a natural language message into transaction data
+ * @param message - The user's message
+ * @param userCategories - User's actual categories from DB
+ * @param userPaymentMethods - User's actual payment methods from DB
  */
 export async function parseTransactionMessage(
-  message: string
+  message: string,
+  userCategories?: Array<{ name: string }>,
+  userPaymentMethods?: Array<{ name: string; type: string }>
 ): Promise<ParsedTransaction | null> {
   try {
     console.log('=== NLP PARSING START ===');
     console.log('Input message:', message);
+    console.log('Available categories:', userCategories?.map(c => c.name).join(', '));
+    console.log('Available payment methods:', userPaymentMethods?.map(m => m.name).join(', '));
+    
+    // Build dynamic prompt with user's actual options
+    let dynamicPrompt = transactionParserPrompt;
+    
+    if (userCategories && userCategories.length > 0) {
+      const categoryList = userCategories.map(c => `- ${c.name}`).join('\n');
+      dynamicPrompt = dynamicPrompt.replace(
+        'CATEGORÍAS DISPONIBLES:\n- Salary: salario, sueldo, pago de trabajo\n- Groceries: supermercado, verdulería, almacén, dietética, carnicería\n- Food: comida, restaurant, delivery, café, fast food\n- Clothing: ropa, zapatillas, indumentaria\n- Other: todo lo demás (luz, agua, gas, nafta, etc)\n- Taxes: impuestos\n- Savings: ahorros',
+        `CATEGORÍAS DISPONIBLES DEL USUARIO (USA EXACTAMENTE ESTOS NOMBRES):\n${categoryList}\n\nIMPORTANTE: Debes usar EXACTAMENTE uno de estos nombres de categoría, no inventes otros.`
+      );
+    }
+    
+    if (userPaymentMethods && userPaymentMethods.length > 0) {
+      const methodList = userPaymentMethods.map(m => `- ${m.name} (tipo: ${m.type})`).join('\n');
+      dynamicPrompt = dynamicPrompt.replace(
+        'MÉTODOS DE PAGO:\n- Cash: efectivo, plata, cash\n- Credit Card: tarjeta de crédito, crédito, tarjeta lemon, naranja, visa, mastercard\n- Debit Card: débito, tarjeta de débito\n- Bank Transfer: transferencia\n- VirtualWallet: billetera virtual, mercadopago, ualá, brubank\n- Other: otro',
+        `MÉTODOS DE PAGO DISPONIBLES DEL USUARIO (USA EXACTAMENTE ESTOS NOMBRES):\n${methodList}\n\nIMPORTANTE: Debes usar EXACTAMENTE uno de estos nombres de método de pago, no inventes otros.`
+      );
+    }
     
     // Use Gemini to parse the message
-    const prompt = `${transactionParserPrompt}\n\nMensaje del usuario: "${message}"`;
+    const prompt = `${dynamicPrompt}\n\nMensaje del usuario: "${message}"`;
     
     console.log('Calling Gemini API...');
     const result = await ai.generate({
