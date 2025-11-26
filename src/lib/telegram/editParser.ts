@@ -112,13 +112,23 @@ export function parseEditCommand(text: string): EditCommand | null {
   }
 
   // Date changes
-  // Examples: "cambia la fecha a ayer", "fecha: el lunes"
+  // Examples: "cambia la fecha a ayer", "fecha: el lunes", "fue de ayer"
   if (
     normalized.includes('cambia la fecha') ||
     normalized.includes('cambiar fecha') ||
-    normalized.match(/fecha\s*[:]/i)
+    normalized.match(/fecha\s*[:]/i) ||
+    normalized.match(/fue\s+de\s+/i) ||
+    normalized.match(/fue\s+el\s+/i)
   ) {
-    const match = normalized.match(/(?:a|por|:)\s*(.+)/);
+    // Try to match after "cambia la fecha a/por", "fecha:", "fue de", etc.
+    let match = normalized.match(/cambia(?:r)?\s+la\s+fecha\s+(?:a|por)\s+(.+)/i);
+    if (!match) {
+      match = normalized.match(/fecha\s*[:]\s*(.+)/i);
+    }
+    if (!match) {
+      match = normalized.match(/fue\s+(?:de|el)\s+(.+)/i);
+    }
+    
     if (match) {
       return {
         type: 'date',
