@@ -28,6 +28,104 @@ import { getPaymentMethods } from '@/app/actions/paymentMethodActions';
 // Store pending transactions temporarily (in production, use Redis or database)
 const pendingTransactions = new Map<string, ParsedTransaction>();
 
+/**
+ * Find best matching category by name or keywords
+ */
+function findMatchingCategory(suggestedCategory: string | undefined, categories: any[]) {
+  if (!suggestedCategory) {
+    return categories.find(c => c.name === 'Other' && c.isEnabled) || categories.find(c => c.isEnabled);
+  }
+
+  const normalized = suggestedCategory.toLowerCase();
+  
+  // Try exact match first
+  let match = categories.find(c => 
+    c.name.toLowerCase() === normalized && c.isEnabled
+  );
+  if (match) return match;
+
+  // Try partial match
+  match = categories.find(c => 
+    c.name.toLowerCase().includes(normalized) && c.isEnabled
+  );
+  if (match) return match;
+
+  // Try reverse partial match
+  match = categories.find(c => 
+    normalized.includes(c.name.toLowerCase()) && c.isEnabled
+  );
+  if (match) return match;
+
+  // Category mapping for common variations
+  const categoryMap: Record<string, string[]> = {
+    'Groceries': ['groceries', 'supermercado', 'almacen', 'verduleria', 'carniceria', 'dietética', 'dietética'],
+    'Food': ['food', 'comida', 'comidas', 'restaurant', 'delivery', 'cafe'],
+    'Clothing': ['clothing', 'ropa', 'indumentaria', 'zapatillas'],
+    'Salary': ['salary', 'salario', 'sueldo'],
+    'Taxes': ['taxes', 'impuesto', 'impuestos', 'luz', 'agua', 'gas'],
+    'Savings': ['savings', 'ahorros', 'ahorro'],
+  };
+
+  for (const [categoryName, keywords] of Object.entries(categoryMap)) {
+    if (keywords.some(kw => normalized.includes(kw) || kw.includes(normalized))) {
+      match = categories.find(c => c.name === categoryName && c.isEnabled);
+      if (match) return match;
+    }
+  }
+
+  // Fallback to Other or first enabled category
+  return categories.find(c => c.name === 'Other' && c.isEnabled) || categories.find(c => c.isEnabled);
+}
+
+/**
+ * Find best matching payment method by name or type
+ */
+function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods: any[]) {
+  if (!suggestedMethod) {
+    return methods.find(m => m.type === 'Cash' && m.isEnabled) || methods.find(m => m.isEnabled);
+  }
+
+  const normalized = suggestedMethod.toLowerCase();
+
+  // Try exact match by name first
+  let match = methods.find(m => 
+    m.name.toLowerCase() === normalized && m.isEnabled
+  );
+  if (match) return match;
+
+  // Try exact match by type
+  match = methods.find(m => 
+    m.type.toLowerCase() === normalized && m.isEnabled
+  );
+  if (match) return match;
+
+  // Try partial match by name
+  match = methods.find(m => 
+    m.name.toLowerCase().includes(normalized) && m.isEnabled
+  );
+  if (match) return match;
+
+  // Payment method mapping for common variations
+  const methodMap: Record<string, string[]> = {
+    'Credit Card': ['credit', 'credito', 'crédito', 'tarjeta de credito', 'tarjeta de crédito', 'lemon', 'naranja', 'visa', 'mastercard', 'amex'],
+    'Debit Card': ['debit', 'debito', 'débito', 'tarjeta de debito', 'tarjeta de débito'],
+    'Cash': ['cash', 'efectivo', 'plata', 'billetes'],
+    'Bank Transfer': ['transfer', 'transferencia', 'banco'],
+    'VirtualWallet': ['virtual', 'wallet', 'billetera', 'mercadopago', 'ualá', 'uala', 'brubank', 'mp'],
+  };
+
+  for (const [methodType, keywords] of Object.entries(methodMap)) {
+    if (keywords.some(kw => normalized.includes(kw) || kw.includes(normalized))) {
+      match = methods.find(m => m.type === methodType && m.isEnabled);
+      if (match) return match;
+    }
+  }
+
+  // Fallback to Cash or first enabled method
+  return methods.find(m => m.type === 'Cash' && m.isEnabled) || methods.find(m => m.isEnabled);
+}
+
+
 export async function POST(request: NextRequest) {
   try {
     // Verify the webhook is from Telegram
@@ -302,30 +400,26 @@ async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query
       return;
     }
 
-    // Get category ID
+    // Get category ID with smart matching
     const categories = await getCategories(telegramUser.firebaseUid);
-    const category = categories.find(c => 
-      c.name === transaction.category && c.isEnabled
-    );
+    const category = findMatchingCategory(transaction.category, categories);
 
     if (!category) {
       await sendMessage({
         chatId,
-        text: '❌ Error: Categoría no encontrada.',
+        text: '❌ Error: No se encontró ninguna categoría habilitada.',
       });
       return;
     }
 
-    // Get payment method ID
+    // Get payment method ID with smart matching
     const methods = await getPaymentMethods(telegramUser.firebaseUid);
-    const paymentMethod = methods.find(m => 
-      m.name === transaction.paymentMethod && m.isEnabled
-    );
+    const paymentMethod = findMatchingPaymentMethod(transaction.paymentMethod, methods);
 
     if (!paymentMethod) {
       await sendMessage({
         chatId,
-        text: '❌ Error: Método de pago no encontrado.',
+        text: '❌ Error: No se encontró ningún método de pago habilitado.',
       });
       return;
     }
