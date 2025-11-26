@@ -38,27 +38,35 @@ function findMatchingCategory(suggestedCategory: string | undefined, categories:
 
   const normalized = suggestedCategory.toLowerCase();
   
-  // Try exact match first
+  // Try exact match first (case insensitive)
   let match = categories.find(c => 
     c.name.toLowerCase() === normalized && c.isEnabled
   );
   if (match) return match;
 
-  // Try partial match
+  // Try if category name contains the suggestion
   match = categories.find(c => 
     c.name.toLowerCase().includes(normalized) && c.isEnabled
   );
   if (match) return match;
 
-  // Try reverse partial match
+  // Try if suggestion contains the category name
   match = categories.find(c => 
     normalized.includes(c.name.toLowerCase()) && c.isEnabled
   );
   if (match) return match;
 
-  // Category mapping for common variations
+  // Try matching by keywords in category name
+  const words = normalized.split(/\s+/);
+  match = categories.find(c => {
+    const categoryWords = c.name.toLowerCase().split(/\s+/);
+    return words.some(w => categoryWords.includes(w)) && c.isEnabled;
+  });
+  if (match) return match;
+
+  // Category mapping for common English names to Spanish or vice versa
   const categoryMap: Record<string, string[]> = {
-    'Groceries': ['groceries', 'supermercado', 'almacen', 'verduleria', 'carniceria', 'dietética', 'dietética'],
+    'Groceries': ['groceries', 'supermercado', 'almacen', 'verduleria', 'carniceria', 'dietética', 'dietetica'],
     'Food': ['food', 'comida', 'comidas', 'restaurant', 'delivery', 'cafe'],
     'Clothing': ['clothing', 'ropa', 'indumentaria', 'zapatillas'],
     'Salary': ['salary', 'salario', 'sueldo'],
@@ -66,9 +74,17 @@ function findMatchingCategory(suggestedCategory: string | undefined, categories:
     'Savings': ['savings', 'ahorros', 'ahorro'],
   };
 
+  // Try to find by keyword mapping
   for (const [categoryName, keywords] of Object.entries(categoryMap)) {
     if (keywords.some(kw => normalized.includes(kw) || kw.includes(normalized))) {
+      // First try to find exact category name
       match = categories.find(c => c.name === categoryName && c.isEnabled);
+      if (match) return match;
+      
+      // Then try to find by keyword in actual category names
+      match = categories.find(c => 
+        keywords.some(kw => c.name.toLowerCase().includes(kw)) && c.isEnabled
+      );
       if (match) return match;
     }
   }
@@ -87,22 +103,30 @@ function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods:
 
   const normalized = suggestedMethod.toLowerCase();
 
-  // Try exact match by name first
+  // Try exact match by name first (case insensitive)
   let match = methods.find(m => 
     m.name.toLowerCase() === normalized && m.isEnabled
   );
   if (match) return match;
 
-  // Try exact match by type
-  match = methods.find(m => 
-    m.type.toLowerCase() === normalized && m.isEnabled
-  );
-  if (match) return match;
-
-  // Try partial match by name
+  // Try if method name contains the suggestion
   match = methods.find(m => 
     m.name.toLowerCase().includes(normalized) && m.isEnabled
   );
+  if (match) return match;
+
+  // Try if suggestion contains the method name
+  match = methods.find(m => 
+    normalized.includes(m.name.toLowerCase()) && m.isEnabled
+  );
+  if (match) return match;
+
+  // Try matching by keywords in method name (for brands like "Lemon", "Naranja")
+  const words = normalized.split(/\s+/);
+  match = methods.find(m => {
+    const methodWords = m.name.toLowerCase().split(/\s+/);
+    return words.some(w => methodWords.includes(w) && w.length > 2) && m.isEnabled;
+  });
   if (match) return match;
 
   // Payment method mapping for common variations
@@ -114,12 +138,26 @@ function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods:
     'VirtualWallet': ['virtual', 'wallet', 'billetera', 'mercadopago', 'ualá', 'uala', 'brubank', 'mp'],
   };
 
+  // Try to find by keyword mapping
   for (const [methodType, keywords] of Object.entries(methodMap)) {
     if (keywords.some(kw => normalized.includes(kw) || kw.includes(normalized))) {
+      // First try to find by keyword in actual method names (e.g., "Lemon Tarjeta" contains "lemon")
+      match = methods.find(m => 
+        keywords.some(kw => m.name.toLowerCase().includes(kw)) && m.isEnabled
+      );
+      if (match) return match;
+      
+      // Then try to find by type
       match = methods.find(m => m.type === methodType && m.isEnabled);
       if (match) return match;
     }
   }
+
+  // Try exact match by type as last resort
+  match = methods.find(m => 
+    m.type.toLowerCase() === normalized && m.isEnabled
+  );
+  if (match) return match;
 
   // Fallback to Cash or first enabled method
   return methods.find(m => m.type === 'Cash' && m.isEnabled) || methods.find(m => m.isEnabled);
