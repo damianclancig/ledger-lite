@@ -86,9 +86,13 @@ export async function parseTransactionMessage(
   message: string
 ): Promise<ParsedTransaction | null> {
   try {
+    console.log('=== NLP PARSING START ===');
+    console.log('Input message:', message);
+    
     // Use Gemini to parse the message
     const prompt = `${transactionParserPrompt}\n\nMensaje del usuario: "${message}"`;
-
+    
+    console.log('Calling Gemini API...');
     const result = await ai.generate({
       model: gemini15Flash,
       prompt,
@@ -98,6 +102,8 @@ export async function parseTransactionMessage(
       },
     });
 
+    console.log('Gemini raw response:', result.text);
+    
     const responseText = result.text.trim();
     
     // Remove markdown code blocks if present
@@ -106,29 +112,37 @@ export async function parseTransactionMessage(
       .replace(/```\n?/g, '')
       .trim();
 
+    console.log('Cleaned JSON text:', jsonText);
+
     const parsed = JSON.parse(jsonText);
+    console.log('Parsed object:', parsed);
 
     // Validate the parsed data
     if (!parsed.type || !parsed.amount || !parsed.description) {
-      console.error('Invalid parsed transaction:', parsed);
+      console.error('❌ Invalid parsed transaction - missing required fields:', parsed);
+      console.error('Missing:', {
+        type: !parsed.type,
+        amount: !parsed.amount,
+        description: !parsed.description,
+      });
       return null;
     }
 
     // Ensure amount is positive
     const amount = Math.abs(Number(parsed.amount));
     if (isNaN(amount) || amount <= 0) {
-      console.error('Invalid amount:', parsed.amount);
+      console.error('❌ Invalid amount:', parsed.amount);
       return null;
     }
 
     // Validate type
     const validTypes: TransactionType[] = ['income', 'expense', 'deposit', 'withdrawal', 'transfer'];
     if (!validTypes.includes(parsed.type)) {
-      console.error('Invalid transaction type:', parsed.type);
+      console.error('❌ Invalid transaction type:', parsed.type);
       return null;
     }
 
-    return {
+    const parsedTransaction = {
       type: parsed.type,
       amount,
       description: parsed.description,
@@ -137,8 +151,17 @@ export async function parseTransactionMessage(
       confidence: Number(parsed.confidence) || 0.5,
       date: new Date(), // Default to now
     };
+
+    console.log('✅ Successfully parsed transaction:', parsedTransaction);
+    console.log('=== NLP PARSING END ===');
+    
+    return parsedTransaction;
   } catch (error) {
-    console.error('Error parsing transaction message:', error);
+    console.error('❌ ERROR parsing transaction message:');
+    console.error('Error type:', error instanceof Error ? error.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    console.error('Full error:', error);
+    console.error('=== NLP PARSING FAILED ===');
     return null;
   }
 }
