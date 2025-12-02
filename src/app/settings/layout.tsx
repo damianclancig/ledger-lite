@@ -3,7 +3,7 @@
 
 import React, { useCallback } from "react";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { Settings, List, CreditCard, Plus, User } from "lucide-react";
+import { Settings, List, CreditCard, Plus, User, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,7 +38,7 @@ export default function SettingsLayout({
     return translations.new;
   }
 
-  const showTabs = ['/settings/account', '/settings/categories', '/settings/payment-methods'].includes(pathname);
+  const showTabs = ['/settings/account', '/settings/categories', '/settings/payment-methods', '/settings/telegram'].includes(pathname);
   const showFab = ['/settings/categories', '/settings/payment-methods'].includes(pathname);
 
   return (
@@ -69,6 +69,12 @@ export default function SettingsLayout({
                     <Link href="/settings/payment-methods" className="flex items-center justify-center gap-2 py-2">
                     <CreditCard className="h-5 w-5"/>
                     <span>{translations.managePaymentMethods}</span>
+                    </Link>
+                </TabsTrigger>
+                <TabsTrigger value="/settings/telegram" asChild className="text-base flex-1">
+                    <Link href="/settings/telegram" className="flex items-center justify-center gap-2 py-2">
+                    <MessageCircle className="h-5 w-5"/>
+                    <span>Telegram</span>
                     </Link>
                 </TabsTrigger>
                 </TabsList>
