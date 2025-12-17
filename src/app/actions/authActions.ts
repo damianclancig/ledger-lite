@@ -97,7 +97,7 @@ export async function syncUser(token: string): Promise<SyncUserResult> {
         }
 
         // Fetch the newly created user to return it correctly mapped
-        const createdUser = await usersCollection.findOne({ _id: newUserId });
+        const createdUser = await usersCollection.findOne({ _id: newUserId } as any);
 
         if (!createdUser) throw new Error("Failed to retrieve created user");
 
