@@ -32,8 +32,8 @@ const getFormSchema = (translations: Translations, type: 'deposit' | 'withdrawal
   amount: z.coerce
     .number({ required_error: translations.amountRequired, invalid_type_error: translations.amountRequired })
     .positive({ message: translations.amountPositive })
-    .max(maxAmount !== undefined && maxAmount > 0 ? maxAmount : Infinity, { 
-        message: type === 'withdrawal' ? translations.withdrawAmountError : translations.depositAmountError
+    .max(maxAmount !== undefined && maxAmount > 0 ? maxAmount : Infinity, {
+      message: type === 'withdrawal' ? translations.withdrawAmountError : translations.depositAmountError
     }),
   paymentMethodId: z.string({ required_error: translations.paymentMethodRequired }),
 });
@@ -45,7 +45,7 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayAmount, setDisplayAmount] = useState<string>('');
 
-  const maxAmount = type === 'deposit' 
+  const maxAmount = type === 'deposit'
     ? (fund.targetAmount > 0 ? fund.targetAmount - fund.currentAmount : Infinity)
     : fund.currentAmount;
 
@@ -71,7 +71,7 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
     const rawValue = e.target.value;
     let numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parts = numericValue.split('.');
-    
+
     if (parts.length > 2) {
       numericValue = `${parts[0]}.${parts.slice(1).join('')}`;
     }
@@ -80,10 +80,10 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
       parts[1] = parts[1].substring(0, 2);
       numericValue = parts.join('.');
     }
-    
+
     const formattedDisplay = formatNumberForDisplay(numericValue);
     setDisplayAmount(formattedDisplay);
-    
+
     const valueForForm = numericValue.replace(/,/g, '');
     const parsedNumber = parseFloat(valueForForm);
     form.setValue('amount', isNaN(parsedNumber) ? '' as any : parsedNumber, { shouldValidate: true });
@@ -100,19 +100,19 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
       setIsSubmitting(false);
       return;
     }
-    
+
     const action = type === 'deposit' ? transferToFund : withdrawFromFund;
-    const description = type === 'deposit' 
-        ? translations.transferTo.replace('{fundName}', fund.name)
-        : translations.withdrawFrom.replace('{fundName}', fund.name);
-        
+    const description = type === 'deposit'
+      ? translations.transferTo.replace('{fundName}', fund.name)
+      : translations.withdrawFrom.replace('{fundName}', fund.name);
+
     const result = await action({
-        ...values,
-        description,
-        categoryId: transferCategory.id,
-        fundId: fund.id,
-        date: new Date(),
-    }, user.uid);
+      ...values,
+      description,
+      categoryId: transferCategory.id,
+      fundId: fund.id,
+      date: new Date(),
+    });
 
     if (result.success) {
       toast({ title: translations.transferSuccess });
@@ -124,10 +124,10 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
     setIsSubmitting(false);
   };
 
-  const title = type === 'deposit' 
-    ? translations.transferTo.replace('{fundName}', fund.name) 
+  const title = type === 'deposit'
+    ? translations.transferTo.replace('{fundName}', fund.name)
     : translations.withdrawFrom.replace('{fundName}', fund.name);
-    
+
   const showDepositHelper = type === 'deposit' && fund.targetAmount > 0 && maxAmount > 0;
 
   return (
@@ -161,36 +161,36 @@ export function TransferDialog({ isOpen, onOpenChange, fund, type, categories, p
                   </FormControl>
                   {showDepositHelper && (
                     <FormDescriptionPrimitive>
-                        {translations.maxToReachGoal.replace('{amount}', formatCurrency(maxAmount))}
+                      {translations.maxToReachGoal.replace('{amount}', formatCurrency(maxAmount))}
                     </FormDescriptionPrimitive>
                   )}
                   <FormMessage />
                 </FormItem>
               )}
             />
-             <FormField
-                control={form.control}
-                name="paymentMethodId"
-                render={({ field }) => (
+            <FormField
+              control={form.control}
+              name="paymentMethodId"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>{translations.paymentType}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>{translations.paymentType}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                        <SelectTrigger>
+                      <SelectTrigger>
                         <SelectValue placeholder={translations.paymentType} />
-                        </SelectTrigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                        {paymentMethods.map((pm) => (
+                      {paymentMethods.map((pm) => (
                         <SelectItem key={pm.id} value={pm.id}>
-                            {pm.name}
+                          {pm.name}
                         </SelectItem>
-                        ))}
+                      ))}
                     </SelectContent>
-                    </Select>
-                    <FormMessage />
+                  </Select>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
             <DialogFooter className="flex-row justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

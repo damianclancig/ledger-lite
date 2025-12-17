@@ -35,9 +35,9 @@ export default function EditTransactionPage() {
       setIsLoading(true);
       try {
         const [fetchedTransaction, userCategories, userPaymentMethods] = await Promise.all([
-          getTransactionById(id, dbUser.id),
-          getCategories(dbUser.id),
-          getPaymentMethods(dbUser.id),
+          getTransactionById(id),
+          getCategories(),
+          getPaymentMethods(),
         ]);
 
         if (fetchedTransaction) {
@@ -67,7 +67,7 @@ export default function EditTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await updateTransaction(transaction.id, formattedValues, dbUser.id);
+    const result = await updateTransaction(transaction.id, formattedValues);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

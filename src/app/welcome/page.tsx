@@ -43,7 +43,7 @@ export default function WelcomePage() {
         const localDate = new Date(newCycleStartDate);
         localDate.setHours(0, 0, 0, 0);
 
-        const result = await startNewCycle(dbUser.id, localDate);
+        const result = await startNewCycle(localDate);
         if ('error' in result) {
             toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
             setIsStartingNewCycle(false);

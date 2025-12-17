@@ -36,7 +36,7 @@ export default function AddTaxPage() {
   useEffect(() => {
     if (!dbUser) return;
     setIsLoading(true);
-    getUniqueTaxNames(dbUser.id)
+    getUniqueTaxNames()
       .then(result => {
         if (isErrorResponse(result)) {
           console.error('Error loading tax names:', result.error);
@@ -55,7 +55,7 @@ export default function AddTaxPage() {
       return;
     }
 
-    const result = await addTax(values, dbUser.id, translations);
+    const result = await addTax(values, translations);
 
     if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

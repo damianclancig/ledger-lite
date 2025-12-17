@@ -3,8 +3,9 @@
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentCategory } from '@/lib/actions-helpers';
 import { isCategoryInUse as checkCategoryInUse } from '@/lib/database-helpers';
-import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { validateObjectId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import { revalidateUserTag, CacheTag } from '@/lib/cache-helpers';
 import type { Category, CategoryFormValues, Translations } from '@/types';
 import { CATEGORIES } from "@/types";
@@ -22,7 +23,13 @@ async function seedDefaultCategories(userId: string) {
   await categoriesCollection.insertMany(defaultCategories);
 }
 
-export async function getCategories(userId: string): Promise<Category[]> {
+
+export async function getCategories(): Promise<Category[]> {
+  const { id } = await getAuthenticatedUser();
+  return getInternalCategories(id);
+}
+
+export async function getInternalCategories(userId: string): Promise<Category[]> {
   if (!userId) return [];
   try {
     const { categoriesCollection } = await getDb();
@@ -48,20 +55,20 @@ export async function getCategories(userId: string): Promise<Category[]> {
         const existingCategory = await categoriesCollection.findOne({ userId, name: sysCatKey });
 
         if (existingCategory) {
-           if (existingCategory.isSystem !== true) {
-             await categoriesCollection.updateOne(
-                { _id: existingCategory._id },
-                { $set: { isSystem: true } }
-             );
-           }
+          if (existingCategory.isSystem !== true) {
+            await categoriesCollection.updateOne(
+              { _id: existingCategory._id },
+              { $set: { isSystem: true } }
+            );
+          }
         } else {
-           await categoriesCollection.insertOne({
-              name: sysCatDef.key,
-              userId,
-              isEnabled: true,
-              isSystem: true,
-              icon: DEFAULT_CATEGORY_ICONS[sysCatDef.key], // Assign default icon
-           });
+          await categoriesCollection.insertOne({
+            name: sysCatDef.key,
+            userId,
+            isEnabled: true,
+            isSystem: true,
+            icon: DEFAULT_CATEGORY_ICONS[sysCatDef.key], // Assign default icon
+          });
         }
       }
 
@@ -91,7 +98,8 @@ export async function getCategories(userId: string): Promise<Category[]> {
   }
 }
 
-export async function getCategoryById(id: string, userId: string): Promise<Category | null> {
+export async function getCategoryById(id: string): Promise<Category | null> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!ObjectId.isValid(id) || !userId) {
     return null;
   }
@@ -105,19 +113,19 @@ export async function getCategoryById(id: string, userId: string): Promise<Categ
   }
 }
 
-export async function addCategory(data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
+export async function addCategory(data: CategoryFormValues, translations: Translations): Promise<Category | { error: string }> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { categoriesCollection } = await getDb();
-    
+
     // Check for duplicates (case-insensitive)
     const existingCategory = await categoriesCollection.findOne({
-        userId,
-        name: { $regex: `^${data.name}$`, $options: 'i' }
+      userId,
+      name: { $regex: `^${data.name}$`, $options: 'i' }
     });
 
     if (existingCategory) {
-        return { error: translations.categoryExistsError };
+      return { error: translations.categoryExistsError };
     }
 
     // Validate icon if provided
@@ -127,15 +135,15 @@ export async function addCategory(data: CategoryFormValues, userId: string, tran
 
     const documentToInsert = { ...data, userId, isSystem: false }; // User-added categories are not system categories
     const result = await categoriesCollection.insertOne(documentToInsert);
-    
+
     if (!result.insertedId) {
       throw new Error('Failed to insert category.');
     }
 
     revalidateUserTag(userId, CacheTag.CATEGORIES);
     const newCategory = await categoriesCollection.findOne({ _id: result.insertedId });
-     if (!newCategory) {
-        throw new Error('Could not find the newly created category.');
+    if (!newCategory) {
+      throw new Error('Could not find the newly created category.');
     }
     return mapMongoDocumentCategory(newCategory);
   } catch (error) {
@@ -143,9 +151,10 @@ export async function addCategory(data: CategoryFormValues, userId: string, tran
   }
 }
 
-export async function updateCategory(id: string, data: CategoryFormValues, userId: string, translations: Translations): Promise<Category | { error: string }> {
+export async function updateCategory(id: string, data: CategoryFormValues, translations: Translations): Promise<Category | { error: string }> {
   try {
-    validateUserAndId(userId, id, 'category ID');
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'category ID');
     const { categoriesCollection } = await getDb();
 
     // Prevent updating system categories
@@ -153,17 +162,17 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
     if (categoryToUpdate?.isSystem) {
       return { error: 'System categories cannot be modified.' };
     }
-    
+
     // Check for duplicates on name change (case-insensitive)
     if (data.name.toLowerCase() !== categoryToUpdate?.name.toLowerCase()) {
       const existingCategory = await categoriesCollection.findOne({
-          userId,
-          name: { $regex: `^${data.name}$`, $options: 'i' },
-          _id: { $ne: new ObjectId(id) } // Exclude the current document
+        userId,
+        name: { $regex: `^${data.name}$`, $options: 'i' },
+        _id: { $ne: new ObjectId(id) } // Exclude the current document
       });
 
       if (existingCategory) {
-          return { error: translations.categoryExistsError };
+        return { error: translations.categoryExistsError };
       }
     }
 
@@ -176,15 +185,15 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
       { _id: new ObjectId(id), userId },
       { $set: data }
     );
-    
+
     if (result.matchedCount === 0) {
       return { error: 'Category not found or you do not have permission to edit it.' };
     }
 
     revalidateUserTag(userId, CacheTag.CATEGORIES);
     const updatedCategory = await categoriesCollection.findOne({ _id: new ObjectId(id) });
-     if (!updatedCategory) {
-        throw new Error('Could not find the updated category.');
+    if (!updatedCategory) {
+      throw new Error('Could not find the updated category.');
     }
     return mapMongoDocumentCategory(updatedCategory);
   } catch (error) {
@@ -192,7 +201,8 @@ export async function updateCategory(id: string, data: CategoryFormValues, userI
   }
 }
 
-export async function isCategoryInUse(categoryId: string, userId: string): Promise<boolean> {
+export async function isCategoryInUse(categoryId: string): Promise<boolean> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!ObjectId.isValid(categoryId) || !userId) {
     return false;
   }
@@ -205,9 +215,10 @@ export async function isCategoryInUse(categoryId: string, userId: string): Promi
   }
 }
 
-export async function deleteCategory(id: string, userId: string, translations: Translations): Promise<{ success: boolean; error?: string }> {
+export async function deleteCategory(id: string, translations: Translations): Promise<{ success: boolean; error?: string }> {
   try {
-    validateUserAndId(userId, id, 'category ID');
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'category ID');
     const { categoriesCollection } = await getDb();
 
     const categoryToDelete = await categoriesCollection.findOne({ _id: new ObjectId(id), userId });
@@ -219,17 +230,17 @@ export async function deleteCategory(id: string, userId: string, translations: T
       return { success: false, error: 'System categories cannot be deleted.' };
     }
 
-    const inUse = await isCategoryInUse(id, userId);
+    const inUse = await isCategoryInUse(id);
     if (inUse) {
       return { success: false, error: translations.categoryInUseError };
     }
-    
+
     const result = await categoriesCollection.deleteOne({ _id: new ObjectId(id), userId });
 
     if (result.deletedCount === 0) {
       return { success: false, error: 'Category not found during deletion.' };
     }
-    
+
     revalidateUserTag(userId, CacheTag.CATEGORIES);
     return { success: true };
 

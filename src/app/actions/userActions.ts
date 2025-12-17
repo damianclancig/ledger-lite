@@ -5,13 +5,13 @@ import { getAuth } from 'firebase-admin/auth';
 import { initAdminApp } from '@/lib/firebase-admin';
 import { getDb } from '@/lib/actions-helpers';
 import { revalidateTag } from 'next/cache';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
-export async function deleteUserAccount(internalUserId: string): Promise<{ success: boolean; error?: string }> {
-  if (!internalUserId) {
-    return { success: false, error: 'User not authenticated.' };
-  }
-
+export async function deleteUserAccount(): Promise<{ success: boolean; error?: string }> {
+  let internalUserId = 'unknown';
   try {
+    const { id } = await getAuthenticatedUser();
+    internalUserId = id;
     const adminApp = initAdminApp();
     const adminAuth = getAuth(adminApp);
     const db = await getDb();

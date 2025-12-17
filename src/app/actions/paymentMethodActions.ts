@@ -3,8 +3,9 @@
 
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
-import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { validateObjectId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import { revalidateUserTag, CacheTag } from '@/lib/cache-helpers';
 import type { PaymentMethod, PaymentMethodFormValues } from '@/types';
 
@@ -18,7 +19,12 @@ async function seedDefaultPaymentMethods(userId: string) {
   await paymentMethodsCollection.insertMany(defaultMethods);
 }
 
-export async function getPaymentMethods(userId: string): Promise<PaymentMethod[]> {
+export async function getPaymentMethods(): Promise<PaymentMethod[]> {
+  const { id } = await getAuthenticatedUser();
+  return getInternalPaymentMethods(id);
+}
+
+export async function getInternalPaymentMethods(userId: string): Promise<PaymentMethod[]> {
   if (!userId) return [];
   try {
     const { paymentMethodsCollection } = await getDb();
@@ -36,7 +42,8 @@ export async function getPaymentMethods(userId: string): Promise<PaymentMethod[]
   }
 }
 
-export async function getPaymentMethodById(id: string, userId: string): Promise<PaymentMethod | null> {
+export async function getPaymentMethodById(id: string): Promise<PaymentMethod | null> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!ObjectId.isValid(id) || !userId) {
     return null;
   }
@@ -50,13 +57,13 @@ export async function getPaymentMethodById(id: string, userId: string): Promise<
   }
 }
 
-export async function addPaymentMethod(data: PaymentMethodFormValues, userId: string): Promise<PaymentMethod | { error: string }> {
+export async function addPaymentMethod(data: PaymentMethodFormValues): Promise<PaymentMethod | { error: string }> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { paymentMethodsCollection } = await getDb();
     const documentToInsert = { ...data, userId };
     const result = await paymentMethodsCollection.insertOne(documentToInsert);
-    
+
     if (!result.insertedId) {
       throw new Error('Failed to insert payment method.');
     }
@@ -72,11 +79,12 @@ export async function addPaymentMethod(data: PaymentMethodFormValues, userId: st
   }
 }
 
-export async function updatePaymentMethod(id: string, data: PaymentMethodFormValues, userId: string): Promise<PaymentMethod | { error: string }> {
+export async function updatePaymentMethod(id: string, data: PaymentMethodFormValues): Promise<PaymentMethod | { error: string }> {
   try {
-    validateUserAndId(userId, id, 'payment method ID');
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'payment method ID');
     const { paymentMethodsCollection } = await getDb();
-    
+
     const updateData: Partial<PaymentMethodFormValues> = { ...data };
     if (data.type !== 'Credit Card') {
       updateData.closingDay = undefined;
@@ -86,7 +94,7 @@ export async function updatePaymentMethod(id: string, data: PaymentMethodFormVal
       { _id: new ObjectId(id), userId },
       { $set: updateData }
     );
-    
+
     if (result.matchedCount === 0) {
       return { error: 'Payment method not found or you do not have permission to edit it.' };
     }

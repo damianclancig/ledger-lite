@@ -28,7 +28,7 @@ export default function AccountSettingsPage() {
   const handleDeleteAccount = async () => {
     if (!dbUser) return;
     setIsDeleting(true);
-    const result = await deleteUserAccount(dbUser.id);
+    const result = await deleteUserAccount();
     if (result.success) {
       // The server action was successful, now redirect to the goodbye page.
       // The goodbye page will handle the final client-side sign-out.

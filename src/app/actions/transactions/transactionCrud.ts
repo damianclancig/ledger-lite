@@ -4,18 +4,25 @@ import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/actions-helpers';
 import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import { revalidateUserTags, TagGroups } from '@/lib/cache-helpers';
 import { formatInstallmentDescription } from '@/lib/installment-helpers';
 import type { Transaction, TransactionFormValues, BillingCycle } from '@/types';
 import { addMonths, endOfMonth } from 'date-fns';
-import { getCurrentBillingCycle } from '../billingCycleActions';
+import { getCurrentBillingCycle, getInternalCurrentBillingCycle } from '../billingCycleActions';
 
 export interface GetTransactionsOptions {
   cycle?: BillingCycle | null;
   limit?: number;
 }
 
-export async function getTransactions(userId: string, options: GetTransactionsOptions = {}): Promise<Transaction[]> {
+
+export async function getTransactions(options: GetTransactionsOptions = {}): Promise<Transaction[]> {
+  const { id } = await getAuthenticatedUser();
+  return getInternalTransactions(id, options);
+}
+
+export async function getInternalTransactions(userId: string, options: GetTransactionsOptions = {}): Promise<Transaction[]> {
   if (!userId) return [];
   try {
     const { transactionsCollection } = await getDb();
@@ -48,7 +55,8 @@ export async function getTransactions(userId: string, options: GetTransactionsOp
   }
 }
 
-export async function getTransactionById(id: string, userId: string): Promise<Transaction | null> {
+export async function getTransactionById(id: string): Promise<Transaction | null> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!ObjectId.isValid(id) || !userId) {
     return null;
   }
@@ -62,12 +70,23 @@ export async function getTransactionById(id: string, userId: string): Promise<Tr
   }
 }
 
-export async function addTransaction(data: TransactionFormValues, userId: string): Promise<Transaction | { error: string }> {
+
+export async function addTransaction(data: TransactionFormValues): Promise<Transaction | { error: string }> {
+  try {
+    const { id } = await getAuthenticatedUser();
+    return addInternalTransaction(data, id);
+  } catch (error) {
+    return handleActionError(error, 'add transaction');
+  }
+}
+
+export async function addInternalTransaction(data: TransactionFormValues, userId: string): Promise<Transaction | { error: string }> {
   try {
     validateUserId(userId);
     const { transactionsCollection, paymentMethodsCollection } = await getDb();
     const { installments, ...transactionData } = data;
-    const currentCycle = await getCurrentBillingCycle(userId);
+    // Use internal function to avoid circular dependency on auth or cookie check
+    const currentCycle = await getInternalCurrentBillingCycle(userId);
     const paymentMethodDoc = await paymentMethodsCollection.findOne({ _id: new ObjectId(data.paymentMethodId), userId });
     const paymentMethod = paymentMethodDoc ? mapMongoDocumentPaymentMethod(paymentMethodDoc) : null;
     const isCardPayment = data.type === 'expense' && paymentMethod?.type === 'Credit Card';
@@ -103,11 +122,11 @@ export async function addTransaction(data: TransactionFormValues, userId: string
 
     revalidateUserTags(userId, TagGroups.TRANSACTION_MUTATION);
 
-    const firstTransaction = await transactionsCollection.findOne({ 
-      userId, 
-      description: installments && installments > 1 
+    const firstTransaction = await transactionsCollection.findOne({
+      userId,
+      description: installments && installments > 1
         ? formatInstallmentDescription(transactionData.description, 1, installments)
-        : transactionData.description 
+        : transactionData.description
     }, { sort: { date: 1 } });
 
     if (!firstTransaction) {
@@ -120,27 +139,28 @@ export async function addTransaction(data: TransactionFormValues, userId: string
   }
 }
 
-export async function updateTransaction(id: string, data: TransactionFormValues, userId: string): Promise<Transaction | { error: string }> {
+export async function updateTransaction(id: string, data: TransactionFormValues): Promise<Transaction | { error: string }> {
   try {
+    const { id: userId } = await getAuthenticatedUser();
     validateUserAndId(userId, id, 'transaction ID');
     const { transactionsCollection } = await getDb();
-    
-    const documentToUpdate = { 
-        ...data, 
-        date: new Date(data.date),
+
+    const documentToUpdate = {
+      ...data,
+      date: new Date(data.date),
     };
 
     const result = await transactionsCollection.updateOne(
       { _id: new ObjectId(id), userId },
       { $set: documentToUpdate }
     );
-    
+
     if (result.matchedCount === 0) {
       return { error: 'Transaction not found or you do not have permission to edit it.' };
     }
 
     revalidateUserTags(userId, TagGroups.TRANSACTION_MUTATION);
-    
+
     const updatedTransaction = await transactionsCollection.findOne({ _id: new ObjectId(id) });
     if (!updatedTransaction) {
       throw new Error('Could not find the updated transaction.');
@@ -151,8 +171,9 @@ export async function updateTransaction(id: string, data: TransactionFormValues,
   }
 }
 
-export async function deleteTransaction(id: string, userId: string): Promise<{ success: boolean; error?: string; deletedGroupId?: string }> {
+export async function deleteTransaction(id: string): Promise<{ success: boolean; error?: string; deletedGroupId?: string }> {
   try {
+    const { id: userId } = await getAuthenticatedUser();
     validateUserAndId(userId, id, 'transaction ID');
     const { transactionsCollection } = await getDb();
 
@@ -183,8 +204,9 @@ export async function deleteTransaction(id: string, userId: string): Promise<{ s
   }
 }
 
-export async function markTaxAsPaid(taxId: string, transactionId: string, userId: string): Promise<{ success: boolean, error?: string }> {
+export async function markTaxAsPaid(taxId: string, transactionId: string): Promise<{ success: boolean, error?: string }> {
   try {
+    const { id: userId } = await getAuthenticatedUser();
     validateUserId(userId);
     const { taxesCollection, transactionsCollection } = await getDb();
 

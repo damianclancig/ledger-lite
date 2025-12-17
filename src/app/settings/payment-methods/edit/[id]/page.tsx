@@ -30,7 +30,7 @@ export default function EditPaymentMethodPage() {
       if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
-        const fetchedMethod = await getPaymentMethodById(id, dbUser.id);
+        const fetchedMethod = await getPaymentMethodById(id);
 
         if (fetchedMethod) {
           setPaymentMethod(fetchedMethod);
@@ -51,7 +51,7 @@ export default function EditPaymentMethodPage() {
   const handleFormSubmit = async (values: PaymentMethodFormValues) => {
     if (!dbUser || !paymentMethod) return;
 
-    const result = await updatePaymentMethod(paymentMethod.id, values, dbUser.id);
+    const result = await updatePaymentMethod(paymentMethod.id, values);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

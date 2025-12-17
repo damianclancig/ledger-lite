@@ -33,8 +33,8 @@ export default function EditTaxPage() {
       setIsLoading(true);
       try {
         const [taxResult, namesResult] = await Promise.all([
-          getTaxById(id, dbUser.id),
-          getUniqueTaxNames(dbUser.id)
+          getTaxById(id),
+          getUniqueTaxNames()
         ]);
 
         if (isErrorResponse(taxResult)) {
@@ -75,7 +75,7 @@ export default function EditTaxPage() {
       amount: values.amount,
       month: values.month,
       year: values.year,
-    }, dbUser.id, translations);
+    }, translations);
 
     if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

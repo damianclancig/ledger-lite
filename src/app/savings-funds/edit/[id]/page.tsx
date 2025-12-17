@@ -30,7 +30,7 @@ export default function EditSavingsFundPage() {
       if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
-        const fetchedFund = await getSavingsFundById(id, dbUser.id);
+        const fetchedFund = await getSavingsFundById(id);
 
         if (fetchedFund) {
           setFund(fetchedFund);
@@ -59,7 +59,7 @@ export default function EditSavingsFundPage() {
       targetDate: values.targetDate ? values.targetDate.toISOString() : undefined,
     };
 
-    const result = await updateSavingsFund(fund.id, formattedValues as any, dbUser.id);
+    const result = await updateSavingsFund(fund.id, formattedValues as any);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

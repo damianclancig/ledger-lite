@@ -1,9 +1,9 @@
 import type { ParsedTransaction } from '@/types';
 import { sendMessage, createConfirmationKeyboard, formatAmount } from './bot';
-import { getCategories } from '@/app/actions/categoryActions';
-import { getPaymentMethods } from '@/app/actions/paymentMethodActions';
-import { getTransactions } from '@/app/actions/transactions/transactionCrud';
-import { getCurrentBillingCycle } from '@/app/actions/billingCycleActions';
+import { getInternalCategories as getCategories } from '@/app/actions/categoryActions';
+import { getInternalPaymentMethods as getPaymentMethods } from '@/app/actions/paymentMethodActions';
+import { getInternalTransactions as getTransactions } from '@/app/actions/transactions/transactionCrud';
+import { getInternalCurrentBillingCycle as getCurrentBillingCycle } from '@/app/actions/billingCycleActions';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -78,7 +78,7 @@ export async function handleCategoriesCommand(
 ): Promise<void> {
   try {
     const categories = await getCategories(userId);
-    
+
     if (categories.length === 0) {
       await sendMessage({
         chatId,
@@ -88,7 +88,7 @@ export async function handleCategoriesCommand(
     }
 
     const enabledCategories = categories.filter(c => c.isEnabled);
-    
+
     let message = '*Categorías disponibles:*\n\n';
     enabledCategories.forEach(category => {
       const icon = category.icon || '📌';
@@ -115,7 +115,7 @@ export async function handlePaymentMethodsCommand(
 ): Promise<void> {
   try {
     const methods = await getPaymentMethods(userId);
-    
+
     if (methods.length === 0) {
       await sendMessage({
         chatId,
@@ -125,14 +125,14 @@ export async function handlePaymentMethodsCommand(
     }
 
     const enabledMethods = methods.filter(m => m.isEnabled);
-    
+
     let message = '*Métodos de pago disponibles:*\n\n';
     enabledMethods.forEach(method => {
-      const typeEmoji = method.type === 'Cash' ? '💵' : 
-                       method.type === 'Credit Card' ? '💳' :
-                       method.type === 'Debit Card' ? '💳' :
-                       method.type === 'Bank Transfer' ? '🏦' :
-                       method.type === 'VirtualWallet' ? '📱' : '💰';
+      const typeEmoji = method.type === 'Cash' ? '💵' :
+        method.type === 'Credit Card' ? '💳' :
+          method.type === 'Debit Card' ? '💳' :
+            method.type === 'Bank Transfer' ? '🏦' :
+              method.type === 'VirtualWallet' ? '📱' : '💰';
       message += `${typeEmoji} ${method.name} (${method.type})\n`;
     });
 
@@ -156,7 +156,7 @@ export async function handleSummaryCommand(
 ): Promise<void> {
   try {
     const currentCycle = await getCurrentBillingCycle(userId);
-    
+
     if (!currentCycle) {
       await sendMessage({
         chatId,
@@ -166,7 +166,7 @@ export async function handleSummaryCommand(
     }
 
     const transactions = await getTransactions(userId, { cycle: currentCycle });
-    
+
     const today = new Date();
     const todayTransactions = transactions.filter(t => {
       const tDate = new Date(t.date);
@@ -176,7 +176,7 @@ export async function handleSummaryCommand(
     const todayIncome = todayTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const todayExpenses = todayTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -184,7 +184,7 @@ export async function handleSummaryCommand(
     const cycleIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const cycleExpenses = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -192,7 +192,7 @@ export async function handleSummaryCommand(
     const cycleBalance = cycleIncome - cycleExpenses;
 
     const cycleStart = format(new Date(currentCycle.startDate), 'dd/MM/yyyy', { locale: es });
-    const cycleEnd = currentCycle.endDate 
+    const cycleEnd = currentCycle.endDate
       ? format(new Date(currentCycle.endDate), 'dd/MM/yyyy', { locale: es })
       : 'Actual';
 
@@ -201,7 +201,7 @@ export async function handleSummaryCommand(
     message += `💰 Ingresos: ${formatAmount(todayIncome)}\n`;
     message += `💸 Gastos: ${formatAmount(todayExpenses)}\n`;
     message += `📈 Balance: ${formatAmount(todayIncome - todayExpenses)}\n\n`;
-    
+
     message += `*Ciclo actual (${cycleStart} - ${cycleEnd}):*\n`;
     message += `💰 Ingresos: ${formatAmount(cycleIncome)}\n`;
     message += `💸 Gastos: ${formatAmount(cycleExpenses)}\n`;
@@ -235,24 +235,24 @@ export async function showTransactionConfirmation(
 ): Promise<void> {
   const typeEmoji = transaction.type === 'income' ? '💰' : '💸';
   const typeText = transaction.type === 'income' ? 'Ingreso' : 'Gasto';
-  
+
   let message = `${typeEmoji} *${typeText}*\n\n`;
   message += `💵 Monto: ${formatAmount(transaction.amount)}\n`;
   message += `📝 Descripción: ${transaction.description}\n`;
-  
+
   if (transaction.category) {
     message += `🏷️ Categoría: ${transaction.category}\n`;
   }
-  
+
   if (transaction.paymentMethod) {
     message += `💳 Método de pago: ${transaction.paymentMethod}\n`;
   }
-  
+
   const confidencePercent = Math.round(transaction.confidence * 100);
   if (transaction.confidence < 0.7) {
     message += `\n⚠️ Confianza: ${confidencePercent}% - Por favor verifica los datos\n`;
   }
-  
+
   message += `\n¿Confirmas esta transacción?`;
 
   await sendMessage({

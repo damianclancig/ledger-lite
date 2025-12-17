@@ -39,7 +39,7 @@ export default function ManagePaymentMethodsPage() {
     async function loadData() {
       if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
-      const userMethods = await getPaymentMethods(dbUser.id);
+      const userMethods = await getPaymentMethods();
       setPaymentMethods(userMethods);
       setIsLoading(false);
     }
@@ -59,13 +59,13 @@ export default function ManagePaymentMethodsPage() {
       closingDay: method.closingDay,
       isEnabled: !method.isEnabled
     };
-    const result = await updatePaymentMethod(method.id, values, dbUser.id);
+    const result = await updatePaymentMethod(method.id, values);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.paymentMethodUpdatedSuccess });
-      const userMethods = await getPaymentMethods(dbUser.id);
+      const userMethods = await getPaymentMethods();
       setPaymentMethods(userMethods);
     }
   };

@@ -32,8 +32,8 @@ export default function EditCategoryPage() {
       setIsLoading(true);
       try {
         const [fetchedCategory, inUse] = await Promise.all([
-          getCategoryById(id, dbUser.id),
-          isCategoryInUse(id, dbUser.id),
+          getCategoryById(id),
+          isCategoryInUse(id),
         ]);
 
         if (fetchedCategory) {
@@ -61,7 +61,7 @@ export default function EditCategoryPage() {
   const handleFormSubmit = async (values: CategoryFormValues) => {
     if (!dbUser || !category) return;
 
-    const result = await updateCategory(category.id, values, dbUser.id, translations);
+    const result = await updateCategory(category.id, values, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -74,7 +74,7 @@ export default function EditCategoryPage() {
   const handleDelete = async () => {
     if (!dbUser || !category || !isDeletable) return;
 
-    const result = await deleteCategory(category.id, dbUser.id, translations);
+    const result = await deleteCategory(category.id, translations);
     if (result.success) {
       toast({ title: translations.categoryDeletedSuccess, variant: 'destructive' });
       router.push("/settings/categories");

@@ -4,8 +4,10 @@ import { getDb, mapMongoDocument, mapMongoDocumentPaymentMethod } from '@/lib/ac
 import { parseInstallmentDescription } from '@/lib/installment-helpers';
 import type { InstallmentDetail, CompletedInstallmentDetail, PaymentMethod, Transaction } from '@/types';
 import { isFuture, isSameMonth, isPast } from 'date-fns';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
-async function getPaymentMethodsForInstallments(userId: string): Promise<PaymentMethod[]> {
+async function getPaymentMethodsForInstallments(): Promise<PaymentMethod[]> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!userId) return [];
   try {
     const { paymentMethodsCollection } = await getDb();
@@ -17,12 +19,13 @@ async function getPaymentMethodsForInstallments(userId: string): Promise<Payment
   }
 }
 
-export async function getInstallmentDetails(userId: string): Promise<{ pendingDetails: InstallmentDetail[], completedDetails: CompletedInstallmentDetail[], totalPending: number, totalForCurrentMonth: number }> {
+export async function getInstallmentDetails(): Promise<{ pendingDetails: InstallmentDetail[], completedDetails: CompletedInstallmentDetail[], totalPending: number, totalForCurrentMonth: number }> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!userId) return { pendingDetails: [], completedDetails: [], totalPending: 0, totalForCurrentMonth: 0 };
 
   try {
     const { transactionsCollection } = await getDb();
-    const paymentMethods = await getPaymentMethodsForInstallments(userId);
+    const paymentMethods = await getPaymentMethodsForInstallments();
     const paymentMethodMap = new Map(paymentMethods.map(pm => [pm.id, pm]));
 
     const installmentTransactions = await transactionsCollection.find({
@@ -57,11 +60,11 @@ export async function getInstallmentDetails(userId: string): Promise<{ pendingDe
       const lastInstallment = group[group.length - 1];
       const totalInstallments = group.length;
       const purchaseAmount = group.reduce((sum, item) => sum + item.amount, 0);
-      
+
       // Use installment helper to parse description
       const parsed = parseInstallmentDescription(firstInstallment.description);
       const baseDescription = parsed ? parsed.baseDescription : firstInstallment.description;
-      
+
       const paymentMethod = paymentMethodMap.get(firstInstallment.paymentMethodId);
       const paymentMethodName = paymentMethod ? `${paymentMethod.name} ${paymentMethod.bank ? `(${paymentMethod.bank})` : ''}`.trim() : 'Unknown';
 

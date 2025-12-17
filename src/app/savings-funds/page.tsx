@@ -58,9 +58,9 @@ export default function SavingsFundsPage() {
       }
       setIsLoading(true);
       const [userFunds, userCategories, userPaymentMethods] = await Promise.all([
-        getSavingsFunds(dbUser.id),
-        getCategories(dbUser.id),
-        getPaymentMethods(dbUser.id),
+        getSavingsFunds(),
+        getCategories(),
+        getPaymentMethods(),
       ]);
       setFunds(userFunds);
       setCategories(userCategories.filter(c => c.isEnabled && c.name === 'Savings'));
@@ -89,7 +89,7 @@ export default function SavingsFundsPage() {
 
   const confirmDeleteEmptyFund = async () => {
     if (fundToProcess && dbUser) {
-      const result = await deleteSavingsFund(fundToProcess.id, dbUser.id, translations);
+      const result = await deleteSavingsFund(fundToProcess.id, translations);
       if (result.success) {
         setFunds(funds.filter((f) => f.id !== fundToProcess.id));
         toast({ title: translations.savingsFundDeletedSuccess });
@@ -103,7 +103,7 @@ export default function SavingsFundsPage() {
 
   const confirmCloseFund = async (paymentMethodId: string) => {
     if (fundToProcess && dbUser) {
-      const result = await deleteSavingsFund(fundToProcess.id, dbUser.id, translations, paymentMethodId);
+      const result = await deleteSavingsFund(fundToProcess.id, translations, paymentMethodId);
       if (result.success) {
         setFunds(funds.filter((f) => f.id !== fundToProcess.id));
         toast({ title: translations.savingsFundDeletedSuccess });
@@ -122,7 +122,7 @@ export default function SavingsFundsPage() {
 
   const handleTransferSuccess = async () => {
     if (dbUser) {
-      const userFunds = await getSavingsFunds(dbUser.id);
+      const userFunds = await getSavingsFunds();
       setFunds(userFunds);
     }
   };

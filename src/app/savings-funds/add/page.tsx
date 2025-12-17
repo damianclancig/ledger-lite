@@ -28,7 +28,7 @@ export default function AddSavingsFundPage() {
       targetDate: values.targetDate ? values.targetDate.toISOString() : undefined,
     };
 
-    const result = await addSavingsFund(formattedValues as any, dbUser.id);
+    const result = await addSavingsFund(formattedValues as any);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

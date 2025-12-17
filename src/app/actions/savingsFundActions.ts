@@ -4,26 +4,28 @@
 import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentSavingsFund } from '@/lib/actions-helpers';
 import { calculateFundCurrentAmount } from '@/lib/database-helpers';
-import { validateUserId, validateUserAndId } from '@/lib/validation-helpers';
+import { validateObjectId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import { revalidateUserTags, revalidateUserTag, CacheTag, TagGroups } from '@/lib/cache-helpers';
 import type { SavingsFund, SavingsFundFormValues, Translations, Transaction } from '@/types';
 import { addTransaction } from './transactions';
 
-export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
+export async function getSavingsFunds(): Promise<SavingsFund[]> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!userId) return [];
   try {
     const { savingsFundsCollection, transactionsCollection } = await getDb();
     const funds = await savingsFundsCollection.find({ userId }).sort({ name: 1 }).toArray();
 
     const fundsWithCurrentAmount = await Promise.all(funds.map(async (fund) => {
-        const fundIdStr = fund._id.toString();
-        const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
-        
-        return {
-            ...mapMongoDocumentSavingsFund(fund),
-            currentAmount,
-        };
+      const fundIdStr = fund._id.toString();
+      const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
+
+      return {
+        ...mapMongoDocumentSavingsFund(fund),
+        currentAmount,
+      };
     }));
 
     return fundsWithCurrentAmount;
@@ -34,49 +36,50 @@ export async function getSavingsFunds(userId: string): Promise<SavingsFund[]> {
 }
 
 
-export async function getSavingsFundById(id: string, userId: string): Promise<SavingsFund | null> {
-    if (!ObjectId.isValid(id) || !userId) {
-      return null;
-    }
-    try {
-      const { savingsFundsCollection, transactionsCollection } = await getDb();
-      const fund = await savingsFundsCollection.findOne({ _id: new ObjectId(id), userId });
-      if (!fund) return null;
-  
-      const fundIdStr = fund._id.toString();
-      const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
-      
-      return {
-        ...mapMongoDocumentSavingsFund(fund),
-        currentAmount,
-      };
-    } catch (error) {
-      console.error('Error fetching savings fund by ID:', error);
-      return null;
-    }
+export async function getSavingsFundById(id: string): Promise<SavingsFund | null> {
+  const { id: userId } = await getAuthenticatedUser();
+  if (!ObjectId.isValid(id) || !userId) {
+    return null;
+  }
+  try {
+    const { savingsFundsCollection, transactionsCollection } = await getDb();
+    const fund = await savingsFundsCollection.findOne({ _id: new ObjectId(id), userId });
+    if (!fund) return null;
+
+    const fundIdStr = fund._id.toString();
+    const currentAmount = await calculateFundCurrentAmount(userId, fundIdStr, transactionsCollection);
+
+    return {
+      ...mapMongoDocumentSavingsFund(fund),
+      currentAmount,
+    };
+  } catch (error) {
+    console.error('Error fetching savings fund by ID:', error);
+    return null;
+  }
 }
 
-export async function addSavingsFund(data: SavingsFundFormValues, userId: string): Promise<SavingsFund | { error: string }> {
+export async function addSavingsFund(data: SavingsFundFormValues): Promise<SavingsFund | { error: string }> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { savingsFundsCollection } = await getDb();
-    
-    const documentToInsert = { 
-        ...data, 
-        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
-        userId,
+
+    const documentToInsert = {
+      ...data,
+      targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+      userId,
     };
-    
+
     const result = await savingsFundsCollection.insertOne(documentToInsert);
-    
+
     if (!result.insertedId) {
       throw new Error('Failed to insert savings fund.');
     }
 
     revalidateUserTag(userId, CacheTag.SAVINGS_FUNDS);
     const newFund = await savingsFundsCollection.findOne({ _id: result.insertedId });
-     if (!newFund) {
-        throw new Error('Could not find the newly created savings fund.');
+    if (!newFund) {
+      throw new Error('Could not find the newly created savings fund.');
     }
     return { ...mapMongoDocumentSavingsFund(newFund), currentAmount: 0 };
   } catch (error) {
@@ -84,29 +87,30 @@ export async function addSavingsFund(data: SavingsFundFormValues, userId: string
   }
 }
 
-export async function updateSavingsFund(id: string, data: SavingsFundFormValues, userId: string): Promise<SavingsFund | { error: string }> {
+export async function updateSavingsFund(id: string, data: SavingsFundFormValues): Promise<SavingsFund | { error: string }> {
   try {
-    validateUserAndId(userId, id, 'savings fund ID');
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'savings fund ID');
     const { savingsFundsCollection } = await getDb();
-    
-    const documentToUpdate = { 
-        ...data, 
-        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+
+    const documentToUpdate = {
+      ...data,
+      targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
     };
 
     const result = await savingsFundsCollection.updateOne(
       { _id: new ObjectId(id), userId },
       { $set: documentToUpdate }
     );
-    
+
     if (result.matchedCount === 0) {
       return { error: 'Savings fund not found or you do not have permission to edit it.' };
     }
 
     revalidateUserTag(userId, CacheTag.SAVINGS_FUNDS);
     const updatedFund = await savingsFundsCollection.findOne({ _id: new ObjectId(id) });
-     if (!updatedFund) {
-        throw new Error('Could not find the updated savings fund.');
+    if (!updatedFund) {
+      throw new Error('Could not find the updated savings fund.');
     }
     return mapMongoDocumentSavingsFund(updatedFund);
   } catch (error) {
@@ -114,103 +118,104 @@ export async function updateSavingsFund(id: string, data: SavingsFundFormValues,
   }
 }
 
-export async function deleteSavingsFund(id: string, userId: string, translations: Translations, paymentMethodId?: string): Promise<{ success: boolean; error?: string }> {
-    if (!ObjectId.isValid(id)) {
-      return { success: false, error: 'Invalid savings fund ID.' };
+export async function deleteSavingsFund(id: string, translations: Translations, paymentMethodId?: string): Promise<{ success: boolean; error?: string }> {
+  if (!ObjectId.isValid(id)) {
+    return { success: false, error: 'Invalid savings fund ID.' };
+  }
+  const { id: userId } = await getAuthenticatedUser();
+  if (!userId) return { success: false, error: 'User not authenticated.' };
+  try {
+    const { savingsFundsCollection, transactionsCollection, categoriesCollection } = await getDb();
+
+    const fundToDelete = await getSavingsFundById(id);
+    if (!fundToDelete) {
+      return { success: false, error: 'Savings fund not found or you do not have permission to delete it.' };
     }
-    if (!userId) return { success: false, error: 'User not authenticated.' };
-    try {
-      const { savingsFundsCollection, transactionsCollection, categoriesCollection } = await getDb();
-      
-      const fundToDelete = await getSavingsFundById(id, userId);
-      if (!fundToDelete) {
-        return { success: false, error: 'Savings fund not found or you do not have permission to delete it.' };
+
+    if (fundToDelete.currentAmount > 0) {
+      if (!paymentMethodId) {
+        return { success: false, error: translations.paymentMethodRequired };
       }
 
-      if (fundToDelete.currentAmount > 0) {
-        if (!paymentMethodId) {
-          return { success: false, error: translations.paymentMethodRequired };
-        }
-        
-        const transferCategory = await categoriesCollection.findOne({ userId, name: "Savings" });
-        if (!transferCategory) throw new Error(translations.deleteFundErrorTransferCategory);
-        
-        await addTransaction({
-          amount: fundToDelete.currentAmount,
-          categoryId: transferCategory._id.toString(),
-          date: new Date(),
-          description: translations.deleteFundDescription.replace('{fundName}', fundToDelete.name),
-          paymentMethodId: paymentMethodId,
-          type: 'income',
-        }, userId);
-      }
-      
-      await transactionsCollection.deleteMany({ userId, savingsFundId: id });
-  
-      const result = await savingsFundsCollection.deleteOne({ _id: new ObjectId(id), userId });
-      
-      if (result.deletedCount === 0) {
-        return { success: false, error: 'Savings fund not found or you do not have permission to delete it.' };
-      }
-  
-      revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting savings fund:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      return { success: false, error: `${errorMessage}` };
+      const transferCategory = await categoriesCollection.findOne({ userId, name: "Savings" });
+      if (!transferCategory) throw new Error(translations.deleteFundErrorTransferCategory);
+
+      await addTransaction({
+        amount: fundToDelete.currentAmount,
+        categoryId: transferCategory._id.toString(),
+        date: new Date(),
+        description: translations.deleteFundDescription.replace('{fundName}', fundToDelete.name),
+        paymentMethodId: paymentMethodId,
+        type: 'income',
+      });
     }
+
+    await transactionsCollection.deleteMany({ userId, savingsFundId: id });
+
+    const result = await savingsFundsCollection.deleteOne({ _id: new ObjectId(id), userId });
+
+    if (result.deletedCount === 0) {
+      return { success: false, error: 'Savings fund not found or you do not have permission to delete it.' };
+    }
+
+    revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting savings fund:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: `${errorMessage}` };
+  }
 }
 
 export async function transferToFund(
-    values: { amount: number; description: string; paymentMethodId: string; categoryId: string; fundId: string; date: Date },
-    userId: string
-  ): Promise<{ success: boolean; error?: string }> {
-    if (!userId) return { success: false, error: 'User not authenticated.' };
+  values: { amount: number; description: string; paymentMethodId: string; categoryId: string; fundId: string; date: Date }
+): Promise<{ success: boolean; error?: string }> {
+  const { id: userId } = await getAuthenticatedUser();
+  if (!userId) return { success: false, error: 'User not authenticated.' };
 
-    try {
-        await addTransaction({
-            amount: values.amount,
-            categoryId: values.categoryId,
-            date: values.date,
-            description: values.description,
-            paymentMethodId: values.paymentMethodId,
-            type: 'deposit',
-            savingsFundId: values.fundId,
-        }, userId);
+  try {
+    await addTransaction({
+      amount: values.amount,
+      categoryId: values.categoryId,
+      date: values.date,
+      description: values.description,
+      paymentMethodId: values.paymentMethodId,
+      type: 'deposit',
+      savingsFundId: values.fundId,
+    });
 
-        revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
-        return { success: true };
+    revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
+    return { success: true };
 
-    } catch (error) {
-        console.error('Error transferring to fund:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return { success: false, error: `Failed to transfer to fund. ${errorMessage}` };
-    }
+  } catch (error) {
+    console.error('Error transferring to fund:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: `Failed to transfer to fund. ${errorMessage}` };
+  }
 }
 
 export async function withdrawFromFund(
-    values: { amount: number; description: string; paymentMethodId: string; categoryId: string; fundId: string; date: Date },
-    userId: string
+  values: { amount: number; description: string; paymentMethodId: string; categoryId: string; fundId: string; date: Date }
 ): Promise<{ success: boolean; error?: string }> {
-    if (!userId) return { success: false, error: 'User not authenticated.' };
-    try {
-        await addTransaction({
-            amount: values.amount,
-            categoryId: values.categoryId,
-            date: values.date,
-            description: values.description,
-            paymentMethodId: values.paymentMethodId,
-            type: 'withdrawal',
-            savingsFundId: values.fundId,
-        }, userId);
+  const { id: userId } = await getAuthenticatedUser();
+  if (!userId) return { success: false, error: 'User not authenticated.' };
+  try {
+    await addTransaction({
+      amount: values.amount,
+      categoryId: values.categoryId,
+      date: values.date,
+      description: values.description,
+      paymentMethodId: values.paymentMethodId,
+      type: 'withdrawal',
+      savingsFundId: values.fundId,
+    });
 
-        revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
-        return { success: true };
+    revalidateUserTags(userId, TagGroups.SAVINGS_FUND_MUTATION);
+    return { success: true };
 
-    } catch (error) {
-        console.error('Error withdrawing from fund:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return { success: false, error: `Failed to withdraw from fund. ${errorMessage}` };
-    }
+  } catch (error) {
+    console.error('Error withdrawing from fund:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: `Failed to withdraw from fund. ${errorMessage}` };
+  }
 }
