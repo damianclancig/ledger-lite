@@ -7,19 +7,18 @@ import { subMonths, setDate, startOfDay, endOfDay, isAfter } from 'date-fns';
 import { validateUserId } from '@/lib/validation-helpers';
 import { handleActionError, type ErrorResponse } from '@/lib/error-helpers';
 import { revalidateUserTags, CacheTag } from '@/lib/cache-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
-export async function getCardSummaries(
-  userId: string
-): Promise<{ pendingSummaries: CardSummary[], paidSummaries: PaidSummary[] } | ErrorResponse> {
+export async function getCardSummaries(): Promise<{ pendingSummaries: CardSummary[], paidSummaries: PaidSummary[] } | ErrorResponse> {
   try {
-    validateUserId(userId);
-    
+    const { id: userId } = await getAuthenticatedUser();
+
     const { transactionsCollection, paymentMethodsCollection } = await getDb();
 
     const creditCards: PaymentMethod[] = (
       await paymentMethodsCollection.find({ userId, type: 'Credit Card' }).toArray()
     ).map(mapMongoDocumentPaymentMethod);
-    
+
     const pendingSummaries: CardSummary[] = [];
     if (creditCards.length > 0) {
       const now = new Date();
@@ -30,7 +29,7 @@ export async function getCardSummaries(
 
         if (card.closingDay) {
           const closingDay = card.closingDay;
-          
+
           endDate = setDate(now, closingDay);
           endDate = endOfDay(endDate);
 
@@ -45,9 +44,9 @@ export async function getCardSummaries(
           }
         } else {
           endDate = now;
-          startDate = new Date(0); 
+          startDate = new Date(0);
         }
-        
+
         const transactionsForCycle = await transactionsCollection.find({
           userId,
           cardId: card.id,
@@ -70,7 +69,7 @@ export async function getCardSummaries(
         }
       }
     }
-    
+
     // Fetch paid summaries
     const sixMonthsAgo = subMonths(new Date(), 6);
     const paidSummaryPayments = await transactionsCollection.find({
@@ -86,7 +85,7 @@ export async function getCardSummaries(
       amount: tx.amount
     }));
 
-    return { 
+    return {
       pendingSummaries: pendingSummaries.sort((a, b) => b.totalAmount - a.totalAmount),
       paidSummaries
     };
@@ -96,7 +95,6 @@ export async function getCardSummaries(
 }
 
 export async function payCardSummary(
-  userId: string,
   cardId: string,
   paymentAmount: number,
   paymentDate: Date,
@@ -106,8 +104,8 @@ export async function payCardSummary(
   cycleEndDate?: string
 ): Promise<{ success: true } | ErrorResponse> {
   try {
-    validateUserId(userId);
-    
+    const { id: userId } = await getAuthenticatedUser();
+
     const { transactionsCollection, categoriesCollection } = await getDb();
 
     let paymentCategory = await categoriesCollection.findOne({ userId, name: "Taxes" });
@@ -132,18 +130,18 @@ export async function payCardSummary(
       isSummaryPayment: true,
     };
     const insertResult = await transactionsCollection.insertOne(paymentTransaction);
-    
+
     if (!insertResult.insertedId) {
       throw new Error('Failed to create payment transaction.');
     }
-    
+
     const filter: any = {
       userId,
       cardId,
       isPaid: false,
       isCardPayment: true,
     };
-    
+
     if (cycleStartDate && cycleEndDate) {
       filter.date = {
         $gte: new Date(cycleStartDate),

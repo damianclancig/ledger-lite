@@ -49,7 +49,7 @@ export default function TaxesPage() {
         return;
       }
       setIsLoading(true);
-      const result = await getTaxes(dbUser.id);
+      const result = await getTaxes();
       if (isErrorResponse(result)) {
         console.error('Error loading taxes:', result.error);
         setTaxes([]);

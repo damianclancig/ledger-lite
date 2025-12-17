@@ -41,8 +41,8 @@ export default function CardSummariesPage() {
         setIsLoading(true);
         try {
             const [summariesResult, fetchedPaymentMethods] = await Promise.all([
-                getCardSummaries(dbUser.id),
-                getPaymentMethods(dbUser.id),
+                getCardSummaries(),
+                getPaymentMethods(),
             ]);
 
             if (isErrorResponse(summariesResult)) {
@@ -79,7 +79,6 @@ export default function CardSummariesPage() {
         const description = translations.paymentForCardSummary.replace('{cardName}', selectedSummary.cardName);
 
         const result = await payCardSummary(
-            dbUser.id,
             selectedSummary.cardId,
             values.amount,
             values.date,

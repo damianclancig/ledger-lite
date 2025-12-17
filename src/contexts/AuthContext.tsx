@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "./LanguageContext";
 import { syncUser } from "@/app/actions/authActions";
+import { createSession, deleteSession } from "@/app/actions/sessionActions";
 import type { User } from "@/types";
 
 interface AuthContextType {
@@ -52,6 +53,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsSyncing(true);
         try {
           const token = await user.getIdToken();
+
+          // Create session cookie for server actions
+          await createSession(token);
+
           const result = await syncUser(token);
           if (result.success && result.user) {
             setDbUser(result.user);
@@ -89,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = useCallback(async (redirectPath: string = '/', options: { noRedirect?: boolean } = {}) => {
     try {
       await firebaseSignOut(auth);
+      await deleteSession();
       setUser(null);
       setDbUser(null);
       if (!options.noRedirect) {

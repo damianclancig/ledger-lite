@@ -2,15 +2,16 @@
 
 import { ObjectId } from 'mongodb';
 import { getDb } from '@/lib/actions-helpers';
-import { validateUserId } from '@/lib/validation-helpers';
 import { handleActionError } from '@/lib/error-helpers';
 import { revalidateUserTags, CacheTag } from '@/lib/cache-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import { parseInstallmentDescription, formatInstallmentDescription } from '@/lib/installment-helpers';
 import type { Transaction, TransactionFormValues } from '@/types';
 import { addMonths } from 'date-fns';
 import { getCurrentBillingCycle } from '../billingCycleActions';
 
-export async function getInstallmentPurchaseByGroupId(groupId: string, userId: string): Promise<Partial<Transaction> | null> {
+export async function getInstallmentPurchaseByGroupId(groupId: string): Promise<Partial<Transaction> | null> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!groupId || !userId) {
     return null;
   }
@@ -27,7 +28,7 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
     const firstInstallment = groupTransactions[0];
     const totalAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalInstallments = groupTransactions.length;
-    
+
     // Use installment helper to parse description
     const parsed = parseInstallmentDescription(firstInstallment.description);
     const baseDescription = parsed ? parsed.baseDescription : firstInstallment.description;
@@ -49,19 +50,19 @@ export async function getInstallmentPurchaseByGroupId(groupId: string, userId: s
   }
 }
 
-export async function updateInstallmentPurchase(groupId: string, data: TransactionFormValues, userId: string): Promise<{ success: boolean; error?: string }> {
+export async function updateInstallmentPurchase(groupId: string, data: TransactionFormValues): Promise<{ success: boolean; error?: string }> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     if (!groupId) {
       return { success: false, error: 'Invalid group ID.' };
     }
-    
+
     const { transactionsCollection } = await getDb();
 
     await transactionsCollection.deleteMany({ userId, groupId });
 
     const { installments, ...transactionData } = data;
-    const currentCycle = await getCurrentBillingCycle(userId);
+    const currentCycle = await getCurrentBillingCycle();
     const baseTransaction = {
       ...transactionData,
       userId,

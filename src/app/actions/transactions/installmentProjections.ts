@@ -5,12 +5,15 @@ import { validateUserId } from '@/lib/validation-helpers';
 import type { InstallmentProjection } from '@/types';
 import { addMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 
-export async function getInstallmentProjections(userId: string): Promise<InstallmentProjection[]> {
+import { getAuthenticatedUser } from '@/lib/auth-server';
+
+export async function getInstallmentProjections(): Promise<InstallmentProjection[]> {
+  const { id: userId } = await getAuthenticatedUser();
   if (!userId) return [];
   try {
     const { transactionsCollection } = await getDb();
     const now = new Date();
-    
+
     // Calculate range: 6 months back and 6 months forward from current month
     const rangeStart = startOfMonth(addMonths(now, -6));
     const rangeEnd = endOfMonth(addMonths(now, 6));

@@ -114,7 +114,7 @@ export default function DashboardPage() {
         }
       }
 
-      const data = await getDashboardData(dbUser.id, cycleId);
+      const data = await getDashboardData(cycleId);
 
       if (!data.currentCycle && data.totalCyclesCount === 0) {
         router.push('/welcome');
@@ -189,7 +189,7 @@ export default function DashboardPage() {
 
   const handleStartNewCycle = async (startDate: Date) => {
     if (!dbUser) return;
-    const result = await startNewCycle(dbUser.id, startDate);
+    const result = await startNewCycle(startDate);
     if ('error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
@@ -217,7 +217,7 @@ export default function DashboardPage() {
 
   const confirmDelete = async () => {
     if (deletingTransaction && dbUser) {
-      const result = await deleteTransaction(deletingTransaction.id, dbUser.id);
+      const result = await deleteTransaction(deletingTransaction.id);
       if (result.success) {
         loadDataForCycle(selectedCycle);
         toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });

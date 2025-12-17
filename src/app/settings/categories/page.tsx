@@ -40,7 +40,7 @@ export default function ManageCategoriesPage() {
     async function loadCategories() {
       if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
-      const userCategories = await getCategories(dbUser.id);
+      const userCategories = await getCategories();
       setCategories(userCategories);
       setIsLoading(false);
     }
@@ -54,13 +54,13 @@ export default function ManageCategoriesPage() {
 
   const handleToggleEnabled = async (category: Category) => {
     if (!dbUser || category.isSystem) return;
-    const result = await updateCategory(category.id, { name: category.name, icon: category.icon, isEnabled: !category.isEnabled }, dbUser.id, translations);
+    const result = await updateCategory(category.id, { name: category.name, icon: category.icon, isEnabled: !category.isEnabled }, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.categoryUpdatedSuccess });
-      const userCategories = await getCategories(dbUser.id);
+      const userCategories = await getCategories();
       setCategories(userCategories);
     }
   };

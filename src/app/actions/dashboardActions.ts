@@ -11,14 +11,14 @@ import { getDb } from '@/lib/actions-helpers';
 import { validateUserId } from '@/lib/validation-helpers';
 import { type ErrorResponse, isErrorResponse } from '@/lib/error-types';
 import { handleActionError } from '@/lib/error-helpers';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
 export async function getBudgetInsights(
-  userId: string, 
-  startDate: Date, 
+  startDate: Date,
   endDate: Date
 ): Promise<Pick<BudgetInsights, 'dailyAverage7Days' | 'weeklyExpensesTotal' | 'weeklyAverage28Days' | 'dailyExpenses'> | ErrorResponse> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { transactionsCollection } = await getDb();
     const twentyEightDaysAgoStart = subDays(startOfToday(), 27);
 
@@ -56,12 +56,11 @@ export async function getBudgetInsights(
 }
 
 async function getExpensesByCategory(
-  userId: string, 
-  startDate: Date, 
+  startDate: Date,
   endDate: Date
 ): Promise<Array<{ categoryId: string; name: string; isSystem: boolean; total: number; icon?: string }> | ErrorResponse> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { transactionsCollection } = await getDb();
     const pipeline = [
       {
@@ -175,10 +174,8 @@ const calculateCycleBudgetInsights = (transactions: Transaction[], currentCycle:
   };
 };
 
-export async function getDashboardData(userId: string, cycleId: string | null) {
-  if (!userId) {
-    throw new Error("User not authenticated.");
-  }
+export async function getDashboardData(cycleId: string | null) {
+  const { id: userId } = await getAuthenticatedUser();
 
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
@@ -193,17 +190,17 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     weeklyInsightsResult,
     installmentProjection,
   ] = await Promise.all([
-    getPaymentMethods(userId),
-    getSavingsFunds(userId),
-    getCurrentBillingCycle(userId),
-    getBillingCycles(userId),
-    getCategories(userId),
-    getBudgetInsights(userId, sevenDaysAgoStart, todayEnd),
-    getInstallmentProjections(userId),
+    getPaymentMethods(),
+    getSavingsFunds(),
+    getCurrentBillingCycle(),
+    getBillingCycles(),
+    getCategories(),
+    getBudgetInsights(sevenDaysAgoStart, todayEnd),
+    getInstallmentProjections(),
   ]);
 
   // Handle potential errors from getBudgetInsights
-  const weeklyInsights = isErrorResponse(weeklyInsightsResult) 
+  const weeklyInsights = isErrorResponse(weeklyInsightsResult)
     ? { dailyAverage7Days: 0, weeklyExpensesTotal: 0, weeklyAverage28Days: 0, dailyExpenses: [] }
     : weeklyInsightsResult;
 
@@ -216,7 +213,7 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     }
   }
 
-  const transactionsForCycle = await getTransactions(userId, { cycle: activeCycle });
+  const transactionsForCycle = await getTransactions({ cycle: activeCycle });
 
   const cycleStartDate = activeCycle ? new Date(activeCycle.startDate) : new Date(0);
   let cycleEndDate;
@@ -228,8 +225,8 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     cycleEndDate = endOfMonth(new Date());
   }
 
-  const expensesByCategoryResult = await getExpensesByCategory(userId, cycleStartDate, cycleEndDate);
-  
+  const expensesByCategoryResult = await getExpensesByCategory(cycleStartDate, cycleEndDate);
+
   // Handle potential errors from getExpensesByCategory
   const expensesByCategory = isErrorResponse(expensesByCategoryResult)
     ? []
@@ -241,7 +238,7 @@ export async function getDashboardData(userId: string, cycleId: string | null) {
     const selectedCycleIndex = billingCycles.findIndex(c => c.id === activeCycle!.id);
     if (selectedCycleIndex > -1 && selectedCycleIndex + 1 < billingCycles.length) {
       const previousCycle = billingCycles[selectedCycleIndex + 1];
-      const transactionsForPreviousCycle = await getTransactions(userId, { cycle: previousCycle });
+      const transactionsForPreviousCycle = await getTransactions({ cycle: previousCycle });
       const prevIncome = transactionsForPreviousCycle.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
       // Exclude credit card purchases from previous cycle expenses
       const prevExpenses = transactionsForPreviousCycle.filter(t => t.type === 'expense' && t.isCardPayment !== true).reduce((sum, t) => sum + t.amount, 0);

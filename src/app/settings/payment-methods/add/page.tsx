@@ -22,7 +22,7 @@ export default function AddPaymentMethodPage() {
       return;
     }
 
-    const result = await addPaymentMethod(values, dbUser.id);
+    const result = await addPaymentMethod(values);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

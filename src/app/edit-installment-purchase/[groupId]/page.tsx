@@ -35,9 +35,9 @@ export default function EditInstallmentPurchasePage() {
       setIsLoading(true);
       try {
         const [fetchedPurchase, userCategories, userPaymentMethods] = await Promise.all([
-          getInstallmentPurchaseByGroupId(groupId, user.uid),
-          getCategories(user.uid),
-          getPaymentMethods(user.uid),
+          getInstallmentPurchaseByGroupId(groupId),
+          getCategories(),
+          getPaymentMethods(),
         ]);
 
         if (fetchedPurchase) {
@@ -67,7 +67,7 @@ export default function EditInstallmentPurchasePage() {
       date: new Date(values.date),
     };
 
-    const result = await updateInstallmentPurchase(purchase.groupId, formattedValues, user.uid);
+    const result = await updateInstallmentPurchase(purchase.groupId, formattedValues);
 
     if (result.success) {
       toast({ title: translations.transactionUpdatedTitle, description: "The installment purchase has been successfully updated." });

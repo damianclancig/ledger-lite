@@ -44,7 +44,7 @@ export default function InstallmentsPage() {
         return;
       }
       setIsLoading(true);
-      const { pendingDetails, completedDetails, totalPending, totalForCurrentMonth } = await getInstallmentDetails(dbUser.id);
+      const { pendingDetails, completedDetails, totalPending, totalForCurrentMonth } = await getInstallmentDetails();
       setPendingDetails(pendingDetails);
       setCompletedDetails(completedDetails);
       setTotalPending(totalPending);

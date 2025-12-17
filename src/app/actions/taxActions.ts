@@ -4,9 +4,10 @@ import { ObjectId } from 'mongodb';
 import { getDb, mapMongoDocumentTax } from '@/lib/actions-helpers';
 import type { Tax, TaxFormValues, Translations } from '@/types';
 import {
-  validateUserId,
-  validateUserAndId,
+  validateObjectId,
 } from '@/lib/validation-helpers';
+
+import { getAuthenticatedUser } from '@/lib/auth-server';
 import {
   handleActionError,
   type ErrorResponse,
@@ -16,9 +17,9 @@ import {
   CacheTag,
 } from '@/lib/cache-helpers';
 
-export async function getTaxes(userId: string): Promise<Tax[] | ErrorResponse> {
+export async function getTaxes(): Promise<Tax[] | ErrorResponse> {
   try {
-    validateUserId(userId);
+    const { id: userId } = await getAuthenticatedUser();
     const { taxesCollection } = await getDb();
 
     // One-time migration for documents without a 'year'
@@ -32,7 +33,7 @@ export async function getTaxes(userId: string): Promise<Tax[] | ErrorResponse> {
 
         // Check if a document with the new values already exists
         let existing = await taxesCollection.findOne({ userId, name: tax.name, month, year });
-        
+
         while (existing) {
           // If it exists, increment the month and possibly the year
           month++;
@@ -42,7 +43,7 @@ export async function getTaxes(userId: string): Promise<Tax[] | ErrorResponse> {
           }
           existing = await taxesCollection.findOne({ userId, name: tax.name, month, year });
         }
-        
+
         bulkOps.push({
           updateOne: {
             filter: { _id: tax._id },
@@ -62,27 +63,28 @@ export async function getTaxes(userId: string): Promise<Tax[] | ErrorResponse> {
   }
 }
 
-export async function getTaxById(id: string, userId: string): Promise<Tax | ErrorResponse> {
+export async function getTaxById(id: string): Promise<Tax | ErrorResponse> {
   try {
-    validateUserAndId(userId, id, 'tax ID');
-    
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'tax ID');
+
     const { taxesCollection } = await getDb();
     const tax = await taxesCollection.findOne({ _id: new ObjectId(id), userId });
-    
+
     if (!tax) {
       return { error: 'Tax not found.' };
     }
-    
+
     return mapMongoDocumentTax(tax);
   } catch (error) {
     return handleActionError(error, 'fetch tax');
   }
 }
 
-export async function getUniqueTaxNames(userId: string): Promise<string[] | ErrorResponse> {
+export async function getUniqueTaxNames(): Promise<string[] | ErrorResponse> {
   try {
-    validateUserId(userId);
-    
+    const { id: userId } = await getAuthenticatedUser();
+
     const { taxesCollection } = await getDb();
     const pipeline = [
       { $match: { userId: userId } },
@@ -97,10 +99,10 @@ export async function getUniqueTaxNames(userId: string): Promise<string[] | Erro
   }
 }
 
-export async function addTax(data: TaxFormValues, userId: string, translations: Translations): Promise<Tax | ErrorResponse> {
+export async function addTax(data: TaxFormValues, translations: Translations): Promise<Tax | ErrorResponse> {
   try {
-    validateUserId(userId);
-    
+    const { id: userId } = await getAuthenticatedUser();
+
     const { name, amount, month, year } = data;
     const { taxesCollection } = await getDb();
 
@@ -115,7 +117,7 @@ export async function addTax(data: TaxFormValues, userId: string, translations: 
     if (existingTax) {
       return { error: translations.taxExistsError };
     }
-    
+
     const documentToInsert = {
       name,
       amount,
@@ -124,29 +126,30 @@ export async function addTax(data: TaxFormValues, userId: string, translations: 
       userId,
       isPaid: false
     };
-    
+
     const result = await taxesCollection.insertOne(documentToInsert);
     const insertedId = result.insertedId;
 
     revalidateUserTag(userId, CacheTag.TAXES);
-    
+
     const newTax = await taxesCollection.findOne({ _id: insertedId });
     if (!newTax) {
       throw new Error('Could not find the newly created tax.');
     }
-    
+
     return mapMongoDocumentTax(newTax);
   } catch (error) {
     return handleActionError(error, 'add tax');
   }
 }
 
-export async function updateTax(id: string, data: Partial<Pick<Tax, 'name' | 'amount' | 'month' | 'year'>>, userId: string, translations: Translations): Promise<Tax | ErrorResponse> {
+export async function updateTax(id: string, data: Partial<Pick<Tax, 'name' | 'amount' | 'month' | 'year'>>, translations: Translations): Promise<Tax | ErrorResponse> {
   try {
-    validateUserAndId(userId, id, 'tax ID');
-    
+    const { id: userId } = await getAuthenticatedUser();
+    validateObjectId(id, 'tax ID');
+
     const { taxesCollection } = await getDb();
-    
+
     const existingTax = await taxesCollection.findOne({ _id: new ObjectId(id), userId });
     if (!existingTax) {
       return { error: 'Tax not found or you do not have permission to edit it.' };
@@ -155,7 +158,7 @@ export async function updateTax(id: string, data: Partial<Pick<Tax, 'name' | 'am
     if (existingTax.isPaid) {
       return { error: translations.paidTaxEditError };
     }
-    
+
     // Check for duplicates if critical fields are changing
     if (data.name || data.month || data.year) {
       const potentialDuplicate = await taxesCollection.findOne({
@@ -174,18 +177,18 @@ export async function updateTax(id: string, data: Partial<Pick<Tax, 'name' | 'am
       { _id: new ObjectId(id), userId },
       { $set: data }
     );
-    
+
     if (result.matchedCount === 0) {
       return { error: 'Tax not found or you do not have permission to edit it.' };
     }
 
     revalidateUserTag(userId, CacheTag.TAXES);
-    
+
     const updatedTax = await taxesCollection.findOne({ _id: new ObjectId(id) });
     if (!updatedTax) {
       throw new Error('Could not find the updated tax.');
     }
-    
+
     return mapMongoDocumentTax(updatedTax);
   } catch (error) {
     return handleActionError(error, 'update tax');

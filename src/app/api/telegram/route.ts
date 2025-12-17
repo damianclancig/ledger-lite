@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { TelegramUpdate, ParsedTransaction } from '@/types';
 import { verifyTelegramWebhook, sendMessage, answerCallbackQuery } from '@/lib/telegram/bot';
-import { 
-  getTelegramUser, 
-  linkTelegramAccount, 
-  unlinkTelegramAccount 
+import {
+  getTelegramUser,
+  linkTelegramAccount,
+  unlinkTelegramAccount
 } from '@/lib/telegram/userMapping';
 import { parseTransactionMessage } from '@/lib/telegram/nlp';
 import { parseEditCommand, isLikelyEditCommand } from '@/lib/telegram/editParser';
@@ -18,9 +18,9 @@ import {
   handleCancelCommand,
   showTransactionConfirmation,
 } from '@/lib/telegram/commands';
-import { addTransaction } from '@/app/actions/transactions/transactionCrud';
-import { getCategories } from '@/app/actions/categoryActions';
-import { getPaymentMethods } from '@/app/actions/paymentMethodActions';
+import { addInternalTransaction as addTransaction } from '@/app/actions/transactions/transactionCrud';
+import { getInternalCategories as getCategories } from '@/app/actions/categoryActions';
+import { getInternalPaymentMethods as getPaymentMethods } from '@/app/actions/paymentMethodActions';
 
 /**
  * Telegram Bot Webhook
@@ -49,21 +49,21 @@ function findMatchingCategory(suggestedCategory: string | undefined, categories:
   }
 
   const normalized = suggestedCategory.toLowerCase();
-  
+
   // Try exact match first (case insensitive)
-  let match = categories.find(c => 
+  let match = categories.find(c =>
     c.name.toLowerCase() === normalized && c.isEnabled
   );
   if (match) return match;
 
   // Try if category name contains the suggestion
-  match = categories.find(c => 
+  match = categories.find(c =>
     c.name.toLowerCase().includes(normalized) && c.isEnabled
   );
   if (match) return match;
 
   // Try if suggestion contains the category name
-  match = categories.find(c => 
+  match = categories.find(c =>
     normalized.includes(c.name.toLowerCase()) && c.isEnabled
   );
   if (match) return match;
@@ -92,9 +92,9 @@ function findMatchingCategory(suggestedCategory: string | undefined, categories:
       // First try to find exact category name
       match = categories.find(c => c.name === categoryName && c.isEnabled);
       if (match) return match;
-      
+
       // Then try to find by keyword in actual category names
-      match = categories.find(c => 
+      match = categories.find(c =>
         keywords.some(kw => c.name.toLowerCase().includes(kw)) && c.isEnabled
       );
       if (match) return match;
@@ -116,19 +116,19 @@ function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods:
   const normalized = suggestedMethod.toLowerCase();
 
   // Try exact match by name first (case insensitive)
-  let match = methods.find(m => 
+  let match = methods.find(m =>
     m.name.toLowerCase() === normalized && m.isEnabled
   );
   if (match) return match;
 
   // Try if method name contains the suggestion
-  match = methods.find(m => 
+  match = methods.find(m =>
     m.name.toLowerCase().includes(normalized) && m.isEnabled
   );
   if (match) return match;
 
   // Try if suggestion contains the method name
-  match = methods.find(m => 
+  match = methods.find(m =>
     normalized.includes(m.name.toLowerCase()) && m.isEnabled
   );
   if (match) return match;
@@ -154,11 +154,11 @@ function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods:
   for (const [methodType, keywords] of Object.entries(methodMap)) {
     if (keywords.some(kw => normalized.includes(kw) || kw.includes(normalized))) {
       // First try to find by keyword in actual method names (e.g., "Lemon Tarjeta" contains "lemon")
-      match = methods.find(m => 
+      match = methods.find(m =>
         keywords.some(kw => m.name.toLowerCase().includes(kw)) && m.isEnabled
       );
       if (match) return match;
-      
+
       // Then try to find by type
       match = methods.find(m => m.type === methodType && m.isEnabled);
       if (match) return match;
@@ -166,7 +166,7 @@ function findMatchingPaymentMethod(suggestedMethod: string | undefined, methods:
   }
 
   // Try exact match by type as last resort
-  match = methods.find(m => 
+  match = methods.find(m =>
     m.type.toLowerCase() === normalized && m.isEnabled
   );
   if (match) return match;
@@ -232,7 +232,7 @@ async function handleMessage(message: TelegramUpdate['message']) {
   // Check if user has a pending transaction
   const pendingKey = `${chatId}_pending`;
   const pendingState = pendingTransactions.get(pendingKey);
-  
+
   if (pendingState) {
     // User has a pending transaction, check if this is an edit command
     if (isLikelyEditCommand(text)) {
@@ -350,7 +350,7 @@ async function handleLinkCommand(
   firstName?: string
 ) {
   const result = await linkTelegramAccount(code, telegramId, username, firstName);
-  
+
   if (result.success) {
     await sendMessage({
       chatId,
@@ -366,7 +366,7 @@ async function handleLinkCommand(
 
 async function handleUnlinkCommand(chatId: number, telegramId: string) {
   const result = await unlinkTelegramAccount(telegramId);
-  
+
   if (result.success) {
     await sendMessage({
       chatId,
@@ -427,9 +427,9 @@ async function handleNaturalLanguageMessage(
   // If no payment method, use fallback
   let wasDefaultPaymentMethod = false;
   if (!parsed.paymentMethod) {
-    const cashMethod = enabledMethods.find(m => 
-      m.type === 'Cash' || 
-      m.name.toLowerCase().includes('efectivo') || 
+    const cashMethod = enabledMethods.find(m =>
+      m.type === 'Cash' ||
+      m.name.toLowerCase().includes('efectivo') ||
       m.name.toLowerCase().includes('cash')
     );
     if (cashMethod) {
@@ -471,7 +471,7 @@ async function handleEditCommand(
 ) {
   // Parse the edit command
   const editCommand = parseEditCommand(text);
-  
+
   if (!editCommand || editCommand.type === 'none') {
     // Not a valid edit command
     await sendMessage({
@@ -611,7 +611,7 @@ async function handleCallbackQuery(callbackQuery: TelegramUpdate['callback_query
     // Clear pending transaction
     const pendingKey = `${chatId}_pending`;
     pendingTransactions.delete(pendingKey);
-    
+
     await sendMessage({
       chatId,
       text: '❌ Transacción cancelada.',

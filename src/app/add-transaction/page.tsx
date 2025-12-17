@@ -29,8 +29,8 @@ export default function AddTransactionPage() {
       if (!dbUser) return;
       setIsLoading(true);
       const [userCategories, userPaymentMethods] = await Promise.all([
-        getCategories(dbUser.id),
-        getPaymentMethods(dbUser.id),
+        getCategories(),
+        getPaymentMethods(),
       ]);
       setCategories(userCategories);
       setPaymentMethods(userPaymentMethods);
@@ -73,13 +73,13 @@ export default function AddTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await addTransaction(formattedValues, dbUser.id);
+    const result = await addTransaction(formattedValues);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else if (result) {
       if (taxId) {
-        await markTaxAsPaid(taxId, result.id, dbUser.id);
+        await markTaxAsPaid(taxId, result.id);
       }
       toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
       router.push(redirectPath);
@@ -98,7 +98,7 @@ export default function AddTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await addTransaction(formattedValues, dbUser.id);
+    const result = await addTransaction(formattedValues);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
