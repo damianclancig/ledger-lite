@@ -4,6 +4,16 @@ import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 export type TransactionType = "income" | "expense" | "deposit" | "withdrawal" | "transfer";
 
+export interface User {
+  id: string;
+  firebaseUid: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt: string; // ISO string
+  lastLogin: string; // ISO string
+}
+
 export const CATEGORIES = [
   { key: "Salary", isSystem: false },
   { key: "Groceries", isSystem: false },
@@ -105,7 +115,7 @@ export interface SavingsFund {
 }
 
 export type SavingsFundFormValues = Omit<SavingsFund, "id" | "userId" | "currentAmount"> & {
-    targetDate?: Date; // Form uses Date object
+  targetDate?: Date; // Form uses Date object
 };
 
 
@@ -119,13 +129,13 @@ export interface BillingCycle {
 
 // Card Summary types
 export interface CardSummary {
-    cardId: string;
-    cardName: string;
-    cardBank?: string;
-    totalAmount: number;
-    transactions: Transaction[];
-    cycleStartDate?: string;
-    cycleEndDate?: string;
+  cardId: string;
+  cardName: string;
+  cardBank?: string;
+  totalAmount: number;
+  transactions: Transaction[];
+  cycleStartDate?: string;
+  cycleEndDate?: string;
 }
 
 export interface PaidSummary {
@@ -138,7 +148,7 @@ export interface PaidSummary {
 export type Language = "en" | "es" | "pt";
 
 export const MONTHS = [
-  "January", "February", "March", "April", "May", "June", 
+  "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ] as const;
 export type Month = (typeof MONTHS)[number];

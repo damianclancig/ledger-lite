@@ -16,7 +16,7 @@ import type { Category, PaymentMethod } from "@/types";
 export default function AddTransactionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
   const [formKey, setFormKey] = useState(Date.now());
@@ -26,18 +26,18 @@ export default function AddTransactionPage() {
 
   useEffect(() => {
     async function loadData() {
-      if (!user) return;
+      if (!dbUser) return;
       setIsLoading(true);
       const [userCategories, userPaymentMethods] = await Promise.all([
-        getCategories(user.uid),
-        getPaymentMethods(user.uid),
+        getCategories(dbUser.id),
+        getPaymentMethods(dbUser.id),
       ]);
       setCategories(userCategories);
       setPaymentMethods(userPaymentMethods);
       setIsLoading(false);
     }
     loadData();
-  }, [user]);
+  }, [dbUser]);
 
   const taxId = searchParams.get('taxId');
   const isTaxPayment = !!taxId;
@@ -62,7 +62,7 @@ export default function AddTransactionPage() {
   }
 
   const handleFormSubmit = async (values: TransactionFormValues) => {
-    if (!user) {
+    if (!dbUser) {
       toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
@@ -73,13 +73,13 @@ export default function AddTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await addTransaction(formattedValues, user.uid);
+    const result = await addTransaction(formattedValues, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else if (result) {
       if (taxId) {
-        await markTaxAsPaid(taxId, result.id, user.uid);
+        await markTaxAsPaid(taxId, result.id, dbUser.id);
       }
       toast({ title: translations.transactionAddedTitle, description: translations.transactionAddedDesc });
       router.push(redirectPath);
@@ -87,7 +87,7 @@ export default function AddTransactionPage() {
   };
 
   const handleSaveAndAddAnother = async (values: TransactionFormValues) => {
-    if (!user) {
+    if (!dbUser) {
       toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
@@ -98,7 +98,7 @@ export default function AddTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await addTransaction(formattedValues, user.uid);
+    const result = await addTransaction(formattedValues, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

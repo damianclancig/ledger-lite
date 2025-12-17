@@ -26,7 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { getCategoryIcon } from "@/lib/icon-utils";
 
 export default function ManageCategoriesPage() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { translations, translateCategory } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -36,16 +36,16 @@ export default function ManageCategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!dbUser) return;
     async function loadCategories() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
-      const userCategories = await getCategories(user.uid);
+      const userCategories = await getCategories(dbUser.id);
       setCategories(userCategories);
       setIsLoading(false);
     }
     loadCategories();
-  }, [user]);
+  }, [dbUser]);
 
   const handleEditClick = (category: Category) => {
     if (category.isSystem) return;
@@ -53,14 +53,14 @@ export default function ManageCategoriesPage() {
   };
 
   const handleToggleEnabled = async (category: Category) => {
-    if (!user || category.isSystem) return;
-    const result = await updateCategory(category.id, { name: category.name, icon: category.icon, isEnabled: !category.isEnabled }, user.uid, translations);
+    if (!dbUser || category.isSystem) return;
+    const result = await updateCategory(category.id, { name: category.name, icon: category.icon, isEnabled: !category.isEnabled }, dbUser.id, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.categoryUpdatedSuccess });
-      const userCategories = await getCategories(user.uid);
+      const userCategories = await getCategories(dbUser.id);
       setCategories(userCategories);
     }
   };

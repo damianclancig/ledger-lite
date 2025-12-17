@@ -14,7 +14,7 @@ import { SavingsFundForm, type SavingsFundFormSubmitValues } from "@/components/
 export default function EditSavingsFundPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
@@ -27,10 +27,10 @@ export default function EditSavingsFundPage() {
     if (!id || !user) return;
 
     async function fetchData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
-        const fetchedFund = await getSavingsFundById(id, user.uid);
+        const fetchedFund = await getSavingsFundById(id, dbUser.id);
 
         if (fetchedFund) {
           setFund(fetchedFund);
@@ -46,10 +46,10 @@ export default function EditSavingsFundPage() {
       }
     }
     fetchData();
-  }, [id, user, router, toast, translations]);
+  }, [id, dbUser, router, toast, translations]);
 
   const handleFormSubmit = async (values: SavingsFundFormSubmitValues) => {
-    if (!user || !fund) return;
+    if (!dbUser || !fund) return;
 
     // Convert Date to ISO string for the action
     const formattedValues = {
@@ -59,7 +59,7 @@ export default function EditSavingsFundPage() {
       targetDate: values.targetDate ? values.targetDate.toISOString() : undefined,
     };
 
-    const result = await updateSavingsFund(fund.id, formattedValues as any, user.uid);
+    const result = await updateSavingsFund(fund.id, formattedValues as any, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

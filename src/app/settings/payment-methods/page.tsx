@@ -25,7 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 
 export default function ManagePaymentMethodsPage() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { translations, translatePaymentType } = useTranslations();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -35,23 +35,23 @@ export default function ManagePaymentMethodsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!dbUser) return;
     async function loadData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
-      const userMethods = await getPaymentMethods(user.uid);
+      const userMethods = await getPaymentMethods(dbUser.id);
       setPaymentMethods(userMethods);
       setIsLoading(false);
     }
     loadData();
-  }, [user]);
+  }, [dbUser]);
 
   const handleEditClick = (method: PaymentMethod) => {
     router.push(`/settings/payment-methods/edit/${method.id}`);
   };
 
   const handleToggleEnabled = async (method: PaymentMethod) => {
-    if (!user) return;
+    if (!dbUser) return;
     const values: PaymentMethodFormValues = {
       name: method.name,
       type: method.type,
@@ -59,13 +59,13 @@ export default function ManagePaymentMethodsPage() {
       closingDay: method.closingDay,
       isEnabled: !method.isEnabled
     };
-    const result = await updatePaymentMethod(method.id, values, user.uid);
+    const result = await updatePaymentMethod(method.id, values, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
       toast({ title: translations.paymentMethodUpdatedSuccess });
-      const userMethods = await getPaymentMethods(user.uid);
+      const userMethods = await getPaymentMethods(dbUser.id);
       setPaymentMethods(userMethods);
     }
   };

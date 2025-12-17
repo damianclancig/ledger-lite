@@ -15,7 +15,7 @@ import { TaxForm, type TaxFormSubmitValues } from "@/components/taxes/TaxForm";
 export default function EditTaxPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
@@ -29,12 +29,12 @@ export default function EditTaxPage() {
     if (!id || !user) return;
 
     async function fetchData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [taxResult, namesResult] = await Promise.all([
-          getTaxById(id, user.uid),
-          getUniqueTaxNames(user.uid)
+          getTaxById(id, dbUser.id),
+          getUniqueTaxNames(dbUser.id)
         ]);
 
         if (isErrorResponse(taxResult)) {
@@ -65,17 +65,17 @@ export default function EditTaxPage() {
       }
     }
     fetchData();
-  }, [id, user, router, toast, translations]);
+  }, [id, dbUser, router, toast, translations]);
 
   const handleFormSubmit = async (values: TaxFormSubmitValues) => {
-    if (!user || !tax) return;
+    if (!dbUser || !tax) return;
 
     const result = await updateTax(tax.id, {
       name: values.name,
       amount: values.amount,
       month: values.month,
       year: values.year,
-    }, user.uid, translations);
+    }, dbUser.id, translations);
 
     if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

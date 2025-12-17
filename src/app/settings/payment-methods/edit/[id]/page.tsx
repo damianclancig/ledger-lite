@@ -14,7 +14,7 @@ import { PaymentMethodForm } from "@/components/settings/PaymentMethodForm";
 export default function EditPaymentMethodPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
@@ -27,10 +27,10 @@ export default function EditPaymentMethodPage() {
     if (!id || !user) return;
 
     async function fetchData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
-        const fetchedMethod = await getPaymentMethodById(id, user.uid);
+        const fetchedMethod = await getPaymentMethodById(id, dbUser.id);
 
         if (fetchedMethod) {
           setPaymentMethod(fetchedMethod);
@@ -46,12 +46,12 @@ export default function EditPaymentMethodPage() {
       }
     }
     fetchData();
-  }, [id, user, router, toast, translations]);
+  }, [id, dbUser, router, toast, translations]);
 
   const handleFormSubmit = async (values: PaymentMethodFormValues) => {
-    if (!user || !paymentMethod) return;
+    if (!dbUser || !paymentMethod) return;
 
-    const result = await updatePaymentMethod(paymentMethod.id, values, user.uid);
+    const result = await updatePaymentMethod(paymentMethod.id, values, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });

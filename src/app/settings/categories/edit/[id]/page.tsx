@@ -14,7 +14,7 @@ import { CategoryForm } from "@/components/settings/CategoryForm";
 export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
@@ -28,12 +28,12 @@ export default function EditCategoryPage() {
     if (!id || !user) return;
 
     async function fetchData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedCategory, inUse] = await Promise.all([
-          getCategoryById(id, user.uid),
-          isCategoryInUse(id, user.uid),
+          getCategoryById(id, dbUser.id),
+          isCategoryInUse(id, dbUser.id),
         ]);
 
         if (fetchedCategory) {
@@ -56,12 +56,12 @@ export default function EditCategoryPage() {
       }
     }
     fetchData();
-  }, [id, user, router, toast, translations]);
+  }, [id, dbUser, router, toast, translations]);
 
   const handleFormSubmit = async (values: CategoryFormValues) => {
-    if (!user || !category) return;
+    if (!dbUser || !category) return;
 
-    const result = await updateCategory(category.id, values, user.uid, translations);
+    const result = await updateCategory(category.id, values, dbUser.id, translations);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -72,9 +72,9 @@ export default function EditCategoryPage() {
   };
 
   const handleDelete = async () => {
-    if (!user || !category || !isDeletable) return;
+    if (!dbUser || !category || !isDeletable) return;
 
-    const result = await deleteCategory(category.id, user.uid, translations);
+    const result = await deleteCategory(category.id, dbUser.id, translations);
     if (result.success) {
       toast({ title: translations.categoryDeletedSuccess, variant: 'destructive' });
       router.push("/settings/categories");

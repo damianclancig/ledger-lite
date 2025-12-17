@@ -16,7 +16,7 @@ import type { Transaction, Category, PaymentMethod } from "@/types";
 export default function EditTransactionPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
@@ -31,13 +31,13 @@ export default function EditTransactionPage() {
     if (!id || !user) return;
 
     async function fetchData() {
-      if (!user) return; // Additional check for TypeScript
+      if (!dbUser) return; // Additional check for TypeScript
       setIsLoading(true);
       try {
         const [fetchedTransaction, userCategories, userPaymentMethods] = await Promise.all([
-          getTransactionById(id, user.uid),
-          getCategories(user.uid),
-          getPaymentMethods(user.uid),
+          getTransactionById(id, dbUser.id),
+          getCategories(dbUser.id),
+          getPaymentMethods(dbUser.id),
         ]);
 
         if (fetchedTransaction) {
@@ -56,10 +56,10 @@ export default function EditTransactionPage() {
       }
     }
     fetchData();
-  }, [id, user, router, toast, translations]);
+  }, [id, dbUser, router, toast, translations]);
 
   const handleFormSubmit = async (values: TransactionFormValues) => {
-    if (!user || !transaction) return;
+    if (!dbUser || !transaction) return;
 
     // Convert date string to Date object for the action
     const formattedValues = {
@@ -67,7 +67,7 @@ export default function EditTransactionPage() {
       date: new Date(values.date),
     };
 
-    const result = await updateTransaction(transaction.id, formattedValues, user.uid);
+    const result = await updateTransaction(transaction.id, formattedValues, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
