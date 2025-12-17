@@ -14,7 +14,7 @@ import { useTranslations } from "@/contexts/LanguageContext";
 export default function AddTaxPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
   const [taxNames, setTaxNames] = useState<string[]>([]);
@@ -34,9 +34,9 @@ export default function AddTaxPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!dbUser) return;
     setIsLoading(true);
-    getUniqueTaxNames(user.uid)
+    getUniqueTaxNames(dbUser.id)
       .then(result => {
         if (isErrorResponse(result)) {
           console.error('Error loading tax names:', result.error);
@@ -47,15 +47,15 @@ export default function AddTaxPage() {
         }
       })
       .finally(() => setIsLoading(false));
-  }, [user, initialData]);
+  }, [dbUser, initialData]);
 
   const handleFormSubmit = async (values: TaxFormSubmitValues) => {
-    if (!user) {
+    if (!dbUser) {
       toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
 
-    const result = await addTax(values, user.uid, translations);
+    const result = await addTax(values, dbUser.id, translations);
 
     if (isErrorResponse(result)) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
@@ -64,7 +64,7 @@ export default function AddTaxPage() {
       router.push("/taxes");
     }
   };
-  
+
   if (isLoading) {
     return <EditPageLoader />;
   }

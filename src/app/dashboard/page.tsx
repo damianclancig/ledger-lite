@@ -47,7 +47,7 @@ interface ExpenseByCategory {
 export default function DashboardPage() {
   const { translations } = useTranslations();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, dbUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const filterCardRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
 
   const loadDataForCycle = useCallback(async (cycle: BillingCycle | null) => {
-    if (!user) return;
+    if (!dbUser) return;
     setIsLoading(true);
     try {
       let cycleId = cycle ? cycle.id : null;
@@ -114,7 +114,7 @@ export default function DashboardPage() {
         }
       }
 
-      const data = await getDashboardData(user.uid, cycleId);
+      const data = await getDashboardData(dbUser.id, cycleId);
 
       if (!data.currentCycle && data.totalCyclesCount === 0) {
         router.push('/welcome');
@@ -133,7 +133,7 @@ export default function DashboardPage() {
       // Update selected cycle state based on what we loaded
       if (cycleId) {
         const loadedCycle = data.billingCycles.find(c => c.id === cycleId) ||
-          (cycleId === ALL_CYCLES_ID ? { id: ALL_CYCLES_ID, userId: user.uid, startDate: new Date(0).toISOString() } : null) ||
+          (cycleId === ALL_CYCLES_ID ? { id: ALL_CYCLES_ID, userId: dbUser.id, startDate: new Date(0).toISOString() } : null) ||
           data.currentCycle;
         setSelectedCycle(loadedCycle);
       } else {
@@ -146,13 +146,26 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, router, toast, translations]);
+  }, [dbUser, router, toast, translations]);
 
   useEffect(() => {
-    if (user && !selectedCycle) {
+    if (authLoading) return;
+
+    if (!dbUser) {
+      if (user) {
+        // User is logged in to Firebase but not synced to DB
+        // Wait for AuthContext to handle error or user to refresh, but don't hang indefinitely.
+        setIsLoading(false); // Stop loading skeleton
+      } else {
+        router.push('/welcome');
+      }
+      return;
+    }
+
+    if (!selectedCycle) {
       loadDataForCycle(null);
     }
-  }, [user, selectedCycle, loadDataForCycle]);
+  }, [dbUser, selectedCycle, loadDataForCycle, authLoading, user, router]);
 
   const handleSelectCycle = (cycle: BillingCycle | null) => {
     if (cycle) {
@@ -175,8 +188,8 @@ export default function DashboardPage() {
   }, [currentPage]);
 
   const handleStartNewCycle = async (startDate: Date) => {
-    if (!user) return;
-    const result = await startNewCycle(user.uid, startDate);
+    if (!dbUser) return;
+    const result = await startNewCycle(dbUser.id, startDate);
     if ('error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
     } else {
@@ -203,8 +216,8 @@ export default function DashboardPage() {
   };
 
   const confirmDelete = async () => {
-    if (deletingTransaction && user) {
-      const result = await deleteTransaction(deletingTransaction.id, user.uid);
+    if (deletingTransaction && dbUser) {
+      const result = await deleteTransaction(deletingTransaction.id, dbUser.id);
       if (result.success) {
         loadDataForCycle(selectedCycle);
         toast({ title: translations.transactionDeletedTitle, description: translations.transactionDeletedDesc, variant: "destructive" });
@@ -249,11 +262,11 @@ export default function DashboardPage() {
   const allCyclesWithVirtualOption: BillingCycle[] = useMemo(() => {
     const allCyclesOption: BillingCycle = {
       id: ALL_CYCLES_ID,
-      userId: user?.uid || '',
+      userId: dbUser?.id || '',
       startDate: new Date(0).toISOString(),
     };
     return [...billingCycles, allCyclesOption];
-  }, [billingCycles, user]);
+  }, [billingCycles, dbUser]);
 
   if (isLoading || !selectedCycle) {
     return (

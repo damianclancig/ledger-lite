@@ -22,10 +22,10 @@ import { PayCardSummaryDialog } from "./_components/PayCardSummaryDialog";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CardSummariesPage() {
-    const { user } = useAuth();
+    const { user, dbUser } = useAuth();
     const { translations, language } = useTranslations();
     const { toast } = useToast();
-    
+
     const [summaries, setSummaries] = useState<CardSummary[]>([]);
     const [paidSummaries, setPaidSummaries] = useState<PaidSummary[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -37,14 +37,14 @@ export default function CardSummariesPage() {
     const currentLocale = locales[language] || enUS;
 
     const loadData = async () => {
-        if (!user) return;
+        if (!dbUser) return;
         setIsLoading(true);
         try {
             const [summariesResult, fetchedPaymentMethods] = await Promise.all([
-                getCardSummaries(user.uid),
-                getPaymentMethods(user.uid),
+                getCardSummaries(dbUser.id),
+                getPaymentMethods(dbUser.id),
             ]);
-            
+
             if (isErrorResponse(summariesResult)) {
                 console.error('Error loading card summaries:', summariesResult.error);
                 toast({ title: translations.errorTitle, description: summariesResult.error, variant: "destructive" });
@@ -54,7 +54,7 @@ export default function CardSummariesPage() {
                 setSummaries(summariesResult.pendingSummaries);
                 setPaidSummaries(summariesResult.paidSummaries);
             }
-            
+
             setPaymentMethods(fetchedPaymentMethods.filter(pm => pm.type !== 'Credit Card'));
         } catch (error) {
             console.error("Failed to load card summaries:", error);
@@ -63,10 +63,10 @@ export default function CardSummariesPage() {
             setIsLoading(false);
         }
     };
-    
+
     useEffect(() => {
         loadData();
-    }, [user, toast, translations]);
+    }, [dbUser, toast, translations]);
 
     const handleOpenPayDialog = (summary: CardSummary) => {
         setSelectedSummary(summary);
@@ -74,21 +74,21 @@ export default function CardSummariesPage() {
     };
 
     const handlePaySummary = async (values: { amount: number; paymentMethodId: string; date: Date }) => {
-        if (!user || !selectedSummary) return;
+        if (!dbUser || !selectedSummary) return;
 
         const description = translations.paymentForCardSummary.replace('{cardName}', selectedSummary.cardName);
 
         const result = await payCardSummary(
-            user.uid, 
-            selectedSummary.cardId, 
-            values.amount, 
-            values.date, 
-            values.paymentMethodId, 
+            dbUser.id,
+            selectedSummary.cardId,
+            values.amount,
+            values.date,
+            values.paymentMethodId,
             description,
             selectedSummary.cycleStartDate,
             selectedSummary.cycleEndDate
         );
-        
+
         if (isErrorResponse(result)) {
             toast({ title: translations.summaryPaymentError, description: result.error, variant: "destructive" });
         } else {
@@ -111,7 +111,7 @@ export default function CardSummariesPage() {
             </div>
         );
     }
-    
+
     return (
         <div className="space-y-8">
             <div className="flex items-center">
@@ -136,7 +136,7 @@ export default function CardSummariesPage() {
                 <div className="space-y-6">
                     {summaries.map(summary => (
                         <Card key={summary.cardId} className="shadow-xl border-2 border-primary/20">
-                           <CardHeader>
+                            <CardHeader>
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                                     <div className="flex items-center">
                                         <Wallet className="h-6 w-6 sm:h-7 sm:w-7 mr-3 text-primary" />
@@ -183,24 +183,24 @@ export default function CardSummariesPage() {
                             </CardContent>
                             <CardFooter>
                                 <Button className="w-full text-base sm:text-lg" onClick={() => handleOpenPayDialog(summary)}>
-                                    <DollarSign className="h-5 w-5 mr-2"/> {translations.paySummary}
+                                    <DollarSign className="h-5 w-5 mr-2" /> {translations.paySummary}
                                 </Button>
                             </CardFooter>
                         </Card>
                     ))}
                 </div>
             )}
-            
+
             {paidSummaries.length > 0 && (
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="paid-history">
                         <Card className="shadow-xl border-2 border-primary/20">
                             <AccordionTrigger className="p-4 hover:no-underline">
                                 <CardHeader className="p-0 flex-1">
-                                <CardTitle className="flex items-center text-primary text-left">
-                                    <History className="h-5 w-5 mr-3" />
-                                    {translations.paymentHistory}
-                                </CardTitle>
+                                    <CardTitle className="flex items-center text-primary text-left">
+                                        <History className="h-5 w-5 mr-3" />
+                                        {translations.paymentHistory}
+                                    </CardTitle>
                                 </CardHeader>
                             </AccordionTrigger>
                             <AccordionContent>

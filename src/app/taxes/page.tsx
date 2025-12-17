@@ -33,23 +33,23 @@ interface AggregatedTax {
 }
 
 export default function TaxesPage() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { translations, translateMonth } = useTranslations();
   const router = useRouter();
   const isMobile = useIsMobile();
-  
+
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     async function loadTaxes() {
-      if (!user) {
+      if (!dbUser) {
         setTaxes([]);
         setIsLoading(false);
         return;
       }
       setIsLoading(true);
-      const result = await getTaxes(user.uid);
+      const result = await getTaxes(dbUser.id);
       if (isErrorResponse(result)) {
         console.error('Error loading taxes:', result.error);
         setTaxes([]);
@@ -59,7 +59,7 @@ export default function TaxesPage() {
       setIsLoading(false);
     }
     loadTaxes();
-  }, [user]);
+  }, [dbUser]);
 
   const handlePayClick = (tax: Tax) => {
     const description = `${translations.taxPayment} ${tax.name}\n${translateMonth(tax.month)} ${tax.year}`;
@@ -72,7 +72,7 @@ export default function TaxesPage() {
     });
     router.push(`/add-transaction?${params.toString()}`);
   }
-  
+
   const handleEditClick = (taxId: string) => {
     router.push(`/edit-tax/${taxId}`);
   };
@@ -84,7 +84,7 @@ export default function TaxesPage() {
       nextMonth = 0;
       nextYear++;
     }
-    
+
     const params = new URLSearchParams({
       name: tax.name,
       month: String(nextMonth),
@@ -95,15 +95,15 @@ export default function TaxesPage() {
 
   const aggregatedTaxes = useMemo((): AggregatedTax[] => {
     const taxGroups = new Map<string, Tax[]>();
-  
+
     // Sort by year, then month, both descending.
     const sortedTaxes = [...taxes].sort((a, b) => {
-        if (a.year !== b.year) {
-          return b.year - a.year;
-        }
-        return b.month - a.month;
-      });
-  
+      if (a.year !== b.year) {
+        return b.year - a.year;
+      }
+      return b.month - a.month;
+    });
+
     sortedTaxes.forEach(tax => {
       const group = taxGroups.get(tax.name);
       if (group) {
@@ -112,27 +112,27 @@ export default function TaxesPage() {
         taxGroups.set(tax.name, [tax]);
       }
     });
-  
+
     const result: AggregatedTax[] = [];
-  
+
     taxGroups.forEach((group) => {
       // The group is already sorted by date descending. The first one is the latest.
       const latestRecord = group[0];
       const history = group.slice(1); // All records except the most recent one
-  
+
       result.push({
         latestRecord,
         history,
       });
     });
-  
+
     return result.sort((a, b) => a.latestRecord.name.localeCompare(b.latestRecord.name));
   }, [taxes]);
-  
+
 
   const historyPopover = (history: Tax[]) => (
     <Popover>
-       <Tooltip>
+      <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 ml-2 group">
@@ -147,40 +147,40 @@ export default function TaxesPage() {
       <PopoverContent className="w-auto max-w-[90vw] p-0">
         <div className="overflow-x-auto p-2">
           <h4 className="font-semibold text-center mb-1 text-base">{translations.history}</h4>
-            {history.length === 0 ? (
+          {history.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-1">{translations.noHistory}</p>
           ) : (
-          <table className="w-full text-center">
-            <thead>
-              <tr>
-                {history.map((rec) => (
-                  <th key={rec.id} className="px-1.5 py-1 font-normal text-muted-foreground text-base">{`${translateMonth(rec.month)} ${rec.year}`}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {history.map((rec) => (
-                  <td key={rec.id} className="px-1.5 py-1 font-semibold font-mono text-base">
-                     <div className="flex items-center justify-center gap-1">
+            <table className="w-full text-center">
+              <thead>
+                <tr>
+                  {history.map((rec) => (
+                    <th key={rec.id} className="px-1.5 py-1 font-normal text-muted-foreground text-base">{`${translateMonth(rec.month)} ${rec.year}`}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {history.map((rec) => (
+                    <td key={rec.id} className="px-1.5 py-1 font-semibold font-mono text-base">
+                      <div className="flex items-center justify-center gap-1">
                         {rec.isPaid ? (
-                        <span className="text-green-500">{formatCurrency(rec.amount)}</span>
+                          <span className="text-green-500">{formatCurrency(rec.amount)}</span>
                         ) : (
-                        <Button variant="link" className="h-auto p-0 text-red-500 hover:text-red-600 text-base" onClick={() => handlePayClick(rec)}>
+                          <Button variant="link" className="h-auto p-0 text-red-500 hover:text-red-600 text-base" onClick={() => handlePayClick(rec)}>
                             {formatCurrency(rec.amount)}
-                        </Button>
+                          </Button>
                         )}
                         {!rec.isPaid && (
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditClick(rec.id)}>
-                              <Edit className="h-3 w-3" />
+                            <Edit className="h-3 w-3" />
                           </Button>
                         )}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           )}
         </div>
       </PopoverContent>
@@ -191,17 +191,17 @@ export default function TaxesPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center mb-8">
-            <Skeleton className="h-8 w-8 mr-3" />
-            <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-8 w-8 mr-3" />
+          <Skeleton className="h-8 w-64" />
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
     );
   }
-  
+
   const renderContent = () => {
     if (aggregatedTaxes.length === 0) {
-       return (
+      return (
         <Card className="shadow-xl border-2 border-primary">
           <CardContent>
             <div className="text-center py-10 px-6 text-muted-foreground">
@@ -210,7 +210,7 @@ export default function TaxesPage() {
             </div>
           </CardContent>
         </Card>
-       )
+      )
     }
 
     if (isMobile) {
@@ -220,13 +220,13 @@ export default function TaxesPage() {
             <Card key={latestRecord.id} className="shadow-lg border-2 border-primary/20 overflow-hidden flex flex-col">
               <CardContent className="p-4 flex-grow space-y-3">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <span className="font-medium text-base">{latestRecord.name}</span>
-                        {history.length > 0 && historyPopover(history)}
-                    </div>
-                    <div className="flex items-center">
-                        <span className="text-sm text-muted-foreground">{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
-                    </div>
+                  <div className="flex items-center">
+                    <span className="font-medium text-base">{latestRecord.name}</span>
+                    {history.length > 0 && historyPopover(history)}
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground">{`${translateMonth(latestRecord.month)} ${latestRecord.year}`}</span>
+                  </div>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-end text-xl font-semibold pt-2 font-mono">
@@ -244,7 +244,7 @@ export default function TaxesPage() {
                     </div>
                     <Separator orientation="vertical" className="h-full" />
                     <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleAddNewPeriodClick(latestRecord)}>
-                       <CalendarPlus className="h-5 w-5" />
+                      <CalendarPlus className="h-5 w-5" />
                     </Button>
                   </>
                 ) : (
@@ -254,8 +254,8 @@ export default function TaxesPage() {
                       {translations.pay}
                     </Button>
                     <Separator orientation="vertical" className="h-full" />
-                     <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleAddNewPeriodClick(latestRecord)}>
-                       <CalendarPlus className="h-5 w-5" />
+                    <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleAddNewPeriodClick(latestRecord)}>
+                      <CalendarPlus className="h-5 w-5" />
                     </Button>
                     <Separator orientation="vertical" className="h-full" />
                     <Button variant="ghost" className="flex-shrink-0 rounded-none px-4" onClick={() => handleEditClick(latestRecord.id)}>
@@ -295,49 +295,49 @@ export default function TaxesPage() {
                   <TableCell className="text-right text-base font-semibold font-mono">{formatCurrency(latestRecord.amount)}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-2 text-right">
-                        <div className="w-10 h-10 flex items-center justify-center">
-                            {latestRecord.isPaid ? (
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                    <CheckCircle className="h-8 w-8 text-green-500" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                    <p className="text-base">{translations.paid}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
-                                        <DollarSign className="h-8 w-8" strokeWidth={2.5} />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="text-base">{translations.pay}</p>
-                                </TooltipContent>
-                                </Tooltip>
-                            )}
-                        </div>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => handleAddNewPeriodClick(latestRecord)} className="h-10 w-10">
-                                    <CalendarPlus className="h-8 w-8" />
-                                </Button>
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        {latestRecord.isPaid ? (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <CheckCircle className="h-8 w-8 text-green-500" />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p className="text-base">{translations.newTax}</p>
+                              <p className="text-base">{translations.paid}</p>
                             </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="destructive" size="icon" onClick={() => handlePayClick(latestRecord)} className="h-10 w-10 rounded-full bg-red-600 hover:bg-red-700">
+                                <DollarSign className="h-8 w-8" strokeWidth={2.5} />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-base">{translations.pay}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                      <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(latestRecord.id)} className="h-10 w-10" disabled={latestRecord.isPaid}>
-                                {!latestRecord.isPaid && <Edit className="h-8 w-8" />}
-                            </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleAddNewPeriodClick(latestRecord)} className="h-10 w-10">
+                            <CalendarPlus className="h-8 w-8" />
+                          </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p className="text-base">{translations.edit}</p>
+                          <p className="text-base">{translations.newTax}</p>
                         </TooltipContent>
-                        </Tooltip>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditClick(latestRecord.id)} className="h-10 w-10" disabled={latestRecord.isPaid}>
+                            {!latestRecord.isPaid && <Edit className="h-8 w-8" />}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-base">{translations.edit}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -353,16 +353,16 @@ export default function TaxesPage() {
     <TooltipProvider>
       <div className="space-y-8">
         <div className="flex items-center">
-            <Landmark className="h-8 w-8 mr-3 text-primary" />
-            <h1 className="text-3xl font-bold">{translations.taxes}</h1>
+          <Landmark className="h-8 w-8 mr-3 text-primary" />
+          <h1 className="text-3xl font-bold">{translations.taxes}</h1>
         </div>
-        
-        <IntroAccordion 
+
+        <IntroAccordion
           titleKey="taxesIntroTitle"
           contentKeys={["taxesIntroText1", "taxesIntroText2", "taxesIntroText3"]}
           storageKey="taxesIntroVisible"
         />
-        
+
         {renderContent()}
       </div>
 

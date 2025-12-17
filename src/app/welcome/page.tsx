@@ -22,7 +22,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import Link from "next/link";
 
 export default function WelcomePage() {
-    const { user } = useAuth();
+    const { user, dbUser } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
     const { translations, language } = useTranslations();
@@ -31,9 +31,9 @@ export default function WelcomePage() {
 
     const locales = { en: enUS, es, pt };
     const currentLocale = locales[language] || enUS;
-    
+
     const handleStartNewCycle = async () => {
-        if (!user || !newCycleStartDate) {
+        if (!dbUser || !newCycleStartDate) {
             toast({ title: translations.errorTitle, description: translations.dateRequired, variant: "destructive" });
             return;
         };
@@ -43,7 +43,7 @@ export default function WelcomePage() {
         const localDate = new Date(newCycleStartDate);
         localDate.setHours(0, 0, 0, 0);
 
-        const result = await startNewCycle(user.uid, localDate);
+        const result = await startNewCycle(dbUser.id, localDate);
         if ('error' in result) {
             toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
             setIsStartingNewCycle(false);
@@ -56,7 +56,7 @@ export default function WelcomePage() {
     return (
         <BackgroundWrapper>
             <div className="flex min-h-screen flex-col">
-                 <header className="flex items-center justify-end p-4">
+                <header className="flex items-center justify-end p-4">
                     <div className="flex items-center space-x-2">
                         <ThemeSwitcher />
                         <LanguageSwitcher />
@@ -76,54 +76,54 @@ export default function WelcomePage() {
                                 </span>
                             </h1>
                             <CardDescription className="text-base pt-2 text-foreground/80">
-                            {translations.welcomeSubtitle}
+                                {translations.welcomeSubtitle}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6 p-8 pt-0">
                             <p className="text-muted-foreground text-center">
-                            {translations.welcomeDesc}
+                                {translations.welcomeDesc}
                             </p>
                             <div className="space-y-2">
                                 <p className="font-semibold text-center">{translations.selectStartDate}</p>
                                 <div className="flex justify-center">
                                     <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-auto justify-center text-left font-normal text-lg h-12",
-                                            !newCycleStartDate && "text-muted-foreground"
-                                        )}
-                                        >
-                                        <CalendarIcon className="mr-2 h-5 w-5" />
-                                        {newCycleStartDate ? format(newCycleStartDate, "PPP", { locale: currentLocale }) : <span>{translations.date}</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <Calendar
-                                        mode="single"
-                                        selected={newCycleStartDate}
-                                        onSelect={setNewCycleStartDate}
-                                        disabled={(date) => date > new Date() || date < subDays(new Date(), 30)}
-                                        initialFocus
-                                        />
-                                    </PopoverContent>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-auto justify-center text-left font-normal text-lg h-12",
+                                                    !newCycleStartDate && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-5 w-5" />
+                                                {newCycleStartDate ? format(newCycleStartDate, "PPP", { locale: currentLocale }) : <span>{translations.date}</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={newCycleStartDate}
+                                                onSelect={setNewCycleStartDate}
+                                                disabled={(date) => date > new Date() || date < subDays(new Date(), 30)}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
                                     </Popover>
                                 </div>
                             </div>
                             <Button
-                            size="lg"
-                            onClick={handleStartNewCycle}
-                            disabled={isStartingNewCycle || !newCycleStartDate}
-                            className="w-full text-lg py-6 mt-4"
+                                size="lg"
+                                onClick={handleStartNewCycle}
+                                disabled={isStartingNewCycle || !newCycleStartDate}
+                                className="w-full text-lg py-6 mt-4"
                             >
-                            <Rocket className="mr-3 h-5 w-5" />
-                            {isStartingNewCycle ? translations.starting : translations.startFirstCycle}
+                                <Rocket className="mr-3 h-5 w-5" />
+                                {isStartingNewCycle ? translations.starting : translations.startFirstCycle}
                             </Button>
                             <p className="text-center text-xs text-muted-foreground px-4">
                                 {translations.welcomeTermsText1}{' '}
                                 <Link href="/terms" className="underline hover:text-primary">
-                                {translations.termsAndConditions}
+                                    {translations.termsAndConditions}
                                 </Link>
                                 .
                             </p>

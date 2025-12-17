@@ -1,20 +1,30 @@
 
 import { MongoClient, type WithId, type Document } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
-import type { Transaction, Tax, Category, PaymentMethod, SavingsFund, BillingCycle } from '@/types';
+import type { Transaction, Tax, Category, PaymentMethod, SavingsFund, BillingCycle, User } from '@/types';
 
 // Helper function to get the database and collection
 export async function getDb() {
   const client: MongoClient = await clientPromise;
   const db = client.db(process.env.MONGODB_DB || 'ledger_lite');
-  return { 
-    db, 
+  return {
+    db,
     transactionsCollection: db.collection('transactions'),
     taxesCollection: db.collection('taxes'),
     categoriesCollection: db.collection('categories'),
     paymentMethodsCollection: db.collection('paymentMethods'),
     savingsFundsCollection: db.collection('savingsFunds'),
     billingCyclesCollection: db.collection('billingCycles'),
+    usersCollection: db.collection('users'),
+  };
+}
+
+export function mapMongoDocumentUser(doc: WithId<Document>): User {
+  const baseDoc = mapBaseDocument<Omit<User, 'createdAt' | 'lastLogin'>>(doc as any);
+  return {
+    ...baseDoc,
+    createdAt: new Date(doc.createdAt).toISOString(),
+    lastLogin: new Date(doc.lastLogin).toISOString(),
   };
 }
 
@@ -26,7 +36,7 @@ function mapBaseDocument<T>(doc: WithId<Document>): T {
 // Map MongoDB's _id and other fields to a serializable object
 export function mapMongoDocument(doc: WithId<Document>): Transaction {
   const baseDoc = mapBaseDocument<Omit<Transaction, 'date'>>(doc as any);
-  return { 
+  return {
     ...baseDoc,
     date: new Date(doc.date).toISOString(), // Standardize to ISO string
   };
@@ -57,12 +67,11 @@ export function mapMongoDocumentSavingsFund(doc: WithId<Document>): SavingsFund 
 }
 
 export function mapMongoDocumentBillingCycle(doc: WithId<Document>): BillingCycle {
-    const baseDoc = mapBaseDocument<Omit<BillingCycle, 'startDate' | 'endDate'>>(doc as any);
-    return {
-      ...baseDoc,
-      startDate: new Date(doc.startDate).toISOString(),
-      endDate: doc.endDate ? new Date(doc.endDate).toISOString() : undefined,
-    };
-  }
+  const baseDoc = mapBaseDocument<Omit<BillingCycle, 'startDate' | 'endDate'>>(doc as any);
+  return {
+    ...baseDoc,
+    startDate: new Date(doc.startDate).toISOString(),
+    endDate: doc.endDate ? new Date(doc.endDate).toISOString() : undefined,
+  };
+}
 
-    

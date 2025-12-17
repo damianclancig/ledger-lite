@@ -16,19 +16,19 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 
 export default function AccountSettingsPage() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { translations } = useTranslations();
   const { toast } = useToast();
   const router = useRouter();
-  
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
 
   const handleDeleteAccount = async () => {
-    if (!user) return;
+    if (!dbUser) return;
     setIsDeleting(true);
-    const result = await deleteUserAccount(user.uid);
+    const result = await deleteUserAccount(dbUser.id);
     if (result.success) {
       // The server action was successful, now redirect to the goodbye page.
       // The goodbye page will handle the final client-side sign-out.
@@ -81,7 +81,7 @@ export default function AccountSettingsPage() {
           <CardDescription className="text-base">
             {translations.deleteAccountWarning}
           </CardDescription>
-           <AlertDialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+          <AlertDialog open={isDialogOpen} onOpenChange={handleOpenChange}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={isDeleting}>
                 {isDeleting ? translations.processing + "..." : translations.deleteAccount}
@@ -94,16 +94,16 @@ export default function AccountSettingsPage() {
                   <div className="text-base space-y-4">
                     <span>{translations.deleteAccountWarning}</span>
                     <div className="text-left pt-2">
-                        <Label htmlFor="delete-confirmation-input" className="mb-2 text-foreground font-medium block">{translations.deleteAccountInputPrompt}</Label>
-                        <Input
-                          id="delete-confirmation-input"
-                          type="text"
-                          value={confirmationText}
-                          onChange={(e) => setConfirmationText(e.target.value)}
-                          placeholder={translations.deleteAccountConfirmationWord}
-                          className="border-destructive focus-visible:ring-destructive"
-                          autoComplete="off"
-                        />
+                      <Label htmlFor="delete-confirmation-input" className="mb-2 text-foreground font-medium block">{translations.deleteAccountInputPrompt}</Label>
+                      <Input
+                        id="delete-confirmation-input"
+                        type="text"
+                        value={confirmationText}
+                        onChange={(e) => setConfirmationText(e.target.value)}
+                        placeholder={translations.deleteAccountConfirmationWord}
+                        className="border-destructive focus-visible:ring-destructive"
+                        autoComplete="off"
+                      />
                     </div>
                   </div>
                 </AlertDialogDescription>

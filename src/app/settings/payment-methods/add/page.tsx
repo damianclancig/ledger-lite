@@ -12,17 +12,17 @@ import React from "react";
 
 export default function AddPaymentMethodPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const { toast } = useToast();
   const { translations } = useTranslations();
 
   const handleFormSubmit = async (values: PaymentMethodFormValues) => {
-    if (!user) {
+    if (!dbUser) {
       toast({ title: translations.errorTitle, description: "You must be logged in to perform this action.", variant: "destructive" });
       return;
     }
 
-    const result = await addPaymentMethod(values, user.uid);
+    const result = await addPaymentMethod(values, dbUser.id);
 
     if (result && 'error' in result) {
       toast({ title: translations.errorTitle, description: result.error, variant: "destructive" });
